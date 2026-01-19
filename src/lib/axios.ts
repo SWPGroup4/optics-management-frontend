@@ -1,0 +1,39 @@
+// src/lib/axios.ts
+import { useAuthStore } from '@/features/auth/stores/useAuthStore';
+import axios from 'axios';
+export const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL, 
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// 1. Request Interceptor: Gắn Token
+api.interceptors.request.use(
+  (config) => {
+    // Gọi .getState() để lấy dữ liệu store bên ngoài React Component
+    const token = useAuthStore.getState().token; 
+    
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// 2. Response Interceptor: Xử lý data và lỗi 401
+api.interceptors.response.use(
+  (response) => {
+    // Trả về data trực tiếp (giúp code gọi API gọn hơn)
+    return response.data;
+  },
+  (error) => {
+    // Nếu lỗi 401 (Unauthorized) -> Token hết hạn hoặc không hợp lệ
+    if (error.response?.status === 401) {
+      // Thực hiện logout để xóa token cũ và redirect về login
+      useAuthStore.getState().logout();
+    }
+    return Promise.reject(error);
+  }
+);
