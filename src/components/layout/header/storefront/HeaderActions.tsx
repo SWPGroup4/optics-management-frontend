@@ -34,12 +34,12 @@ export default function HeaderActions() {
         // --- GUEST ---
         <div className="flex items-center gap-2 animate-in fade-in">
            <div className="w-px h-6 bg-gray-200 mx-1 hidden sm:block"></div>
-           <Link to="/login">
+           <Link to="/auth/login">
              <Button variant="ghost" size="sm" className="font-semibold text-gray-600 hover:text-black">
                Đăng nhập
              </Button>
            </Link>
-           <Link to="/register">
+           <Link to="/auth/register">
              <Button size="sm" className="rounded-full bg-zinc-900 hover:bg-black text-white px-5 shadow-sm">
                Đăng ký
              </Button>

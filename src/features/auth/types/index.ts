@@ -59,8 +59,40 @@ export interface AuthStore {
   // Actions
   login: (username: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
+  registerUser: (data: RegisterInput) => Promise<void>;
 }
 export interface ApiResponse<T> {
   code: number;
   result: T;
+}
+
+// --- Schema cho Register Form ---
+export const RegisterSchema = z.object({
+  username: z.string().min(4, "Username phải có ít nhất 4 ký tự"),
+  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+  firstName: z.string().min(1, "Vui lòng nhập Họ"),
+  lastName: z.string().min(1, "Vui lòng nhập Tên"),
+  dob: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "Ngày sinh không hợp lệ",
+  }),
+});
+
+
+// src/features/auth/types/index.ts
+
+export interface RegisterInput {
+  username: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  dob: string; // Định dạng "YYYY-MM-DD"
+}
+
+// Định nghĩa thông tin User trả về sau khi đăng ký thành công
+export interface UserRegistrationResult {
+  id: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  dob: string;
 }

@@ -2,52 +2,46 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, Loader2 } from "lucide-react"; // Thêm icon Loader
+import { ArrowRight, Loader2 } from "lucide-react"; 
 import { useLoginForm } from "../hooks/useLoginForm";
 
 export default function LoginForm() {
-  // 1. Lấy logic từ Hook mới (React Hook Form)
   const { form, onSubmit, isLoading } = useLoginForm();
-  
-  // 2. Trích xuất các hàm cần thiết từ form instance
   const { register, handleSubmit, formState: { errors } } = form;
 
   return (
-    <div className="w-full">
+    // Tăng max-w một chút từ 380px lên 420px để cân bằng với layout lớn
+    <div className="w-full max-w-[420px] mx-auto transition-all duration-500">
       
-      {/* HEADER */}
-      <div className="mb-10 text-center">
-        <h2 className="text-3xl font-bold text-zinc-900 mb-2">Welcome back</h2>
-        <p className="text-gray-500 text-sm font-medium">Please enter your details to sign in.</p>
+      {/* HEADER: Tăng size chữ và margin */}
+      <div className="mb-12 text-center">
+        <h2 className="text-4xl font-bold text-zinc-900 mb-3 tracking-tight">Welcome back</h2>
+        <p className="text-gray-500 text-base font-medium">Please enter your details to sign in.</p>
       </div>
 
-      {/* FORM BODY */}
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         
-        {/* Hiển thị lỗi chung (VD: Sai tài khoản/mật khẩu) */}
         {errors.root && (
-          <div className="p-3 rounded-xl bg-red-50 text-red-600 text-sm font-medium text-center border border-red-100">
+          <div className="p-4 rounded-2xl bg-red-50 text-red-600 text-sm font-medium text-center border border-red-100 animate-in fade-in zoom-in-95">
             {errors.root.message}
           </div>
         )}
 
-        {/* Username Field */}
+        {/* Username Field: Tăng chiều cao h-16 và padding */}
         <div className="space-y-2">
           <Label className="sr-only" htmlFor="username">Username</Label>
           <Input
             id="username"
             placeholder="USERNAME / EMAIL"
             disabled={isLoading}
-            // --- KẾT NỐI VỚI HOOK FORM ---
             {...register("username")} 
-            // ------------------------------
-            className={`rounded-2xl h-14 px-6 bg-gray-50 border-transparent 
-              focus:bg-white focus:ring-4 focus:ring-gray-100 transition-all 
-              text-sm font-medium tracking-wide placeholder:text-gray-400
-              ${errors.username ? "border-red-500 focus:ring-red-100" : "focus:border-gray-200"}`}
+            className={`rounded-2xl h-16 px-6 bg-gray-50 border-transparent 
+              focus:bg-white focus:ring-4 focus:ring-zinc-100 transition-all 
+              text-base font-medium tracking-wide placeholder:text-gray-400
+              ${errors.username ? "border-red-500 focus:ring-red-50" : "focus:border-gray-200"}`}
           />
           {errors.username && (
-            <p className="text-xs text-red-500 px-4 mt-1 font-medium animate-pulse">
+            <p className="text-xs text-red-500 px-4 mt-1 font-medium italic">
               {errors.username.message}
             </p>
           )}
@@ -61,54 +55,51 @@ export default function LoginForm() {
             type="password"
             placeholder="PASSWORD"
             disabled={isLoading}
-            // --- KẾT NỐI VỚI HOOK FORM ---
             {...register("password")}
-            // ------------------------------
-            className={`rounded-2xl h-14 px-6 bg-gray-50 border-transparent 
-              focus:bg-white focus:ring-4 focus:ring-gray-100 transition-all 
-              text-sm font-medium tracking-wide placeholder:text-gray-400
-              ${errors.password ? "border-red-500 focus:ring-red-100" : "focus:border-gray-200"}`}
+            className={`rounded-2xl h-16 px-6 bg-gray-50 border-transparent 
+              focus:bg-white focus:ring-4 focus:ring-zinc-100 transition-all 
+              text-base font-medium tracking-wide placeholder:text-gray-400
+              ${errors.password ? "border-red-500 focus:ring-red-50" : "focus:border-gray-200"}`}
           />
           {errors.password && (
-            <p className="text-xs text-red-500 px-4 mt-1 font-medium animate-pulse">
+            <p className="text-xs text-red-500 px-4 mt-1 font-medium italic">
               {errors.password.message}
             </p>
           )}
         </div>
 
-        {/* Submit Button */}
-        <div className="pt-2">
+        {/* Submit Button: Tăng độ cao và hiệu ứng đổ bóng mạnh hơn */}
+        <div className="pt-4">
           <Button 
             type="submit" 
             disabled={isLoading} 
-            className="w-full h-14 rounded-full bg-zinc-900 hover:bg-black text-white font-bold tracking-widest transition-all shadow-lg shadow-zinc-900/20 flex items-center justify-center gap-3 active:scale-[0.98]"
+            className="w-full h-16 rounded-2xl bg-zinc-900 hover:bg-black text-white font-bold tracking-[0.15em] transition-all shadow-xl shadow-zinc-900/20 flex items-center justify-center gap-3 active:scale-[0.97] text-base"
           >
             {isLoading ? (
               <>
-                <span>LOGGING IN...</span>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="animate-pulse">LOGGING IN...</span>
+                <Loader2 className="w-5 h-5 animate-spin" />
               </>
             ) : (
               <>
-                <span>LOGIN</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>SIGN IN</span>
+                <ArrowRight className="w-5 h-5" />
               </>
             )}
           </Button>
         </div>
 
-        {/* Extra Links */}
-        <div className="flex justify-center items-center gap-6 text-[11px] text-gray-400 font-semibold tracking-wider uppercase mt-4">
-          <a href="#" className="hover:text-zinc-900 transition-colors">Forgot Password</a>
-          <span className="text-gray-300">•</span>
-          <a href="#" className="hover:text-zinc-900 transition-colors">Privacy Policy</a>
+        {/* Extra Links: Căn chỉnh lại font size cho dễ đọc */}
+        <div className="flex justify-between items-center px-2 text-[12px] text-gray-400 font-bold tracking-wider uppercase mt-4">
+          <a href="#" className="hover:text-zinc-900 transition-colors border-b border-transparent hover:border-zinc-900">Forgot Password</a>
+          <a href="#" className="hover:text-zinc-900 transition-colors border-b border-transparent hover:border-zinc-900">Privacy Policy</a>
         </div>
 
-        {/* FOOTER (Sign Up) */}
-        <div className="relative mt-8 pt-8 border-t border-gray-100">
-            <p className="text-center text-sm text-gray-500">
+        {/* FOOTER */}
+        <div className="relative mt-10 pt-10 border-t border-gray-100">
+            <p className="text-center text-base text-gray-500">
               Don't have an account?{" "}
-              <Link to="/register" className="font-bold text-zinc-900 hover:text-emerald-600 transition-colors inline-flex items-center gap-1 hover:underline underline-offset-4">
+              <Link to="/register" className="font-bold text-zinc-900 hover:text-emerald-600 transition-colors inline-flex items-center gap-1 hover:underline underline-offset-8">
                 Sign up for free
               </Link>
             </p>
