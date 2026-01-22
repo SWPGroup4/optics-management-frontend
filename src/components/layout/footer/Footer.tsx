@@ -1,3 +1,4 @@
+import Logo from "@/components/common/Logo";
 import React from "react";
 
 const Footer: React.FC = () => {
@@ -6,10 +7,7 @@ const Footer: React.FC = () => {
       <div style={styles.container}>
         {/* Left section */}
         <div style={styles.column}>
-          <div style={styles.logo}>
-            <span style={styles.logoIcon}>◼</span>
-            <span style={styles.logoText}>OpticStore</span>
-          </div>
+          <Logo className="" iconSize={6} textSize="text-xl" />
 
           <p style={styles.description}>
             Revolutionizing eyewear since 2012. We combine artisan craftsmanship

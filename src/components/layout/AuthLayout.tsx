@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 import { ScanFace, Glasses } from "lucide-react";
 import Header from "@/components/layout/header";
+import Footer from "./footer/Footer";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -61,6 +62,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
 
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
