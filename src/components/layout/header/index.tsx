@@ -4,6 +4,7 @@ import WorkspaceHeader from "./workspace/WorkspaceHeader";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, ScanBarcode, Settings } from "lucide-react";
 
+
 export default function Header() {
   const { user } = useAuthStore();
 
@@ -34,10 +35,12 @@ export default function Header() {
     );
   }
 
+
   // 4. Admin
   return (
       <WorkspaceHeader roleName="ADMIN" roleColor="text-purple-600">
          <Button variant="ghost" size="sm" className="gap-2"><Settings className="w-4 h-4"/> Config</Button>
       </WorkspaceHeader>
   );
+  
 }
