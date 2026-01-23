@@ -2,6 +2,8 @@ import { createBrowserRouter, Navigate } from "react-router-dom"
 import LoginPage from "@/features/auth/page/LoginPage"
 import { HomePage } from "@/features/home"
 import RegisterPage from "@/features/auth/page/RegisterPage"
+import { ProfileLayout } from "@/features/profile/layout/ProfileLayout"
+import ProfilePage from "@/features/profile/page/ProfilePage"
 //import { ProtectedRoute } from "./protected-route" // Giả sử bạn vẫn giữ file này từ bước trước
 
 // Giả lập trang Dashboard cho có chỗ để chuyển hướng
@@ -31,6 +33,21 @@ export const router = createBrowserRouter([
         path: "register",
         element: <RegisterPage />,
       }
+      // Sau này thêm register thì viết:
+      // { path: "/register", element: <RegisterPage /> }
+    ],
+  },
+
+  {
+    path: "/profile",
+    element: <ProfileLayout />,
+    // Không có path -> Layout này bọc tất cả các route con bên trong
+    children: [
+      {
+        index: true,
+        element: <ProfilePage />,
+      },
+
       // Sau này thêm register thì viết:
       // { path: "/register", element: <RegisterPage /> }
     ],
