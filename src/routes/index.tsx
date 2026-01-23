@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router-dom"
 import LoginPage from "@/features/auth/page/LoginPage"
 import { HomePage } from "@/features/home"
+import RegisterPage from "@/features/auth/page/RegisterPage"
 //import { ProtectedRoute } from "./protected-route" // Giả sử bạn vẫn giữ file này từ bước trước
 
 // Giả lập trang Dashboard cho có chỗ để chuyển hướng
@@ -19,12 +20,17 @@ export const router = createBrowserRouter([
   },
   // --- NHÓM 1: PUBLIC ROUTES (Login, Register...) ---
   {
+    path: "/auth",
     // Không có path -> Layout này bọc tất cả các route con bên trong
     children: [
       {
-        path: "/login",
+        path: "login",
         element: <LoginPage />,
       },
+      {
+        path: "register",
+        element: <RegisterPage />,
+      }
       // Sau này thêm register thì viết:
       // { path: "/register", element: <RegisterPage /> }
     ],
