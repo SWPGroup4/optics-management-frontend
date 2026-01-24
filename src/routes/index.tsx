@@ -8,6 +8,7 @@ import CheckoutPage from "@/features/checkout/pages/CheckoutPage"
 import HomePage from "@/features/home/page/HomePage"
 import { MainLayout } from "@/components/layout/MainLayout"
 import { PaymentFailurePage } from "@/features/checkout/pages/PaymentFailurePage"
+import { SearchResults } from "@/features/home/page/SearchResults"
 //import { ProtectedRoute } from "./protected-route" // Giả sử bạn vẫn giữ file này từ bước trước
 
 // Giả lập trang Dashboard cho có chỗ để chuyển hướng
@@ -48,6 +49,15 @@ export const router = createBrowserRouter([
           },
         ],
       },
+      {
+        path: "test-catalog",
+        children: [
+          {
+            index: true,
+            element: <SearchResults />,
+          },
+        ],
+      }
     ],
   },
 
@@ -72,6 +82,6 @@ export const router = createBrowserRouter([
   // ===== FALLBACK =====
   {
     path: "*",
-    element: <Navigate to="/auth/login" replace />,
+    element: <Navigate to="/" replace />,
   },
 ]);
