@@ -1,0 +1,38 @@
+import { ChevronRight, Home } from "lucide-react";
+import { Link } from "react-router-dom";
+
+interface BreadcrumbProps {
+  items: {
+    label: string;
+    link?: string; // Có link thì click được, không có thì là trang hiện tại
+  }[];
+}
+
+export default function Breadcrumb({ items }: BreadcrumbProps) {
+  return (
+    <nav className="flex items-center text-sm text-gray-500 mb-8 overflow-hidden whitespace-nowrap">
+      
+      {/* Luôn có nút Home đầu tiên */}
+      <Link to="/" className="hover:text-gray-900 flex items-center gap-1">
+        <Home className="w-4 h-4" /> Home
+      </Link>
+
+      {items.map((item, index) => (
+        <div key={index} className="flex items-center">
+          <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
+          
+          {item.link ? (
+            <Link to={item.link} className="hover:text-gray-900 font-medium">
+              {item.label}
+            </Link>
+          ) : (
+            // Phần tử cuối cùng (trang hiện tại) thường không click được và đậm hơn
+            <span className="text-gray-900 font-semibold truncate max-w-[200px]">
+              {item.label}
+            </span>
+          )}
+        </div>
+      ))}
+    </nav>
+  );
+}

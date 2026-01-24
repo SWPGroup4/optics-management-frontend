@@ -1,13 +1,10 @@
 import { Button } from "@/components/ui/button";
-import Footer from "@/components/layout/footer/Footer"; 
-import Header from "@/components/layout/header";
+
 import { Ruler, ShieldCheck, Clock, ArrowUpRight } from "lucide-react";
 
-export const HomePage = () => {
+export default function HomePage() {
   return (
     <div className="min-h-screen bg-white text-gray-900 font-sans flex flex-col selection:bg-gray-200 selection:text-black">
-      
-      <Header />
 
       <main className="flex-grow">
         
@@ -174,7 +171,7 @@ export const HomePage = () => {
         </div>
       </main>
 
-      <Footer />
+
     </div>
   );
 };

@@ -6,32 +6,49 @@ import {
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge"; // ✅ Đã được sử dụng bên dưới
+import { Badge } from "@/components/ui/badge";
 import { useAuthStore } from "@/features/auth/stores/useAuthStore";
+import { useCartStore } from "@/features/cart/store/useCartStore"; 
+
 export default function HeaderActions() {
   const { user, logout } = useAuthStore();
-  const cartItemCount = 2; // Số lượng trong giỏ
-  const unreadNotifications = 1; // Giả lập số thông báo
+  
+  // 👇 1. Lấy thêm isOpen và closeCart
+  const { openCart, closeCart, isOpen, items } = useCartStore();
+
+  const cartItemCount = items.reduce((total, item) => total + item.quantity, 0);
+  const unreadNotifications = 1;
+
+  // 👇 2. Tạo hàm xử lý Toggle
+  const handleToggleCart = () => {
+    if (isOpen) {
+      closeCart();
+    } else {
+      openCart();
+    }
+  };
 
   return (
     <div className="flex items-center gap-2 md:gap-4">
       
-      {/* 1. GIỎ HÀNG */}
-      <Link to="/cart">
-        <Button variant="ghost" size="icon" className="relative text-gray-600 hover:text-black">
-          <ShoppingBag className="w-5 h-5" />
-          {cartItemCount > 0 && (
-            // ✅ SỬA: Dùng Badge thay cho span
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 rounded-full bg-emerald-600 text-white text-[10px] border-2 border-white">
-              {cartItemCount}
-            </Badge>
-          )}
-        </Button>
-      </Link>
+      {/* --- GIỎ HÀNG --- */}
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        onClick={handleToggleCart} // 👈 3. Gắn hàm toggle vào đây
+        className={`relative text-gray-600 hover:text-black cursor-pointer transition-colors ${isOpen ? 'bg-gray-100 text-black' : ''}`}
+      >
+        <ShoppingBag className="w-5 h-5" />
+        
+        {cartItemCount > 0 && (
+          <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 rounded-full bg-emerald-600 text-white text-[10px] border-2 border-white">
+            {cartItemCount}
+          </Badge>
+        )}
+      </Button>
 
-      {/* 2. PHÂN CHIA TRẠNG THÁI LOGIN */}
+      {/* ... Phần User (Giữ nguyên) ... */}
       {!user ? (
-        // --- GUEST ---
         <div className="flex items-center gap-2 animate-in fade-in">
            <div className="w-px h-6 bg-gray-200 mx-1 hidden sm:block"></div>
            <Link to="/auth/login">
@@ -46,18 +63,16 @@ export default function HeaderActions() {
            </Link>
         </div>
       ) : (
-        // --- LOGGED IN USER ---
         <div className="flex items-center gap-2 animate-in fade-in">
-           {/* Notification Bell */}
+           {/* ... Notification & Avatar ... */}
+           {/* (Giữ nguyên phần code User/Avatar của bạn ở đây) */}
            <Button variant="ghost" size="icon" className="relative text-gray-600 hover:text-black hidden sm:flex">
              <Bell className="w-5 h-5" />
              {unreadNotifications > 0 && (
-                // ✅ SỬA: Thêm Badge cho thông báo luôn
                 <Badge className="absolute top-1.5 right-1.5 h-2 w-2 p-0 rounded-full bg-red-500 border border-white" />
              )}
            </Button>
 
-           {/* User Dropdown */}
            <DropdownMenu>
              <DropdownMenuTrigger asChild>
                <Button variant="ghost" className="relative h-9 w-9 rounded-full ml-1 ring-2 ring-transparent hover:ring-gray-200 transition-all">
