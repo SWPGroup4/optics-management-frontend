@@ -9,6 +9,8 @@ import HomePage from "@/features/home/page/HomePage"
 import { MainLayout } from "@/components/layout/MainLayout"
 import { PaymentFailurePage } from "@/features/checkout/pages/PaymentFailurePage"
 import { SearchResults } from "@/features/home/page/SearchResults"
+import ManagerDashboardPage from "@/features/manager/page/dashboard/ManagerDashboardPage.tsx";
+import { ManagerDashboardLayout } from "@/features/manager/layout/ManagerDashboardLayout";
 //import { ProtectedRoute } from "./protected-route" // Giả sử bạn vẫn giữ file này từ bước trước
 
 // Giả lập trang Dashboard cho có chỗ để chuyển hướng
@@ -76,6 +78,15 @@ export const router = createBrowserRouter([
     element: <ProfileLayout />,
     children: [
       { index: true, element: <ProfilePage /> },
+    ],
+  },
+
+  // ===== MANAGER =====
+  {
+    path: "/manager",
+    element: <ManagerDashboardLayout />,
+    children: [
+      { index: true, element: <ManagerDashboardPage /> },
     ],
   },
 
