@@ -9,8 +9,10 @@ import HomePage from "@/features/home/page/HomePage"
 import { MainLayout } from "@/components/layout/MainLayout"
 import { PaymentFailurePage } from "@/features/checkout/pages/PaymentFailurePage"
 import { SearchResults } from "@/features/home/page/SearchResults"
-import ManagerDashboardPage from "@/features/manager/page/dashboard/ManagerDashboardPage.tsx";
+import ManagerDashboardPage from "@/features/manager/page/dashboard/ManagerDashboardPage";
 import { ManagerDashboardLayout } from "@/features/manager/layout/ManagerDashboardLayout";
+import ManagerOrderPage from "@/features/manager/page/orders/ManagerOrderPage";
+import ManagerPricingPage from "@/features/manager/page/pricing/ManagerPricingPage";
 //import { ProtectedRoute } from "./protected-route" // Giả sử bạn vẫn giữ file này từ bước trước
 
 // Giả lập trang Dashboard cho có chỗ để chuyển hướng
@@ -87,6 +89,8 @@ export const router = createBrowserRouter([
     element: <ManagerDashboardLayout />,
     children: [
       { index: true, element: <ManagerDashboardPage /> },
+      { path: "orders", element: <ManagerOrderPage /> },
+      { path: "pricing", element: <ManagerPricingPage /> },
     ],
   },
 

@@ -1,10 +1,10 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
     LayoutDashboard,
-    // Package,
-    // ShoppingCart,
-    // Users,
-    // Tag,
+    Package,
+    ShoppingCart,
+    Users,
+    Tag,
     // Settings,
     Glasses,
     LogOut,
@@ -16,10 +16,10 @@ import { useState } from "react";
 
 const navigation = [
     { name: "Dashboard", href: "/manager", icon: LayoutDashboard },
-    // { name: "Products", href: "/manager/products", icon: Package },
-    // { name: "Orders", href: "/manager/orders", icon: ShoppingCart },
-    // { name: "Pricing", href: "/manager/pricing", icon: Tag },
-    // { name: "Staff", href: "/manager/staff", icon: Users },
+    { name: "Products", href: "/manager/products", icon: Package },
+    { name: "Orders", href: "/manager/orders", icon: ShoppingCart },
+    { name: "Pricing", href: "/manager/pricing", icon: Tag },
+    { name: "Staff", href: "/manager/staff", icon: Users },
     // { name: "Settings", href: "/manager/settings", icon: Settings },
 ];
 

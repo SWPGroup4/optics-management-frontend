@@ -1,7 +1,7 @@
 import { Bell, Search, Settings } from "lucide-react";
-import { Input } from "../components/input";
-import { Button } from "../components/button";
-import { Badge } from "../components/badge";
+import { Input } from "../components/ui/input.tsx";
+import { Button } from "../components/ui/button.tsx";
+import { Badge } from "../components/ui/badge.tsx";
 
 interface HeaderProps {
     title?: string;
