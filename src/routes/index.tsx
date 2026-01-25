@@ -23,6 +23,10 @@ export const router = createBrowserRouter([
         index: true,
         element: <HomePage />,
       },
+      {
+        path: "shop", 
+        element: <SearchResults />,
+      },
 
       // ===== PRODUCTS =====
       {

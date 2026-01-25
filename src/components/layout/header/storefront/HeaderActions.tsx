@@ -1,5 +1,6 @@
-import { Link } from "react-router-dom";
-import { ShoppingBag, Bell, LogOut, User, FileText, History } from "lucide-react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ShoppingBag, Bell, LogOut, User, FileText, History, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -7,108 +8,131 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input"; // Đảm bảo bạn có component này
 import { useAuthStore } from "@/features/auth/stores/useAuthStore";
 import { useCartStore } from "@/features/cart/store/useCartStore"; 
 
 export default function HeaderActions() {
+  const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-  
-  // 👇 1. Lấy thêm isOpen và closeCart
   const { openCart, closeCart, isOpen, items } = useCartStore();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const cartItemCount = items.reduce((total, item) => total + item.quantity, 0);
   const unreadNotifications = 1;
 
-  // 👇 2. Tạo hàm xử lý Toggle
-  const handleToggleCart = () => {
-    if (isOpen) {
-      closeCart();
-    } else {
-      openCart();
+  const handleToggleCart = () => isOpen ? closeCart() : openCart();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
   return (
-    <div className="flex items-center gap-2 md:gap-4">
+    <div className="flex items-center gap-3 md:gap-4">
       
-      {/* --- GIỎ HÀNG --- */}
+      {/* --- SEARCH BAR (Designer's Touch) --- */}
+      <form 
+        onSubmit={handleSearch} 
+        className="relative hidden lg:flex items-center group w-48 xl:w-64 transition-all duration-300 focus-within:w-72"
+      >
+        <Search className="absolute left-3 w-4 h-4 text-gray-400 group-focus-within:text-black transition-colors" />
+        <Input
+          type="text"
+          placeholder="Tìm kính, thương hiệu..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="h-10 pl-9 pr-4 bg-gray-50 border-none rounded-full focus-visible:ring-1 focus-visible:ring-gray-200 transition-all placeholder:text-gray-400 text-sm"
+        />
+      </form>
+
+      {/* --- SHOPPING CART --- */}
       <Button 
         variant="ghost" 
         size="icon" 
-        onClick={handleToggleCart} // 👈 3. Gắn hàm toggle vào đây
-        className={`relative text-gray-600 hover:text-black cursor-pointer transition-colors ${isOpen ? 'bg-gray-100 text-black' : ''}`}
+        onClick={handleToggleCart}
+        className={`relative rounded-full text-gray-600 hover:text-black hover:bg-gray-100 transition-all ${isOpen ? 'bg-gray-100 text-black shadow-inner' : ''}`}
       >
         <ShoppingBag className="w-5 h-5" />
-        
         {cartItemCount > 0 && (
-          <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 rounded-full bg-emerald-600 text-white text-[10px] border-2 border-white">
+          <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 rounded-full bg-zinc-900 text-white text-[10px] border-2 border-white animate-in zoom-in">
             {cartItemCount}
           </Badge>
         )}
       </Button>
 
-      {/* ... Phần User (Giữ nguyên) ... */}
+      {/* --- USER SECTION --- */}
       {!user ? (
-        <div className="flex items-center gap-2 animate-in fade-in">
+        <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2">
            <div className="w-px h-6 bg-gray-200 mx-1 hidden sm:block"></div>
            <Link to="/auth/login">
-             <Button variant="ghost" size="sm" className="font-semibold text-gray-600 hover:text-black">
-               Đăng nhập
+             <Button variant="ghost" size="sm" className="font-bold text-xs uppercase tracking-widest text-gray-500 hover:text-black">
+               Login
              </Button>
            </Link>
            <Link to="/auth/register">
-             <Button size="sm" className="rounded-full bg-zinc-900 hover:bg-black text-white px-5 shadow-sm">
-               Đăng ký
+             <Button size="sm" className="rounded-full bg-zinc-900 hover:bg-black text-white px-5 h-10 text-xs font-bold uppercase tracking-widest shadow-lg hover:shadow-xl transition-all">
+               Join
              </Button>
            </Link>
         </div>
       ) : (
-        <div className="flex items-center gap-2 animate-in fade-in">
-           {/* ... Notification & Avatar ... */}
-           {/* (Giữ nguyên phần code User/Avatar của bạn ở đây) */}
-           <Button variant="ghost" size="icon" className="relative text-gray-600 hover:text-black hidden sm:flex">
+        <div className="flex items-center gap-2">
+           <Button variant="ghost" size="icon" className="relative text-gray-600 hover:text-black rounded-full hidden sm:flex">
              <Bell className="w-5 h-5" />
              {unreadNotifications > 0 && (
-                <Badge className="absolute top-1.5 right-1.5 h-2 w-2 p-0 rounded-full bg-red-500 border border-white" />
+                <Badge className="absolute top-2 right-2 h-2 w-2 p-0 rounded-full bg-red-500 border border-white" />
              )}
            </Button>
 
            <DropdownMenu>
              <DropdownMenuTrigger asChild>
-               <Button variant="ghost" className="relative h-9 w-9 rounded-full ml-1 ring-2 ring-transparent hover:ring-gray-200 transition-all">
-                 <Avatar className="h-9 w-9 border border-gray-100">
+               <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 ring-offset-2 hover:ring-2 ring-gray-200 transition-all">
+                 <Avatar className="h-9 w-9 border border-gray-100 shadow-sm">
                    <AvatarImage src={user.avatar} alt={user.name} />
-                   <AvatarFallback className="bg-emerald-100 text-emerald-700 font-bold">
+                   <AvatarFallback className="bg-stone-100 text-stone-600 font-bold text-xs">
                       {user.name?.charAt(0).toUpperCase()}
                    </AvatarFallback>
                  </Avatar>
                </Button>
              </DropdownMenuTrigger>
-             <DropdownMenuContent className="w-60" align="end">
-               <DropdownMenuLabel>
+             <DropdownMenuContent className="w-64 rounded-2xl p-2 mt-2 shadow-2xl border-stone-100" align="end">
+               <DropdownMenuLabel className="font-normal px-3 py-4">
                  <div className="flex flex-col space-y-1">
-                   <p className="text-sm font-medium">{user.name}</p>
-                   <p className="text-xs text-muted-foreground">{user.email}</p>
+                   <p className="text-sm font-semibold leading-none text-gray-900">{user.name}</p>
+                   <p className="text-xs text-gray-400 italic">{user.email}</p>
                  </div>
                </DropdownMenuLabel>
-               <DropdownMenuSeparator />
-               <DropdownMenuItem asChild>
-                 <Link to="/account/profile" className="cursor-pointer w-full flex"><User className="mr-2 h-4 w-4" /> Tài khoản của tôi</Link>
-               </DropdownMenuItem>
-               <DropdownMenuItem asChild>
-                  <Link to="/account/orders" className="cursor-pointer w-full flex"><History className="mr-2 h-4 w-4" /> Lịch sử đơn hàng</Link>
-               </DropdownMenuItem>
-               <DropdownMenuItem asChild>
-                  <Link to="/account/prescriptions" className="cursor-pointer w-full flex"><FileText className="mr-2 h-4 w-4" /> Sổ đo mắt</Link>
-               </DropdownMenuItem>
-               <DropdownMenuSeparator />
-               <DropdownMenuItem onClick={logout} className="text-red-600 cursor-pointer focus:text-red-600">
-                 <LogOut className="mr-2 h-4 w-4" /> Đăng xuất
+               <DropdownMenuSeparator className="bg-gray-50" />
+               <div className="py-1">
+                  <DropdownItemLink to="/account/profile" icon={<User className="mr-3 h-4 w-4" />} label="Tài khoản cá nhân" />
+                  <DropdownItemLink to="/account/orders" icon={<History className="mr-3 h-4 w-4" />} label="Lịch sử đơn hàng" />
+                  <DropdownItemLink to="/account/prescriptions" icon={<FileText className="mr-3 h-4 w-4" />} label="Sổ đo mắt điện tử" />
+               </div>
+               <DropdownMenuSeparator className="bg-gray-50" />
+               <DropdownMenuItem 
+                 onClick={logout} 
+                 className="text-red-500 focus:bg-red-50 focus:text-red-600 rounded-xl cursor-pointer m-1 px-3 h-10 transition-colors"
+               >
+                 <LogOut className="mr-3 h-4 w-4" /> Đăng xuất
                </DropdownMenuItem>
              </DropdownMenuContent>
            </DropdownMenu>
         </div>
       )}
     </div>
+  );
+}
+
+// Helper component để code gọn hơn
+function DropdownItemLink({ to, icon, label }: { to: string, icon: React.ReactNode, label: string }) {
+  return (
+    <DropdownMenuItem asChild className="rounded-xl cursor-pointer m-1 px-3 h-10 focus:bg-stone-50">
+      <Link to={to} className="flex items-center text-gray-600 font-medium">
+        {icon} {label}
+      </Link>
+    </DropdownMenuItem>
   );
 }
