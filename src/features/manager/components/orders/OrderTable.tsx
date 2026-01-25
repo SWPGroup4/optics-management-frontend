@@ -10,13 +10,7 @@ import {
 import { Badge } from "../ui/badge.tsx";
 import { Button } from "../ui/button.tsx";
 import { Input } from "../ui/input.tsx";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "../ui/select.tsx";
+
 import {
     Dialog,
     DialogContent,
@@ -25,6 +19,7 @@ import {
     DialogTrigger,
 } from "../ui/dialog.tsx";
 import { Search, Filter, Eye, FileText } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select.tsx";
 
 interface Order {
     id: string;
