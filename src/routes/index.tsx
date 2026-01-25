@@ -13,6 +13,8 @@ import ManagerDashboardPage from "@/features/manager/page/dashboard/ManagerDashb
 import { ManagerDashboardLayout } from "@/features/manager/layout/ManagerDashboardLayout";
 import ManagerOrderPage from "@/features/manager/page/orders/ManagerOrderPage";
 import ManagerPricingPage from "@/features/manager/page/pricing/ManagerPricingPage";
+import ProductManagePage from "@/features/manager/page/products/ProductManagePage.tsx";
+import StaffCustomerPage from "@/features/manager/page/staff/StaffCustomerPgae.tsx";
 //import { ProtectedRoute } from "./protected-route" // Giả sử bạn vẫn giữ file này từ bước trước
 
 // Giả lập trang Dashboard cho có chỗ để chuyển hướng
@@ -91,6 +93,8 @@ export const router = createBrowserRouter([
       { index: true, element: <ManagerDashboardPage /> },
       { path: "orders", element: <ManagerOrderPage /> },
       { path: "pricing", element: <ManagerPricingPage /> },
+      { path: "products", element: <ProductManagePage /> },
+      { path: "staff", element: <StaffCustomerPage /> },
     ],
   },
 
