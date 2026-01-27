@@ -1,50 +1,48 @@
 import { create } from 'zustand';
-import { type PrescriptionData, INITIAL_EYE_SPECS } from '@/types/prescription';
+import { productApi } from '../api/product-api';
+import type { Product } from '../types/product-type';
 
 interface ProductState {
-  // State
-  orderType: 'buy-now' | 'pre-order' | 'custom';
-  selectedLensId: string;
-  prescription: PrescriptionData;
-  isPrescriptionModalOpen: boolean;
+  products: Product[];
+  currentProduct: Product | null;
+  isLoading: boolean;
+  error: string | null;
 
-  // Actions
-  setOrderType: (type: 'buy-now' | 'pre-order' | 'custom') => void;
-  setLensId: (id: string) => void;
-  setPrescriptionModalOpen: (isOpen: boolean) => void;
-  updatePrescription: (data: Partial<PrescriptionData>) => void;
-  resetStore: () => void;
+  fetchProducts: () => Promise<void>;
+  fetchProductById: (id: string) => Promise<void>;
 }
 
-export const useProductStore = create<ProductState>((set) => ({
-  orderType: 'buy-now',
-  selectedLensId: 'standard',
-  
-  prescription: {
-    imageUrl: null,
-    od: { ...INITIAL_EYE_SPECS },
-    os: { ...INITIAL_EYE_SPECS },
-    notes: ''
-  },
-  
-  isPrescriptionModalOpen: false,
+export const useProductStore = create<ProductState>((set, get) => ({
+  products: [],
+  currentProduct: null,
+  isLoading: false,
+  error: null,
 
-  setOrderType: (type) => set({ orderType: type }),
-  setLensId: (id) => set({ selectedLensId: id }),
-  setPrescriptionModalOpen: (isOpen) => set({ isPrescriptionModalOpen: isOpen }),
-  
-  updatePrescription: (data) => set((state) => ({
-    prescription: { ...state.prescription, ...data }
-  })),
-
-  resetStore: () => set({ 
-    orderType: 'buy-now', 
-    selectedLensId: 'standard',
-    prescription: { 
-      imageUrl: null, 
-      od: { ...INITIAL_EYE_SPECS }, 
-      os: { ...INITIAL_EYE_SPECS }, 
-      notes: '' 
+  fetchProducts: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await productApi.getAllProducts();
+      const data = response as unknown as { result: Product[] };
+      set({ products: data.result, isLoading: false });
+    } catch  {
+      set({ error: "Lỗi tải danh sách", isLoading: false });
     }
-  })
+  },
+
+  fetchProductById: async (id: string) => {
+    const existing = get().products.find(p => p.id === id);
+    if (existing) {
+      set({ currentProduct: existing });
+      return;
+    }
+
+    set({ isLoading: true });
+    try {
+      const response = await productApi.getProductById(id);
+      const data = response as unknown as { result: Product };
+      set({ currentProduct: data.result, isLoading: false });
+    } catch {
+      set({ error: "Không tìm thấy sản phẩm", isLoading: false });
+    }
+  },
 }));

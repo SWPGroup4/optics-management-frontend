@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
-
-import { Ruler, ShieldCheck, Clock, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 export default function HomePage() {
   return (
@@ -10,12 +9,10 @@ export default function HomePage() {
         
         {/* --- 1. HERO SECTION --- */}
         <section className="w-full bg-[#FAFAFA] pt-10 md:pt-0 min-h-[600px] md:h-[80vh] flex items-center relative overflow-hidden">
-          {/* Background Decor */}
           <div className="absolute top-0 right-0 w-[55%] h-full bg-[#F3F3F3] skew-x-12 translate-x-20 z-0 hidden md:block"></div>
 
           <div className="max-w-7xl mx-auto px-4 md:px-8 w-full grid grid-cols-1 md:grid-cols-2 gap-8 items-center relative z-10">
             
-            {/* Left Content */}
             <div className="space-y-6 md:space-y-8 animate-in slide-in-from-bottom-10 duration-1000 fade-in order-2 md:order-1 pb-10 md:pb-0">
               <div className="inline-flex items-center gap-3">
                  <div className="h-[1px] w-12 bg-gray-400"></div>
@@ -32,44 +29,74 @@ export default function HomePage() {
               </p>
               
               <div className="flex flex-wrap gap-4 pt-2">
-                <Button className="h-12 md:h-14 px-8 md:px-10 bg-gray-900 hover:bg-black text-white rounded-none transition-all duration-300 shadow-lg hover:shadow-xl text-xs md:text-sm font-bold tracking-widest uppercase">
+                {/* Updated Button Radius */}
+                <Button className="h-12 md:h-14 px-8 md:px-10 bg-gray-900 hover:bg-black text-white rounded-[15px] transition-all duration-300 shadow-lg hover:shadow-xl text-xs md:text-sm font-bold tracking-widest uppercase">
                   Shop Collection
                 </Button>
-                <Button variant="ghost" className="h-12 md:h-14 px-6 md:px-8 text-gray-900 hover:bg-gray-100 rounded-none text-xs md:text-sm font-bold tracking-widest uppercase border-b border-gray-900 hover:border-transparent transition-all">
+                <Button variant="ghost" className="h-12 md:h-14 px-6 md:px-8 text-gray-900 hover:bg-gray-100 rounded-[15px] text-xs md:text-sm font-bold tracking-widest uppercase border-b border-gray-900 hover:border-transparent transition-all">
                   Book Exam
                 </Button>
               </div>
             </div>
 
-            {/* Right Image - Đã thay link mới (Cô gái đeo kính) */}
             <div className="relative h-[400px] md:h-full w-full order-1 md:order-2">
+              {/* Updated Image Radius */}
               <img 
-                src="https://matkinhlb.com.vn/wp-content/uploads/2022/09/2-2.webp" 
+                src="https://i.pinimg.com/1200x/fc/70/4d/fc704d779033c6dd94e1c8288776204d.jpg" 
                 alt="Hero Eyewear Model" 
-                className="w-full h-full object-cover object-top md:object-center"
+                className="w-full h-full object-cover object-top md:object-center rounded-[15px]"
               />
             </div>
           </div>
         </section>
+        {/* --- NEW SECTION: AUDIENCE CATEGORIES --- */}
+<section className="max-w-7xl mx-auto px-4 md:px-8 py-12">
+  <div className="flex justify-between items-end mb-8">
+    <h2 className="text-2xl font-serif text-gray-900 tracking-tight">Browse by Category</h2>
+    <a href="#" className="text-[10px] font-bold uppercase tracking-[0.1em] text-gray-400 hover:text-gray-900 transition-colors flex items-center gap-1">
+      View All Categories <ArrowUpRight className="w-3 h-3" />
+    </a>
+  </div>
 
-        {/* --- 2. SERVICES --- */}
-        <section className="bg-white py-16 border-b border-gray-100">
-           <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8 divide-y md:divide-y-0 md:divide-x divide-gray-100">
-              {[
-                { icon: <Ruler className="w-6 h-6" />, title: "Precision Fit", desc: "Đo đạc tỉ lệ khuôn mặt kỹ thuật số." },
-                { icon: <ShieldCheck className="w-6 h-6" />, title: "Lifetime Care", desc: "Bảo hành kỹ thuật trọn đời sản phẩm." },
-                { icon: <Clock className="w-6 h-6" />, title: "Express Service", desc: "Hoàn thiện kính thuốc trong 20 phút." }
-              ].map((item, i) => (
-                <div key={i} className="flex flex-col items-center text-center px-4 pt-6 md:pt-0 group cursor-default">
-                   <div className="mb-4 p-3 rounded-full bg-gray-50 text-gray-900 group-hover:bg-gray-900 group-hover:text-white transition-all duration-500">
-                     {item.icon}
-                   </div>
-                   <h3 className="font-serif text-lg text-gray-900 mb-2">{item.title}</h3>
-                   <p className="text-sm text-gray-500 max-w-xs leading-relaxed">{item.desc}</p>
-                </div>
-              ))}
-           </div>
-        </section>
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    {[
+      { 
+        name: 'Men', 
+        img: 'https://i.pinimg.com/1200x/50/55/27/5055273a781891a955eeab54b7148bcb.jpg'
+      },
+      { 
+        name: 'Women', 
+        img :'https://i.pinimg.com/736x/83/fc/04/83fc0432ef91b53cbe8b2ba534c36856.jpg'
+      },
+      { 
+        name: 'Kids', 
+        img: 'https://i.pinimg.com/1200x/a4/b0/ce/a4b0ce9e445b99c0d950f99e56303307.jpg'
+      }
+    ].map((item, idx) => (
+      <div key={idx} className="group relative h-[400px] overflow-hidden rounded-[15px] cursor-pointer">
+        {/* Image */}
+        <img 
+          src={item.img} 
+          alt={item.name} 
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+        
+        {/* Gradient Overlay để nổi bật chữ */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
+        
+        {/* Label */}
+        <div className="absolute bottom-8 left-8">
+          <h3 className="text-3xl font-serif text-white tracking-wide">{item.name}</h3>
+        </div>
+        
+        {/* Hover Effect: Border nhẹ */}
+        <div className="absolute inset-0 border border-white/0 group-hover:border-white/20 transition-all duration-500 rounded-[15px]" />
+      </div>
+    ))}
+  </div>
+</section>
+
+     
 
         <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-20 py-16 md:py-24">
 
@@ -92,7 +119,8 @@ export default function HomePage() {
                 { name: 'Accessories', vn: 'Phụ Kiện Kính', img: 'https://images.unsplash.com/photo-1591076482161-42ce6da69f67?q=80&w=800&auto=format&fit=crop' }
               ].map((cat, idx) => (
                 <div key={idx} className="group cursor-pointer">
-                  <div className="relative h-[350px] md:h-[450px] w-full overflow-hidden bg-gray-100 mb-4">
+                  {/* Updated Category Image Radius */}
+                  <div className="relative h-[350px] md:h-[450px] w-full overflow-hidden bg-gray-100 mb-4 rounded-[15px]">
                     <img 
                       src={cat.img} 
                       alt={cat.name} 
@@ -109,7 +137,7 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* --- 4. FEATURED PRODUCTS (Đã thay ảnh chết) --- */}
+          {/* --- 4. FEATURED PRODUCTS --- */}
           <section>
             <h2 className="text-3xl font-serif text-gray-900 mb-10 text-center">New Arrivals</h2>
 
@@ -121,14 +149,16 @@ export default function HomePage() {
                 { name: 'Tokyo Tortoise', price: '2.950.000₫', img: 'https://images.unsplash.com/photo-1509695507497-903c140c43b0?q=80&w=800&auto=format&fit=crop' },
               ].map((product, i) => (
                 <div key={i} className="group cursor-pointer">
-                  <div className="relative aspect-[4/5] bg-[#F9F9F9] overflow-hidden mb-4 border border-transparent group-hover:border-gray-200 transition-all rounded-lg md:rounded-none">
+                  {/* Updated Product Card Radius */}
+                  <div className="relative aspect-[4/5] bg-[#F9F9F9] overflow-hidden mb-4 border border-transparent group-hover:border-gray-200 transition-all rounded-[15px]">
                      <img 
                        src={product.img} 
                        alt={product.name} 
                        className="w-full h-full object-cover mix-blend-multiply opacity-95 group-hover:scale-105 transition-all duration-700 ease-in-out" 
                      />
                      <div className="absolute inset-x-0 bottom-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <Button className="w-full bg-white/90 backdrop-blur-sm text-black hover:bg-black hover:text-white shadow-sm h-10 rounded-none uppercase text-[10px] font-bold tracking-widest transition-colors">
+                        {/* Updated Cart Button Radius */}
+                        <Button className="w-full bg-white/90 backdrop-blur-sm text-black hover:bg-black hover:text-white shadow-sm h-10 rounded-[15px] uppercase text-[10px] font-bold tracking-widest transition-colors">
                            Add to Cart
                         </Button>
                      </div>
@@ -147,7 +177,8 @@ export default function HomePage() {
           </section>
 
           {/* --- 5. BOOKING / CTA --- */}
-          <section className="relative rounded-xl bg-gray-50 border border-gray-100 overflow-hidden px-6 py-12 md:px-16 md:py-14 text-center">
+          {/* Updated Section Radius */}
+          <section className="relative rounded-[15px] bg-gray-50 border border-gray-100 overflow-hidden px-6 py-12 md:px-16 md:py-14 text-center">
              <div className="relative z-10 max-w-2xl mx-auto space-y-3">
                 <span className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase block">Professional Eye Exam</span>
                 <h2 className="text-2xl md:text-3xl font-serif text-gray-900 leading-tight">
@@ -157,21 +188,19 @@ export default function HomePage() {
                    Trải nghiệm quy trình đo mắt 12 bước với trang thiết bị tối tân. Tư vấn phong cách bởi stylist chuyên nghiệp.
                 </p>
                 <div className="pt-3">
-                   <Button className="h-11 px-8 bg-gray-900 text-white hover:bg-black rounded-none text-[10px] font-bold tracking-widest uppercase shadow-md transition-all">
+                   {/* Updated Booking Button Radius */}
+                   <Button className="h-11 px-8 bg-gray-900 text-white hover:bg-black rounded-[15px] text-[10px] font-bold tracking-widest uppercase shadow-md transition-all">
                       Đặt Lịch Ngay
                    </Button>
                 </div>
              </div>
              
-             {/* Decorative Circles */}
              <div className="absolute top-[-50%] left-[-20%] w-[400px] h-[400px] bg-gray-200/40 rounded-full blur-[80px] pointer-events-none"></div>
              <div className="absolute bottom-[-50%] right-[-20%] w-[400px] h-[400px] bg-gray-200/40 rounded-full blur-[80px] pointer-events-none"></div>
           </section>
 
         </div>
       </main>
-
-
     </div>
   );
 };
