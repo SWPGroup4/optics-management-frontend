@@ -44,7 +44,7 @@ export default function HomePage() {
             {/* Right Image - Đã thay link mới (Cô gái đeo kính) */}
             <div className="relative h-[400px] md:h-full w-full order-1 md:order-2">
               <img 
-                src="https://matkinhlb.com.vn/wp-content/uploads/2022/09/2-2.webp" 
+                src="https://i.pinimg.com/1200x/fc/70/4d/fc704d779033c6dd94e1c8288776204d.jpg" 
                 alt="Hero Eyewear Model" 
                 className="w-full h-full object-cover object-top md:object-center"
               />
