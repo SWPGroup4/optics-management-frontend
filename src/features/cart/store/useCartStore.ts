@@ -13,6 +13,7 @@ export interface CartItem {
   color?: string; // Nếu sản phẩm có màu
   lensType?: string;
   prescription?: PrescriptionData; 
+  orderType: 'buy-now' | 'pre-order' | 'custom';
 }
 
 interface CartState {

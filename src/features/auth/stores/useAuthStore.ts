@@ -3,8 +3,14 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { jwtDecode } from "jwt-decode";
 import { AxiosError } from 'axios';
 import { authApi } from '../api/auth-api';
-// Đảm bảo ApiResponse và ApiError đã được định nghĩa trong types
-import { JwtPayloadSchema, type AuthStore, type UserState, type ApiResponse, type RegisterInput } from '../types';
+import { 
+  JwtPayloadSchema, 
+  type AuthStore, 
+  type UserState, 
+  type ApiResponse, 
+  type RegisterInput 
+} from '../types';
+import { useProfileStore } from '@/features/profile/store/useProfile';
 
 export const useAuthStore = create<AuthStore>()(
   persist(
@@ -39,6 +45,7 @@ export const useAuthStore = create<AuthStore>()(
             name: decoded.fullName ?? decoded.sub, 
             email: decoded.sub,
             role: userRole,
+            // Đây là avatar dự phòng ban đầu
             avatar: `https://ui-avatars.com/api/?name=${decoded.fullName ?? decoded.sub}&background=random`,
           };
           
@@ -48,6 +55,10 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: true,
             isLoading: false,
           });
+
+          // TỰ ĐỘNG GỌI FETCH PROFILE SAU KHI LOGIN THÀNH CÔNG
+          // getState() cho phép gọi action từ store khác mà không cần hook
+          useProfileStore.getState().fetchProfile();
 
         } catch (error: unknown) {
           set({ isLoading: false });
@@ -62,17 +73,10 @@ export const useAuthStore = create<AuthStore>()(
           set({ isLoading: false });
         } catch (error: unknown) {
           set({ isLoading: false });
-
           if (error instanceof AxiosError) {
-             // Backend Spring Boot thường trả về format: { code: 1008, message: "..." }
-             // Chúng ta ép kiểu về ApiResponse<any> để lấy message
              const serverData = error.response?.data as ApiResponse<null>;
-             
-             // Ném lỗi ra ngoài. Ta có thể ném cả object nếu muốn Hook xử lý theo code 1008
-             // Ở đây ta ném message để UI hiển thị trực tiếp
              throw new Error(serverData?.result || "Đăng ký thất bại");
           }
-
           if (error instanceof Error) throw error;
           throw new Error("Có lỗi xảy ra khi tạo tài khoản");
         }
@@ -80,11 +84,21 @@ export const useAuthStore = create<AuthStore>()(
       
       logout: async () => {
         const currentToken = get().token;
+
+        // 1. Gọi API xóa session trên server
         if (currentToken) {
             try { await authApi.logout({ token: currentToken }); } 
             catch (err) { console.warn("Lỗi logout server (bỏ qua):", err); }
         }
+
+        // 2. DỌN DẸP PROFILE STORE (Logic tập trung tại đây)
+        useProfileStore.getState().clearProfile();
+
+        // 3. Xóa thông tin Auth
         set({ user: null, token: null, isAuthenticated: false });
+
+        // 4. (Opmtional) Xóa sạch localStorage nếu muốn an toàn tuyệt đối
+        // localStorage.removeItem('optic-auth-storage');
       },
     }),
     {

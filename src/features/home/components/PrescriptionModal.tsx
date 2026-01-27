@@ -1,42 +1,42 @@
 import { useState, useRef } from "react";
-import { useProductStore } from "../store/useProductStore";
+import { usePrescriptionStore } from "../store/usePrescriptionStore"; // Chuyển sang store này
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { 
- Trash2, Keyboard, Image as ImageIcon, Camera
-} from "lucide-react";
+import { Trash2, Keyboard, Image as ImageIcon, Camera } from "lucide-react";
 import type { EyeSpecs } from "@/types/prescription";
 
 export default function PrescriptionWidget() {
+  // Kết nối với Store chuyên biệt cho Prescription
   const { 
     updatePrescription,
     prescription
-  } = useProductStore();
+  } = usePrescriptionStore();
 
-  // State cục bộ cho UI tabs
   const [activeTab, setActiveTab] = useState<'image' | 'manual'>('image');
-  const [activeEye, setActiveEye] = useState<'od' | 'os'>('od'); // Sub-switch
-  
+  const [activeEye, setActiveEye] = useState<'od' | 'os'>('od');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Helper update Store trực tiếp (vì không còn nút Save)
+  // Helper cập nhật dữ liệu mắt (OD/OS) một cách type-safe
   const updateEyeData = (eye: 'od' | 'os', field: keyof EyeSpecs, value: string) => {
-    const newData = { ...prescription[eye], [field]: value };
+    // Tạo object mới cho mắt đó
+    const newEyeData = { ...prescription[eye], [field]: value };
+    
+    // Gửi update lên store (Sử dụng Partial<PrescriptionData>)
     updatePrescription({ 
-        [eye]: newData 
+        [eye]: newEyeData 
     });
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+        // Lưu ý: Trong thực tế bạn nên upload lên server rồi lấy URL
         const fakeUrl = URL.createObjectURL(file);
         updatePrescription({ imageUrl: fakeUrl });
     }
   };
 
-  // Input siêu nhỏ gọn cho Widget
   const renderMiniInput = (val: string, onChange: (v: string) => void) => (
     <Input 
         value={val} 
@@ -48,23 +48,19 @@ export default function PrescriptionWidget() {
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden transition-all duration-300">
-      
-      {/* 1. HEADER NHỎ */}
+      {/* 1. HEADER */}
       <div className="bg-gray-50/50 px-4 py-2 border-b border-gray-100 flex items-center justify-between">
           <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">Thông tin độ cận</span>
-          {/* Main Switch Tabs (Mini) */}
           <div className="flex bg-gray-200/50 p-0.5 rounded-lg">
                 <button
                     onClick={() => setActiveTab('image')}
-                    title="Upload ảnh"
-                    className={`p-1.5 rounded-md transition-all ${activeTab === 'image' ? 'bg-white text-[#4A8795] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                    className={`p-1.5 rounded-md transition-all ${activeTab === 'image' ? 'bg-white text-[#4A8795] shadow-sm' : 'text-gray-400'}`}
                 >
                     <ImageIcon className="w-3.5 h-3.5" />
                 </button>
                 <button
                     onClick={() => setActiveTab('manual')}
-                    title="Nhập tay"
-                    className={`p-1.5 rounded-md transition-all ${activeTab === 'manual' ? 'bg-white text-[#4A8795] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                    className={`p-1.5 rounded-md transition-all ${activeTab === 'manual' ? 'bg-white text-[#4A8795] shadow-sm' : 'text-gray-400'}`}
                 >
                     <Keyboard className="w-3.5 h-3.5" />
                 </button>
@@ -73,21 +69,19 @@ export default function PrescriptionWidget() {
 
       {/* 2. BODY */}
       <div className="p-4">
-        
         {activeTab === 'image' ? (
-            /* === VIEW 1: UPLOAD (Compact) === */
             <div className="animate-in fade-in zoom-in-95 duration-200">
                 <div 
                     onClick={() => !prescription.imageUrl && fileInputRef.current?.click()}
-                    className={`relative rounded-lg border-2 border-dashed h-32 flex flex-col items-center justify-center text-center cursor-pointer transition-colors
-                    ${prescription.imageUrl ? 'border-gray-200 bg-white' : 'border-gray-300 bg-gray-50 hover:border-[#4A8795] hover:bg-blue-50/30'}`}
+                    className={`relative rounded-lg border-2 border-dashed h-32 flex flex-col items-center justify-center cursor-pointer transition-colors
+                    ${prescription.imageUrl ? 'border-gray-200 bg-white' : 'border-gray-300 bg-gray-50 hover:border-[#4A8795]'}`}
                 >
                     {prescription.imageUrl ? (
                         <>
-                            <img src={prescription.imageUrl} className="h-full w-full object-contain p-1 rounded" alt="Rx" />
+                            <img src={prescription.imageUrl} className="h-full w-full object-contain p-1 rounded" alt="Prescription" />
                             <div className="absolute top-1 right-1">
                                 <Button 
-                                    size="icon" variant="destructive" className="h-6 w-6 rounded-full opacity-80 hover:opacity-100" 
+                                    size="icon" variant="destructive" className="h-6 w-6 rounded-full" 
                                     onClick={(e) => { e.stopPropagation(); updatePrescription({ imageUrl: null }); }}
                                 >
                                     <Trash2 className="w-3 h-3" />
@@ -95,87 +89,62 @@ export default function PrescriptionWidget() {
                             </div>
                         </>
                     ) : (
-                        <div className="space-y-1">
+                        <div className="space-y-1 text-center">
                             <Camera className="w-5 h-5 text-gray-400 mx-auto" />
-                            <span className="text-[10px] font-semibold text-gray-500 block">
-                                Chụp / Tải ảnh lên
-                            </span>
+                            <span className="text-[10px] font-semibold text-gray-500 block">Tải ảnh đơn kính</span>
                         </div>
                     )}
                     <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
                 </div>
             </div>
         ) : (
-            /* === VIEW 2: MANUAL (Compact) === */
             <div className="animate-in fade-in slide-in-from-right-2 duration-300">
-                
-                {/* 2.1 SUB-SWITCH (OD / OS) - Style Viên thuốc nhỏ */}
+                {/* OD/OS Switch */}
                 <div className="flex justify-center mb-3">
                     <div className="flex bg-gray-100 p-1 rounded-full w-full max-w-[200px]">
                         <button
                             onClick={() => setActiveEye('od')}
-                            className={`flex-1 text-[10px] font-bold py-1 rounded-full transition-all flex items-center justify-center gap-1.5
-                            ${activeEye === 'od' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                            className={`flex-1 text-[10px] font-bold py-1 rounded-full transition-all ${activeEye === 'od' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}
                         >
-                            <span className={`w-1.5 h-1.5 rounded-full ${activeEye === 'od' ? 'bg-gray-900' : 'bg-gray-300'}`}></span>
-                            OD (Phải)
+                            OD (Mắt phải)
                         </button>
                         <button
                             onClick={() => setActiveEye('os')}
-                            className={`flex-1 text-[10px] font-bold py-1 rounded-full transition-all flex items-center justify-center gap-1.5
-                            ${activeEye === 'os' ? 'bg-white text-[#4A8795] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                            className={`flex-1 text-[10px] font-bold py-1 rounded-full transition-all ${activeEye === 'os' ? 'bg-white text-[#4A8795] shadow-sm' : 'text-gray-400'}`}
                         >
-                            <span className={`w-1.5 h-1.5 rounded-full ${activeEye === 'os' ? 'bg-[#4A8795]' : 'bg-gray-300'}`}></span>
-                            OS (Trái)
+                            OS (Mắt trái)
                         </button>
                     </div>
                 </div>
 
-                {/* 2.2 INPUT GRID (5 Columns compact) */}
-                <div className={`p-2.5 rounded-lg border transition-all duration-300
-                    ${activeEye === 'od' ? 'bg-gray-50 border-gray-100' : 'bg-[#4A8795]/5 border-[#4A8795]/20'}`}
-                >   
-                    {/* Header Labels */}
+                <div className={`p-2.5 rounded-lg border transition-all ${activeEye === 'od' ? 'bg-gray-50 border-gray-100' : 'bg-[#4A8795]/5 border-[#4A8795]/20'}`}>   
                     <div className="grid grid-cols-5 gap-1 mb-1 text-center">
                         {['SPH', 'CYL', 'AX', 'ADD', 'PD'].map(l => (
                             <label key={l} className="text-[9px] font-bold text-gray-400">{l}</label>
                         ))}
                     </div>
 
-                    {/* Inputs */}
                     <div className="grid grid-cols-5 gap-1.5">
-                        {activeEye === 'od' ? (
-                            <>
-                                {renderMiniInput(prescription.od.sphere, v => updateEyeData('od', 'sphere', v))}
-                                {renderMiniInput(prescription.od.cylinder, v => updateEyeData('od', 'cylinder', v))}
-                                {renderMiniInput(prescription.od.axis, v => updateEyeData('od', 'axis', v))}
-                                {renderMiniInput(prescription.od.add, v => updateEyeData('od', 'add', v))}
-                                {renderMiniInput(prescription.od.pd, v => updateEyeData('od', 'pd', v))}
-                            </>
-                        ) : (
-                            <>
-                                {renderMiniInput(prescription.os.sphere, v => updateEyeData('os', 'sphere', v))}
-                                {renderMiniInput(prescription.os.cylinder, v => updateEyeData('os', 'cylinder', v))}
-                                {renderMiniInput(prescription.os.axis, v => updateEyeData('os', 'axis', v))}
-                                {renderMiniInput(prescription.os.add, v => updateEyeData('os', 'add', v))}
-                                {renderMiniInput(prescription.os.pd, v => updateEyeData('os', 'pd', v))}
-                            </>
-                        )}
+                        {/* Render Input dựa trên mắt đang chọn */}
+                        {(['sphere', 'cylinder', 'axis', 'add', 'pd'] as const).map((field) => (
+                          renderMiniInput(
+                            prescription[activeEye][field], 
+                            (v) => updateEyeData(activeEye, field, v)
+                          )
+                        ))}
                     </div>
                 </div>
             </div>
         )}
 
-        {/* 3. NOTES AREA (Chung cho cả 2 view) */}
         <div className="mt-3">
              <Textarea 
-                placeholder="Ghi chú thêm..." 
+                placeholder="Ghi chú thêm cho kỹ thuật viên..." 
                 value={prescription.notes} 
                 onChange={e => updatePrescription({ notes: e.target.value })}
                 className="bg-white text-xs min-h-[50px] resize-none focus:border-[#4A8795]"
             />
         </div>
-
       </div>
     </div>
   );
