@@ -1,10 +1,12 @@
-import { useEffect } from "react";
 import { Monitor, RefreshCcw, ShoppingBag, Sparkles, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useProductStore } from "../store/useProductStore"; 
-import { usePrescriptionStore } from "../store/usePrescriptionStore"; // Store mới
+// 👇 Bỏ import useProductStore
+// import { useProductStore } from "../store/useProductStore"; 
+import { usePrescriptionStore } from "../store/usePrescriptionStore";
 import { useCartStore } from "@/features/cart/store/useCartStore";
 import PrescriptionWidget from "./PrescriptionModal";
+// 👇 Import Hook TanStack Query
+import { useProduct } from "../hooks/useProducts";
 
 const LENS_OPTIONS = [
   { id: "standard", icon: Sparkles, title: "Standard Clear", subtitle: "Included", price: 0 },
@@ -14,8 +16,8 @@ const LENS_OPTIONS = [
 ] as const;
 
 export default function ProductForm({ productId }: { productId: string }) {
-  // 1. Lấy dữ liệu sản phẩm từ ProductStore
-  const { currentProduct, fetchProductById } = useProductStore();
+  // 1. Dùng Hook lấy dữ liệu (Tự động fetch, cache, loading)
+  const { data: product, isLoading } = useProduct(productId);
   
   // 2. Lấy logic form từ PrescriptionStore
   const { 
@@ -29,13 +31,10 @@ export default function ProductForm({ productId }: { productId: string }) {
   
   const { addToCart } = useCartStore();
 
-  // Load sản phẩm khi productId thay đổi
-  useEffect(() => {
-    if (productId) fetchProductById(productId);
-  }, [productId, fetchProductById]);
+  // 🔥 KHÔNG CẦN useEffect(fetchProductById) NỮA!
 
   const handleAddToCart = () => {
-    if (!currentProduct) return;
+    if (!product) return;
 
     // Logic kiểm tra Prescription
     const requiresPrescription = selectedLensId !== 'standard';
@@ -49,18 +48,19 @@ export default function ProductForm({ productId }: { productId: string }) {
     }
 
     const selectedLens = LENS_OPTIONS.find(l => l.id === selectedLensId);
-    // Tính giá: weightGram (giá gốc) + lens price
-    const basePrice = currentProduct.weightGram || 0;
+    // Tính giá: product.price (hoặc weightGram như logic cũ của bạn)
+    // Lưu ý: Đảm bảo field giá là chính xác (mình dùng weightGram theo code cũ của bạn, nếu có field price thì đổi nhé)
+    const basePrice = product.weightGram || 0; 
     const finalPrice = basePrice + (selectedLens?.price || 0);
 
     addToCart({
-      productId: currentProduct.id,
-      name: currentProduct.name,
+      productId: product.id,
+      name: product.name,
       price: finalPrice,
-      image: currentProduct.imageUrl[0],
+      image: product.imageUrl?.[0] || '',
       quantity: 1,
       lensType: selectedLens?.title,
-      orderType: orderType, // Thêm orderType vào giỏ hàng
+      orderType: orderType,
       prescription: hasPrescriptionData ? prescription : undefined
     });
 
@@ -68,15 +68,19 @@ export default function ProductForm({ productId }: { productId: string }) {
     alert("Đã thêm vào giỏ hàng thành công!");
   };
 
-  if (!currentProduct) return <div className="p-10 text-center text-gray-400">Đang tải form...</div>;
+  // State Loading
+  if (isLoading) return <div className="p-10 text-center text-gray-400 animate-pulse">Đang tải thông tin sản phẩm...</div>;
+  
+  // State Error/Empty
+  if (!product) return <div className="p-10 text-center text-red-400">Không tìm thấy sản phẩm</div>;
 
   const currentLensPrice = LENS_OPTIONS.find(l => l.id === selectedLensId)?.price || 0;
-  const totalPrice = (currentProduct.weightGram || 0) + currentLensPrice;
+  const totalPrice = (product.weightGram || 0) + currentLensPrice;
 
   return (
     <div className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100 space-y-8 mt-8">
       
-      {/* --- PHẦN 1: ORDER TYPE (Dùng orderType từ Store) --- */}
+      {/* --- PHẦN 1: ORDER TYPE --- */}
       <div>
         <h3 className="text-sm font-bold text-[#4A8795] uppercase tracking-wide mb-3">
             1. Order Type

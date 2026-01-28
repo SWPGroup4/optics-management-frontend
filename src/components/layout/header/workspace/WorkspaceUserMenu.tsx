@@ -17,7 +17,8 @@ export function WorkspaceUserMenu() {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    // Lưu ý: Kiểm tra lại xem route đăng nhập của bạn là "/login" hay "/auth/login" nhé
+    navigate("/auth/login"); 
   };
 
   return (
@@ -33,9 +34,10 @@ export function WorkspaceUserMenu() {
             </p>
           </div>
           <Avatar className="h-8 w-8 border border-gray-200 group-hover:border-gray-300 transition-colors">
-            <AvatarImage src={user?.avatar} />
+            {/* Thêm fallback image nếu user.avatar bị lỗi hoặc null */}
+            <AvatarImage src={user?.avatar} alt={user?.name} />
             <AvatarFallback className="bg-zinc-900 text-white font-bold text-xs">
-              {user?.name?.charAt(0) || "U"}
+              {user?.name?.charAt(0).toUpperCase() || "U"}
             </AvatarFallback>
           </Avatar>
           <ChevronDown className="w-3 h-3 text-gray-400 hidden xl:block group-hover:text-gray-600 transition-colors" />
@@ -51,7 +53,11 @@ export function WorkspaceUserMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem className="cursor-pointer">
+        {/* 👇 ĐÃ SỬA: Thêm onClick để điều hướng tới trang Profile */}
+        <DropdownMenuItem 
+          className="cursor-pointer" 
+          onClick={() => navigate("/profile")}
+        >
           <User className="mr-2 h-4 w-4" />
           <span>Hồ sơ cá nhân</span>
         </DropdownMenuItem>

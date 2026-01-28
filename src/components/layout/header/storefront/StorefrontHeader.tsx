@@ -12,14 +12,11 @@ export default function StorefrontHeader() {
 
         {/* NAVIGATION - Nằm giữa thoáng đãng */}
         <nav className="hidden lg:flex items-center gap-8 font-bold text-[11px] uppercase tracking-[0.2em] text-gray-500">
-          <Link to="/products?cat=frames" className="hover:text-black transition-colors relative group">
-            Kính Gọng
+          <Link to="/shop" className="hover:text-black transition-colors relative group">
+            Cửa hàng
             <span className="absolute -bottom-1 left-0 w-0 h-px bg-black transition-all group-hover:w-full"></span>
           </Link>
-          <Link to="/products?cat=lenses" className="hover:text-black transition-colors relative group">
-            Tròng Kính
-            <span className="absolute -bottom-1 left-0 w-0 h-px bg-black transition-all group-hover:w-full"></span>
-          </Link>
+
           <Link to="/services" className="hover:text-black transition-colors relative group">
             Dịch vụ đo mắt
             <span className="absolute -bottom-1 left-0 w-0 h-px bg-black transition-all group-hover:w-full"></span>

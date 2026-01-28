@@ -9,17 +9,39 @@ export interface LogoutRequest {
 export const authApi = {
   // 1. Login
   login: async (data: LoginInput): Promise<AuthResponse> => {
-    const response = await api.post('/auth/login', data) as ApiResponse<AuthResponse>;
-    return response.result; 
+    const response = await api.post('/auth/login', data);
+    return response.data.result; 
   },
 
   // 2. Register (MỚI)
   // Gửi đúng cấu trúc: { username, password, firstName, lastName, dob }
   register: async (data: RegisterInput): Promise<UserRegistrationResult> => {
-    // Ép kiểu ApiResponse với Result cụ thể
-    const response = await api.post('/users/registration', data) as ApiResponse<UserRegistrationResult>;
+    const formData = new FormData();
+
+    // 1. Tách file ảnh ra riêng
+    const { imageFile, ...userData } = data;
+
+    // 2. Xử lý phần JSON 'data'
+    // Backend yêu cầu field 'data' là một Blob với type application/json
+    const jsonBlob = new Blob([JSON.stringify(userData)], {
+      type: "application/json",
+    });
+    formData.append("data", jsonBlob);
+
+    // 3. Xử lý phần file 'imageUrl'
+    // Lưu ý: key phải là "imageUrl" như trong lệnh curl (-F 'imageUrl=@cam.jpg')
+    if (imageFile && imageFile instanceof FileList && imageFile.length > 0) {
+      formData.append("imageUrl", imageFile[0]); 
+    }
+
+    // 4. Gửi Request
+    // Axios tự động set Content-Type là multipart/form-data khi thấy FormData
+    const response = await api.post('/users/registration', formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }) as ApiResponse<UserRegistrationResult>;
     
-    // Trả về kết quả từ Backend
     return response.result;
   },
 

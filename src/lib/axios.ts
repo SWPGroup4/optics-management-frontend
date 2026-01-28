@@ -24,10 +24,7 @@ api.interceptors.request.use(
 
 // 2. Response Interceptor: Xử lý data và lỗi 401
 api.interceptors.response.use(
-  (response) => {
-    // Trả về data trực tiếp (giúp code gọi API gọn hơn)
-    return response.data;
-  },
+  (response) => response,
   (error) => {
     // Nếu lỗi 401 (Unauthorized) -> Token hết hạn hoặc không hợp lệ
     if (error.response?.status === 401) {

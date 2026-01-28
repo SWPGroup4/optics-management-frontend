@@ -1,19 +1,17 @@
 import { useState } from "react";
 import { Camera, Ruler, Info } from "lucide-react";
-import { useProductStore } from "../store/useProductStore";
+// 👇 Import Hook TanStack Query
+import { useProduct } from "../hooks/useProducts";
 
 export default function ProductGallery({ productId }: { productId: string }) {
-  // 1. Lấy dữ liệu từ Store
-  const { currentProduct } = useProductStore();
+  // 1. Lấy dữ liệu từ Hook
+  const { data: product, isLoading } = useProduct(productId);
   
-  // 2. State cho thumbnail người dùng chọn
+  // 2. State cho thumbnail
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  // 3. Derived State: Xác định ảnh đang hiển thị (ảnh đầu tiên nếu chưa chọn)
-  const activeImage = selectedImage || currentProduct?.imageUrl?.[0] || "";
-
-  // 4. Loading Skeleton
-  if (!currentProduct) {
+  // 3. Loading Skeleton (Check isLoading thay vì !currentProduct)
+  if (isLoading || !product) {
     return (
       <div className="space-y-6 animate-pulse">
         <div className="aspect-square bg-gray-200 rounded-2xl" />
@@ -26,7 +24,9 @@ export default function ProductGallery({ productId }: { productId: string }) {
     );
   }
 
-  const images = currentProduct.imageUrl || [];
+  // 4. Logic hiển thị ảnh
+  const activeImage = selectedImage || product.imageUrl?.[0] || "";
+  const images = product.imageUrl || [];
 
   return (
     <div className="space-y-8 lg:sticky lg:top-24">
@@ -46,14 +46,14 @@ export default function ProductGallery({ productId }: { productId: string }) {
           <img 
             key={activeImage} 
             src={activeImage} 
-            alt={currentProduct.name} 
+            alt={product.name} 
             className="w-4/5 object-contain mix-blend-multiply transition-all duration-700 group-hover:scale-110 animate-product-in" 
           />
         ) : (
           <div className="text-gray-300 italic">No image preview</div>
         )}
         
-        {/* Nút Virtual Try-On cải tiến */}
+        {/* Nút Virtual Try-On */}
         <button className="absolute bottom-6 flex items-center gap-2 bg-white/80 backdrop-blur-md px-6 py-2.5 rounded-full shadow-xl hover:bg-[#4A8795] hover:text-white transition-all active:scale-95 text-sm font-bold text-[#4A8795] border border-white/50 group/btn">
           <Camera className="w-4 h-4 transition-transform group-hover/btn:rotate-12" />
           Virtual Try-On
@@ -86,7 +86,7 @@ export default function ProductGallery({ productId }: { productId: string }) {
         </div>
       )}
 
-      {/* --- THÔNG SỐ KỸ THUẬT (TECHNICAL MEASUREMENTS) --- */}
+      {/* --- THÔNG SỐ KỸ THUẬT --- */}
       <div className="p-6 bg-white rounded-3xl border border-gray-100 shadow-sm space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -99,8 +99,6 @@ export default function ProductGallery({ productId }: { productId: string }) {
             <Info className="w-4 h-4" />
           </button>
         </div>
-
-        {/*  */}
 
         {/* Grid thông số chính */}
         <div className="grid grid-cols-3 gap-3">
@@ -122,8 +120,8 @@ export default function ProductGallery({ productId }: { productId: string }) {
         {/* Danh sách chi tiết */}
         <div className="space-y-3">
           {[
-            { label: "Material", value: currentProduct.frameMaterial || "Premium Acetate", icon: "💎" },
-            { label: "Frame Shape", value: currentProduct.shape, icon: "👓" },
+            { label: "Material", value: product.frameMaterial || "Premium Acetate", icon: "💎" },
+            { label: "Frame Shape", value: product.shape, icon: "👓" },
             { label: "Face Fit", value: "Medium / Wide", icon: "👤" },
           ].map((item) => (
             <div key={item.label} className="flex items-center justify-between py-2 text-sm">

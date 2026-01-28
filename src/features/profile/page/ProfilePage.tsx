@@ -1,17 +1,26 @@
-import { useEffect } from "react";
-import { 
-  User, Mail, MapPin, ShieldCheck, CheckCircle2, type LucideIcon,
-   Loader2
+import {
+  User,
+  Mail,
+  ShieldCheck,
+  CheckCircle2,
+  type LucideIcon,
+  Loader2,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { useProfileStore } from "../store/useProfile";
+import { useProfileQuery } from "../hooks/useProfileQuery";
 
-// Import Store của bạn
-
-const SectionTitle = ({ icon: Icon, title }: { icon: LucideIcon, title: string }) => (
+// Component tiêu đề nhỏ
+const SectionTitle = ({
+  icon: Icon,
+  title,
+}: {
+  icon: LucideIcon;
+  title: string;
+}) => (
   <div className="flex items-center gap-2 text-gray-500 text-xs font-bold uppercase tracking-wider mb-6">
     <Icon className="w-4 h-4" />
     <span>{title}</span>
@@ -19,19 +28,11 @@ const SectionTitle = ({ icon: Icon, title }: { icon: LucideIcon, title: string }
 );
 
 export default function ProfilePage() {
+  // ✅ TanStack Query gọi API
+  const { data: profile, isLoading, isError } = useProfileQuery();
 
-  // 1. Lấy dữ liệu và các hàm từ store
-  const { profile, isLoading, fetchProfile } = useProfileStore();
-
-  // 2. Tự động load profile khi vào trang nếu chưa có dữ liệu
-  useEffect(() => {
-    if (!profile) {
-      fetchProfile();
-    }
-  }, [profile, fetchProfile]);
-
-  // 3. Trạng thái đang tải dữ liệu
-  if (isLoading && !profile) {
+  // ⏳ Loading State
+  if (isLoading) {
     return (
       <div className="flex h-[400px] items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
@@ -39,85 +40,106 @@ export default function ProfilePage() {
     );
   }
 
-  // Nếu không có dữ liệu (chưa đăng nhập hoặc lỗi)
-  if (!profile) {
+  // ❌ Error hoặc không có data
+  if (isError || !profile) {
     return (
-      <div className="p-8 text-center text-gray-500">
-        Không tìm thấy thông tin cá nhân.
+      <div className="p-8 text-center text-gray-500 border border-dashed rounded-xl mt-4">
+        <p>Không tìm thấy thông tin cá nhân hoặc phiên đăng nhập đã hết hạn.</p>
       </div>
     );
   }
 
+  // ✅ Safe Data Access: Đảm bảo roles luôn là mảng, kể cả khi null
+  const safeRoles = profile.roles || [];
+
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-in fade-in duration-500">
       <div className="p-8 space-y-10">
         
         {/* --- 1. HEADER & AVATAR --- */}
         <div className="flex flex-col md:flex-row gap-8 items-start justify-between">
           <div className="flex gap-6 items-center">
-            {/* Avatar - Dùng imageUrl từ store */}
-            <div className="h-24 w-24 rounded-full bg-gray-100 overflow-hidden border-4 border-white shadow-sm shrink-0">
-              <img 
-                src={profile.imageUrl || "https://ui-avatars.com/api/?name=" + profile.username} 
-                alt="Avatar" 
-                className="h-full w-full object-cover" 
+            {/* Avatar Container */}
+            <div className="h-24 w-24 rounded-full bg-gray-100 overflow-hidden border-4 border-white shadow-sm shrink-0 relative group cursor-pointer">
+              <img
+                src={
+                  profile.imageUrl ||
+                  `https://ui-avatars.com/api/?name=${profile.firstName}+${profile.lastName}&background=random`
+                }
+                alt="Avatar"
+                className="h-full w-full object-cover transition-transform group-hover:scale-105"
               />
             </div>
-            
-            {/* User Info */}
+
+            {/* Name & Username */}
             <div className="space-y-3">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
                   {profile.firstName} {profile.lastName}
                 </h1>
-                <p className="text-sm text-gray-500">@{profile.username}</p>
+                <p className="text-sm text-gray-500 font-medium">@{profile.username}</p>
               </div>
               <div className="flex gap-3">
-                <Button variant="outline" size="sm" className="h-9">
-                   Upload New
+                <Button variant="outline" size="sm" className="h-9 rounded-lg font-medium text-xs">
+                  Upload New Photo
                 </Button>
               </div>
             </div>
           </div>
 
-          {/* Badge Verified (Ví dụ dựa trên sự tồn tại của ID) */}
-          {profile.id && (
-            <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-4 flex gap-3 max-w-sm">
-              <div className="mt-0.5 bg-emerald-100 p-1.5 rounded-full h-fit text-emerald-600">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-emerald-900 text-sm">Account Verified</h3>
-                <p className="text-xs text-emerald-700 mt-1 leading-relaxed">
-                  Your identity is secured by our system roles: {profile.roles.map(r => r.name).join(", ")}.
-                </p>
-              </div>
+          {/* Verification Badge */}
+          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex gap-3 max-w-sm">
+            <div className="mt-0.5 bg-emerald-100 p-1.5 rounded-full h-fit text-emerald-600">
+              <ShieldCheck className="w-5 h-5" />
             </div>
-          )}
+            <div>
+              <h3 className="font-bold text-emerald-900 text-sm">
+                Account Verified
+              </h3>
+              <p className="text-xs text-emerald-700 mt-1 leading-relaxed">
+                Identity secured. Current roles:{" "}
+                <span className="font-semibold">
+                  {/* 👇 FIX: Dùng safeRoles thay vì profile.roles */}
+                  {safeRoles.length > 0 
+                    ? safeRoles.map((r) => r.name).join(", ") 
+                    : "MEMBER"}
+                </span>
+              </p>
+            </div>
+          </div>
         </div>
 
         <Separator />
 
         {/* --- 2. IDENTITY FORM --- */}
         <div>
-          <SectionTitle icon={User} title="Identity" />
+          <SectionTitle icon={User} title="Identity Information" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label>First Name</Label>
-              <Input value={profile.firstName} className="h-11 bg-gray-50/50 text-gray-600" readOnly />
+              <Label className="text-xs font-semibold text-gray-500 ml-1">First Name</Label>
+              <Input
+                value={profile.firstName || ""}
+                className="h-11 bg-gray-50/50 border-gray-200 text-gray-700 font-medium"
+                readOnly
+              />
             </div>
             <div className="space-y-2">
-              <Label>Last Name</Label>
-              <Input value={profile.lastName} className="h-11 bg-gray-50/50 text-gray-600" readOnly />
+              <Label className="text-xs font-semibold text-gray-500 ml-1">Last Name</Label>
+              <Input
+                value={profile.lastName || ""}
+                className="h-11 bg-gray-50/50 border-gray-200 text-gray-700 font-medium"
+                readOnly
+              />
             </div>
-            
+
             <div className="space-y-2">
-              <Label>Date of Birth</Label>
-              <Input 
-                type="date" 
-                value={profile.dob} 
-                className="h-11 bg-gray-50/50 text-gray-600" 
-                readOnly 
+              <Label className="text-xs font-semibold text-gray-500 ml-1">Date of Birth</Label>
+              <Input
+                type="date"
+                // Backend trả về "2026-01-28", input type date nhận format này chuẩn
+                value={profile.dob || ""}
+                className="h-11 bg-gray-50/50 border-gray-200 text-gray-700 font-medium"
+                readOnly
               />
             </div>
           </div>
@@ -125,43 +147,69 @@ export default function ProfilePage() {
 
         {/* --- 3. CONTACT DETAILS --- */}
         <div>
-          <SectionTitle icon={Mail} title="Contact Details" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <SectionTitle icon={Mail} title="Contact & Security" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div className="space-y-2">
-              <Label>Email Address</Label>
+              <Label className="text-xs font-semibold text-gray-500 ml-1">Email Address</Label>
               <div className="relative group">
-                <Input value={profile.email} className="h-11 bg-gray-50/50 pr-24 text-gray-600" readOnly />
-                <div className="absolute right-3 top-2.5 flex items-center gap-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
-                   <CheckCircle2 className="w-3 h-3" /> Verified
+                <Input
+                  value={profile.email || ""}
+                  className="h-11 bg-gray-50/50 pr-24 border-gray-200 text-gray-700 font-medium"
+                  readOnly
+                />
+                <div className="absolute right-3 top-2.5 flex items-center gap-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide cursor-help">
+                  <CheckCircle2 className="w-3 h-3" /> Verified
                 </div>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Phone Number</Label>
-              <Input value={profile.phone || "Not provided"} className="h-11 bg-gray-50/50 text-gray-600" readOnly />
+              <Label className="text-xs font-semibold text-gray-500 ml-1">Phone Number</Label>
+              <Input
+                value={profile.phone || "Not provided"}
+                className="h-11 bg-gray-50/50 border-gray-200 text-gray-700 font-medium"
+                readOnly
+              />
             </div>
           </div>
 
-          <div className="bg-gray-50 rounded-xl border border-gray-100 p-5 mt-6 flex items-start justify-between">
-            <div className="flex gap-4">
-              <div className="bg-white h-10 w-10 flex items-center justify-center rounded-lg border border-gray-200 shadow-sm text-gray-500 shrink-0">
-                <MapPin className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900">User Roles & Permissions</h4>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {profile.roles.map((role) => (
-                    <span key={role.name} className="bg-blue-50 text-blue-700 text-[10px] px-2 py-1 rounded border border-blue-100 font-bold uppercase">
-                      {role.name}
-                    </span>
-                  ))}
-                </div>
-              </div>
+          {/* --- ROLES & PERMISSIONS SECTION --- */}
+          <div className="bg-gray-50 rounded-xl border border-gray-200 p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Lock className="w-4 h-4 text-gray-500" />
+              <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
+                Active Roles & Permissions
+              </h4>
+            </div>
+            
+            <div className="flex flex-wrap gap-2">
+              {/* 👇 FIX: Dùng safeRoles để map an toàn */}
+              {safeRoles.length > 0 ? (
+                safeRoles.map((role, index) => (
+                  <div 
+                    key={index} 
+                    className="group relative bg-white border border-gray-200 pl-3 pr-3 py-1.5 rounded-lg shadow-sm hover:border-zinc-300 transition-colors cursor-default"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                      <span className="text-xs font-bold text-gray-700">{role.name}</span>
+                    </div>
+                    
+                    {/* Tooltip hiển thị description (nếu có) */}
+                    {role.description && (
+                       <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[200px] px-2 py-1 text-[10px] text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                         {role.description}
+                       </span>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500 italic">No roles assigned</p>
+              )}
             </div>
           </div>
+
         </div>
-
       </div>
     </div>
   );
