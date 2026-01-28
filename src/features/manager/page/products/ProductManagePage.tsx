@@ -1,60 +1,39 @@
-import { useEffect, useState } from "react";
-import { api } from "@/lib/axios";
-import { MoreHorizontal, Trash2, Eye } from "lucide-react";
+import { useEffect } from "react";
+import { Trash2, Eye } from "lucide-react"; // Đã bỏ MoreHorizontal thừa
+import { useProductStore } from "../../stores/useProductStore";
 
-/* ===== TYPES ===== */
-type ProductStatus = "ACTIVE" | "INACTIVE";
-type ProductCategory = "FRAME" | "LENS" | "CONTACT";
-
-interface Product {
-  id: string;
-  name: string;
-  category: ProductCategory;
-  status: ProductStatus;
-}
-
-/* ===== COMPONENT ===== */
 export default function ProductManagePage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
+  // Lấy state và actions từ Store
+  const { products, isLoading, error, fetchProducts, deleteProduct } = useProductStore();
 
-  /* ===== FETCH PRODUCTS ===== */
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get("/products");
-      console.log("Fetched products:", res);
-      setProducts(res.result); 
-    } catch (error) {
-      console.error("Fetch products failed", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /* ===== DELETE ===== */
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this product?")) return;
-
-    try {
-      await api.delete(`/products/${id}`);
-      setProducts((prev) => prev.filter((p) => p.id !== id));
-    } catch (error) {
-      console.error("Delete failed", error);
-    }
-  };
-
+  // Gọi API khi component mount
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
+
+  // Hàm xử lý sự kiện xóa
+  const handleDeleteClick = async (id: string) => {
+    if (confirm("Delete this product?")) {
+      await deleteProduct(id);
+    }
+  };
 
   /* ===== UI ===== */
   return (
     <div className="p-6 bg-white rounded-xl border">
       <h1 className="text-xl font-bold mb-4">Products</h1>
 
-      {loading ? (
-        <p className="text-gray-500">Loading...</p>
+      {/* Hiển thị lỗi nếu có */}
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 text-red-600 rounded text-sm">
+          Error: {error}
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="py-8 text-center text-gray-500">
+            Loading products...
+        </div>
       ) : (
         <table className="w-full border-collapse text-sm">
           <thead>
@@ -96,7 +75,7 @@ export default function ProductManagePage() {
                       <Eye className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => handleDelete(p.id)}
+                      onClick={() => handleDeleteClick(p.id)}
                       className="p-2 hover:bg-red-50 text-red-600 rounded"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -106,10 +85,10 @@ export default function ProductManagePage() {
               </tr>
             ))}
 
-            {products.length === 0 && (
+            {!isLoading && products.length === 0 && (
               <tr>
                 <td colSpan={5} className="text-center py-6 text-gray-400">
-                  No products
+                  No products found.
                 </td>
               </tr>
             )}
