@@ -1,15 +1,21 @@
-import type { ApiResponse } from "@/features/auth/types";
 import { api } from "@/lib/axios";
+import type { ApiResponse } from "@/features/auth/types";
 import type { Product } from "../types/product-type";
 
 export const productApi = {
   getAllProducts: async () => {
-    // Trả về một Promise với kiểu dữ liệu là ApiResponse chứa mảng Product
-    const response = await api.get< ApiResponse<Product[]>>('/products');
-    return response;
+    // 👇 Destructuring: Chỉ lấy phần 'data' từ Axios Response
+    const { data } = await api.get<ApiResponse<Product[]>>('/products');
+    
+    // Trả về đúng object: { code: number, result: Product[] }
+    return data; 
   },
+
   getProductById: async (id: string) => {
-    const response = await api.get<ApiResponse<Product>>(`/products/${id}`);
-    return response;
+    // 👇 Tương tự cho chi tiết sản phẩm
+    const { data } = await api.get<ApiResponse<Product>>(`/products/${id}`);
+    
+    // Trả về đúng object: { code: number, result: Product }
+    return data;
   },
 };

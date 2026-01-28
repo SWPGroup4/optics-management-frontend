@@ -99,7 +99,7 @@ export default function LoginForm() {
         <div className="relative mt-10 pt-10 border-t border-gray-100">
             <p className="text-center text-base text-gray-500">
               Don't have an account?{" "}
-              <Link to="/register" className="font-bold text-zinc-900 hover:text-emerald-600 transition-colors inline-flex items-center gap-1 hover:underline underline-offset-8">
+              <Link to="/auth/register" className="font-bold text-zinc-900 hover:text-emerald-600 transition-colors inline-flex items-center gap-1 hover:underline underline-offset-8">
                 Sign up for free
               </Link>
             </p>

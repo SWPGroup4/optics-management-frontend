@@ -1,3 +1,6 @@
+// src/features/profile/types.ts
+
+// 1. Định nghĩa Role & Permission
 export interface Permission {
   name: string;
   description: string;
@@ -9,26 +12,21 @@ export interface Role {
   permissions: Permission[];
 }
 
+// 2. Định nghĩa UserProfile (Khớp với JSON result)
 export interface UserProfile {
   id: string;
   username: string;
   firstName: string;
   lastName: string;
-  dob: string;      // Backend trả về chuỗi "2026-01-27"
-  imageUrl: string;
+  dob: string;      
+  imageUrl: string | null; // Có thể null
   email: string;
   phone: string;
-  roles: Role[];    // Đây là mảng các đối tượng Role
+  roles: Role[];    
 }
 
-export interface ProfileStore {
-  profile: UserProfile | null;
-  isLoading: boolean;
-  error: string | null;
-  
-  // Action để gọi API lấy thông tin
-  fetchProfile: () => Promise<void>;
-  
-  // Action để xóa thông tin (dùng khi logout)
-  clearProfile: () => void;
+// 3. Định nghĩa cấu trúc phản hồi chung từ Server
+export interface ApiResponse<T> {
+  code: number;
+  result: T; // Dữ liệu thật nằm ở đây
 }

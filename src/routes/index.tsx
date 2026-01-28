@@ -16,6 +16,7 @@ import ManagerPricingPage from "@/features/manager/page/pricing/ManagerPricingPa
 import ProductManagePage from "@/features/manager/page/products/ProductManagePage.tsx";
 import StaffCustomerPage from "@/features/manager/page/staff/StaffCustomerPgae.tsx";
 import { PaymentSuccessPage } from "@/features/checkout/pages/PaymentSuccessPage"
+import ProductVariantManagePage from "@/features/manager/page/products/ProductVariantManageage"
 //import { ProtectedRoute } from "./protected-route" // Giả sử bạn vẫn giữ file này từ bước trước
 
 // Giả lập trang Dashboard cho có chỗ để chuyển hướng
@@ -103,6 +104,11 @@ export const router = createBrowserRouter([
       { path: "orders", element: <ManagerOrderPage /> },
       { path: "pricing", element: <ManagerPricingPage /> },
       { path: "products", element: <ProductManagePage /> },
+      { 
+        // :productId là tham số động để trang Variant lấy được ID
+        path: "products/:productId/variants", 
+        element: <ProductVariantManagePage /> 
+      },
       { path: "staff", element: <StaffCustomerPage /> },
     ],
   },

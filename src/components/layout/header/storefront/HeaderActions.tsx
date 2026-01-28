@@ -9,20 +9,27 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+
+// STORES & HOOKS
 import { useAuthStore } from "@/features/auth/stores/useAuthStore";
 import { useCartStore } from "@/features/cart/store/useCartStore"; 
-import { useProfileStore } from "@/features/profile/store/useProfile";
+// 👇 Thay đổi import tại đây
+import { useProfileQuery } from "@/features/profile/hooks/useProfileQuery"; 
 
 export default function HeaderActions() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   
-  // --- SELECTORS (Chỉ lấy dữ liệu cần thiết) ---
+  // --- SELECTORS ---
   const { user, logout } = useAuthStore();
-  const { profile } = useProfileStore();
   const { openCart, closeCart, isOpen, items } = useCartStore();
 
-  // --- DERIVED STATE (Logic tính toán nhẹ) ---
+  // --- QUERY (Thay thế store cũ) ---
+  // React Query sẽ tự động chạy nếu user đã đăng nhập (nhờ logic enabled ở file hook)
+  // Đổi tên 'data' thành 'profile' để khớp với code bên dưới
+  const { data: profile, isLoading } = useProfileQuery();
+
+  // --- DERIVED STATE ---
   const cartItemCount = items.reduce((total, item) => total + item.quantity, 0);
   const unreadNotifications = 1;
 
@@ -36,8 +43,14 @@ export default function HeaderActions() {
 
   const handleLogout = async () => {
     await logout();
-    navigate("/"); // Chuyển trang sau khi dọn dẹp xong store
+    navigate("/"); 
   };
+
+  // Logic hiển thị Avatar: Ưu tiên Server Profile -> Auth User (JWT Decode) -> Fallback
+  const displayName = profile?.firstName ? `${profile.firstName} ${profile.lastName}` : user?.name;
+  const displayEmail = profile?.email || user?.email;
+  const displayAvatar = profile?.imageUrl || user?.avatar;
+  const displayInitials = (displayName || "U").charAt(0).toUpperCase();
 
   return (
     <div className="flex items-center gap-3 md:gap-4">
@@ -79,10 +92,10 @@ export default function HeaderActions() {
              <DropdownMenuTrigger asChild>
                <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 ring-offset-2 hover:ring-2 ring-gray-200 transition-all">
                  <Avatar className="h-9 w-9 border border-gray-100 shadow-sm">
-                   {/* Ưu tiên lấy ảnh từ ProfileStore, fallback về AuthStore */}
-                   <AvatarImage src={profile?.imageUrl || user.avatar} alt={profile?.firstName || user.name} className="object-cover" />
+                   {/* Dùng biến đã tính toán ở trên */}
+                   <AvatarImage src={displayAvatar} alt={displayName || ""} className="object-cover" />
                    <AvatarFallback className="bg-stone-100 text-stone-600 font-bold text-xs">
-                      {(profile?.firstName || user.name || "U").charAt(0).toUpperCase()}
+                      {displayInitials}
                    </AvatarFallback>
                  </Avatar>
                </Button>
@@ -92,9 +105,10 @@ export default function HeaderActions() {
                <DropdownMenuLabel className="font-normal px-3 py-4">
                  <div className="flex flex-col space-y-1">
                    <p className="text-sm font-semibold text-gray-900">
-                     {profile ? `${profile.firstName} ${profile.lastName}` : user.name}
+                     {/* Hiển thị Loading nhẹ nếu đang fetch lần đầu */}
+                     {isLoading ? "Đang tải..." : displayName}
                    </p>
-                   <p className="text-xs text-gray-400 italic">{profile?.email || user.email}</p>
+                   <p className="text-xs text-gray-400 italic">{displayEmail}</p>
                  </div>
                </DropdownMenuLabel>
                
@@ -122,7 +136,7 @@ export default function HeaderActions() {
   );
 }
 
-// --- SUB-COMPONENTS (Giúp file chính cực sạch) ---
+// --- SUB-COMPONENTS ---
 
 function GuestActions() {
   return (

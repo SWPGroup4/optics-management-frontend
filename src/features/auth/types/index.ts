@@ -65,30 +65,34 @@ export interface ApiResponse<T> {
   code: number;
   result: T;
 }
-
-// --- Schema cho Register Form ---
 export const RegisterSchema = z.object({
   username: z.string().min(4, "Username phải có ít nhất 4 ký tự"),
   password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
   firstName: z.string().min(1, "Vui lòng nhập Họ"),
   lastName: z.string().min(1, "Vui lòng nhập Tên"),
+  // Thêm validate cho ngày sinh
   dob: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Ngày sinh không hợp lệ",
   }),
+  // 👇 Thêm trường Email & Phone theo yêu cầu Backend
+  email: z.email("Email không hợp lệ"),
+  phone: z.string().min(9, "Số điện thoại không hợp lệ"),
+  
+  // 👇 Validate File Ảnh
+  imageFile: z
+    .any()
+    .refine((files) => files instanceof FileList && files.length > 0, "Vui lòng chọn ảnh đại diện")
+    .optional(), // Có thể để optional nếu backend không bắt buộc chặt
 });
 
+// Tự động tạo type từ Schema
+export type RegisterInput = z.infer<typeof RegisterSchema>;
 
-// src/features/auth/types/index.ts
-
-export interface RegisterInput {
-  username: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  dob: string; // Định dạng "YYYY-MM-DD"
+export interface ApiResponse<T> {
+  code: number;
+  result: T;
 }
 
-// Định nghĩa thông tin User trả về sau khi đăng ký thành công
 export interface UserRegistrationResult {
   id: string;
   username: string;
