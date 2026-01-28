@@ -1,91 +1,140 @@
 import { useState } from "react";
-import { Camera } from "lucide-react";
-
-const productImages = [
-  "https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=2080&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=2080&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1577803645773-f96470509666?q=80&w=2080&auto=format&fit=crop",
-  "https://kavi.vn/upload/image/06(17).jpg",
-];
+import { Camera, Ruler, Info } from "lucide-react";
+import { useProductStore } from "../store/useProductStore";
 
 export default function ProductGallery({ productId }: { productId: string }) {
-    console.log("Đang xem sản phẩm:", productId);
-  const [activeImage, setActiveImage] = useState(productImages[0]);
+  // 1. Lấy dữ liệu từ Store
+  const { currentProduct } = useProductStore();
+  
+  // 2. State cho thumbnail người dùng chọn
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // 3. Derived State: Xác định ảnh đang hiển thị (ảnh đầu tiên nếu chưa chọn)
+  const activeImage = selectedImage || currentProduct?.imageUrl?.[0] || "";
+
+  // 4. Loading Skeleton
+  if (!currentProduct) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="aspect-square bg-gray-200 rounded-2xl" />
+        <div className="grid grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="aspect-square bg-gray-100 rounded-xl" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const images = currentProduct.imageUrl || [];
 
   return (
-    <div className="space-y-8">
-      {/* Định nghĩa Keyframes cho Animation ngay trong component hoặc file CSS toàn cục */}
+    <div className="space-y-8 lg:sticky lg:top-24">
       <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: scale(0.95); }
-          to { opacity: 1; transform: scale(1); }
+        @keyframes slideUpFade {
+          from { opacity: 0; transform: translateY(10px) scale(0.98); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
         }
-        .animate-fade-in {
-          animation: fadeIn 0.4s ease-out forwards;
+        .animate-product-in {
+          animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
       `}</style>
 
-      {/* Main Image Area */}
-      <div className="relative bg-[#F4F5F7] rounded-xl overflow-hidden aspect-square flex items-center justify-center group">
-        <img 
-          key={activeImage} // QUAN TRỌNG: key thay đổi sẽ kích hoạt lại animation
-          src={activeImage} 
-          alt="Product Detail" 
-          className="w-3/4 object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-105 animate-fade-in" // Thêm class animate-fade-in
-        />
-        <button className="absolute bottom-6 flex items-center gap-2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm hover:bg-white transition text-sm font-medium text-gray-700 z-10">
-          <Camera className="w-4 h-4" />
+      {/* --- VÙNG HIỂN THỊ ẢNH CHÍNH --- */}
+      <div className="relative bg-gradient-to-b from-[#F8FAFB] to-[#F1F4F6] rounded-3xl overflow-hidden aspect-square flex items-center justify-center group border border-white shadow-inner">
+        {activeImage ? (
+          <img 
+            key={activeImage} 
+            src={activeImage} 
+            alt={currentProduct.name} 
+            className="w-4/5 object-contain mix-blend-multiply transition-all duration-700 group-hover:scale-110 animate-product-in" 
+          />
+        ) : (
+          <div className="text-gray-300 italic">No image preview</div>
+        )}
+        
+        {/* Nút Virtual Try-On cải tiến */}
+        <button className="absolute bottom-6 flex items-center gap-2 bg-white/80 backdrop-blur-md px-6 py-2.5 rounded-full shadow-xl hover:bg-[#4A8795] hover:text-white transition-all active:scale-95 text-sm font-bold text-[#4A8795] border border-white/50 group/btn">
+          <Camera className="w-4 h-4 transition-transform group-hover/btn:rotate-12" />
           Virtual Try-On
         </button>
       </div>
 
-      {/* Thumbnails */}
-      <div className="grid grid-cols-4 gap-4">
-        {productImages.map((img, index) => (
-          <div 
-            key={index} 
-            onClick={() => setActiveImage(img)}
-            className={`aspect-square rounded-lg bg-[#F4F5F7] border-2 cursor-pointer flex items-center justify-center transition-all duration-300
-              ${activeImage === img ? 'border-gray-900 ring-1 ring-gray-900/10' : 'border-transparent hover:border-gray-300'}`
-            }
-          >
-            <img 
-              src={img} 
-              className="w-2/3 mix-blend-multiply object-contain" 
-              alt={`thumb-${index}`} 
-            />
-          </div>
-        ))}
-      </div>
+      {/* --- DANH SÁCH ẢNH THUMBNAILS --- */}
+      {images.length > 1 && (
+        <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
+          {images.map((img, index) => {
+            const isActive = activeImage === img;
+            return (
+              <div 
+                key={`${productId}-${index}`} 
+                onClick={() => setSelectedImage(img)}
+                className={`flex-shrink-0 w-20 h-20 rounded-2xl bg-white border-2 cursor-pointer flex items-center justify-center transition-all duration-300 overflow-hidden
+                  ${isActive 
+                    ? 'border-[#4A8795] shadow-lg scale-105' 
+                    : 'border-transparent opacity-60 hover:opacity-100 hover:border-gray-200'}`
+                }
+              >
+                <img 
+                  src={img} 
+                  className="w-5/6 object-contain mix-blend-multiply" 
+                  alt={`Thumb ${index}`} 
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
 
-      {/* Technical Measurements */}
-      <div className="pt-4">
-        {/* ... (Phần thông số kỹ thuật giữ nguyên như cũ) ... */}
-         <div className="flex items-center gap-2 mb-6">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-500"><path d="M2 12H22M2 12L5 9M2 12L5 15M22 12L19 9M22 12L19 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          <h3 className="font-bold text-gray-900">Technical Measurements</h3>
+      {/* --- THÔNG SỐ KỸ THUẬT (TECHNICAL MEASUREMENTS) --- */}
+      <div className="p-6 bg-white rounded-3xl border border-gray-100 shadow-sm space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-[#4A8795]/10 rounded-lg">
+              <Ruler className="w-4 h-4 text-[#4A8795]" />
+            </div>
+            <h3 className="font-bold text-gray-900 tracking-tight">Technical Specs</h3>
+          </div>
+          <button className="text-gray-400 hover:text-gray-600 transition-colors">
+            <Info className="w-4 h-4" />
+          </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        {/*  */}
+
+        {/* Grid thông số chính */}
+        <div className="grid grid-cols-3 gap-3">
           {[
-            { label: "Lens Width", val: "52", unit: "mm" },
-            { label: "Bridge", val: "19", unit: "mm" },
-            { label: "Temple", val: "145", unit: "mm" },
+            { label: "Lens", val: "52", sub: "Width" },
+            { label: "Bridge", val: "19", sub: "Dist." },
+            { label: "Temple", val: "145", sub: "Length" },
           ].map((m) => (
-            <div key={m.label} className="bg-white border border-gray-100 rounded-xl p-4 text-center shadow-sm">
-              <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-1">{m.label}</p>
-              <p className="text-xl font-bold text-gray-900">{m.val}<span className="text-xs font-normal text-gray-500 ml-0.5">{m.unit}</span></p>
+            <div key={m.label} className="bg-[#F8FAFB] rounded-2xl p-3 text-center border border-gray-50 group hover:border-[#4A8795]/20 transition-colors">
+              <p className="text-[9px] uppercase tracking-widest text-gray-400 font-black mb-1">{m.label}</p>
+              <p className="text-lg font-black text-gray-900 leading-none">
+                {m.val}<span className="text-[10px] font-medium text-gray-500 ml-0.5">mm</span>
+              </p>
+              <p className="text-[8px] text-gray-400 mt-1">{m.sub}</p>
             </div>
           ))}
         </div>
 
-        <div className="space-y-4 text-sm">
-          <div className="flex justify-between py-3 border-b border-gray-100">
-            <span className="text-gray-500">Frame Material</span>
-            <span className="font-medium text-gray-900">Handcrafted Italian Acetate</span>
-          </div>
+        {/* Danh sách chi tiết */}
+        <div className="space-y-3">
+          {[
+            { label: "Material", value: currentProduct.frameMaterial || "Premium Acetate", icon: "💎" },
+            { label: "Frame Shape", value: currentProduct.shape, icon: "👓" },
+            { label: "Face Fit", value: "Medium / Wide", icon: "👤" },
+          ].map((item) => (
+            <div key={item.label} className="flex items-center justify-between py-2 text-sm">
+              <span className="text-gray-500 flex items-center gap-2">
+                <span className="text-xs">{item.icon}</span> {item.label}
+              </span>
+              <span className="font-bold text-gray-900 capitalize">{item.value}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
-};
+}
