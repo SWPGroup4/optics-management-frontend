@@ -19,6 +19,7 @@ export interface CartItem {
 interface CartState {
   items: CartItem[];
   isOpen: boolean;
+  clearCart: () => void;
   addToCart: (item: Omit<CartItem, 'id'>) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
@@ -53,6 +54,7 @@ export const useCartStore = create<CartState>()(
           isOpen: true
         };
       }),
+      clearCart: () => set({ items: [], isOpen: false }),
 
       removeFromCart: (id) => set((state) => ({
         items: state.items.filter((item) => item.id !== id),

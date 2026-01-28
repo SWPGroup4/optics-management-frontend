@@ -15,6 +15,7 @@ import ManagerOrderPage from "@/features/manager/page/orders/ManagerOrderPage";
 import ManagerPricingPage from "@/features/manager/page/pricing/ManagerPricingPage";
 import ProductManagePage from "@/features/manager/page/products/ProductManagePage.tsx";
 import StaffCustomerPage from "@/features/manager/page/staff/StaffCustomerPgae.tsx";
+import { PaymentSuccessPage } from "@/features/checkout/pages/PaymentSuccessPage"
 //import { ProtectedRoute } from "./protected-route" // Giả sử bạn vẫn giữ file này từ bước trước
 
 // Giả lập trang Dashboard cho có chỗ để chuyển hướng
@@ -56,6 +57,10 @@ export const router = createBrowserRouter([
           {
             path: "failure",
             element: <PaymentFailurePage />,
+          },
+          {
+            path: "success", 
+            element: <PaymentSuccessPage />,
           },
         ],
       },
