@@ -20,6 +20,7 @@ const navigation = [
     { name: "Orders", href: "/manager/orders", icon: ShoppingCart },
     { name: "Pricing", href: "/manager/pricing", icon: Tag },
     { name: "Staff", href: "/manager/staff", icon: Users },
+    { name: "Customers", href: "/manager/customers", icon: Users },
     // { name: "Settings", href: "/manager/settings", icon: Settings },
 ];
 
