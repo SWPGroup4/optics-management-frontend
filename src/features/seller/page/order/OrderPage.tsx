@@ -1,10 +1,6 @@
 import { useState } from "react";
-import {
-  Search,
-  Filter,
-  RotateCcw,
-  Download
-} from "lucide-react";
+import { Link } from "react-router-dom";
+import { Search, Filter, RotateCcw, Download } from "lucide-react";
 
 type OrderStatus =
   | "PENDING"
@@ -45,36 +41,6 @@ const MOCK_ORDERS: Order[] = [
     status: "PAID",
     createdAt: "Yesterday, 14:20",
   },
-  {
-    id: "3",
-    code: "#ORD-1021",
-    customerName: "Lê Văn C",
-    phone: "0912345678",
-    orderType: "Gọng kính",
-    total: 890000,
-    status: "SHIPPING",
-    createdAt: "23 Oct, 09:00",
-  },
-  {
-    id: "4",
-    code: "#ORD-1020",
-    customerName: "Phạm Thị D",
-    phone: "0987654321",
-    orderType: "Kính thuốc",
-    total: 1200000,
-    status: "COMPLETED",
-    createdAt: "22 Oct, 18:30",
-  },
-  {
-    id: "5",
-    code: "#ORD-1019",
-    customerName: "Hoàng Văn E",
-    phone: "0934567890",
-    orderType: "Áp tròng",
-    total: 450000,
-    status: "CANCELLED",
-    createdAt: "21 Oct, 11:15",
-  },
 ];
 
 const statusStyle: Record<OrderStatus, string> = {
@@ -98,7 +64,6 @@ export default function OrderPage() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* HEADER */}
       <div>
         <h1 className="text-2xl font-bold">Quản lý Đơn hàng</h1>
         <p className="text-gray-500 text-sm">
@@ -106,37 +71,6 @@ export default function OrderPage() {
         </p>
       </div>
 
-      {/* TOOLBAR */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              placeholder="Search anything..."
-              className="pl-9 pr-4 py-2 border rounded-lg text-sm w-64"
-            />
-          </div>
-
-          <button className="flex items-center gap-2 px-3 py-2 border rounded-lg text-sm">
-            <Filter className="w-4 h-4" />
-            Filter status...
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button className="p-2 border rounded-lg">
-            <RotateCcw className="w-4 h-4" />
-          </button>
-          <button className="p-2 border rounded-lg">
-            <Download className="w-4 h-4" />
-          </button>
-          <button className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium">
-            + Tạo đơn mới
-          </button>
-        </div>
-      </div>
-
-      {/* TABLE */}
       <div className="bg-white border rounded-xl overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-gray-500">
@@ -149,14 +83,13 @@ export default function OrderPage() {
               <th className="px-4 py-3 text-right">HÀNH ĐỘNG</th>
             </tr>
           </thead>
+
           <tbody className="divide-y">
             {orders.map((order) => (
               <tr key={order.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3">
                   <div className="font-medium">{order.code}</div>
-                  <div className="text-xs text-gray-500">
-                    {order.createdAt}
-                  </div>
+                  <div className="text-xs text-gray-500">{order.createdAt}</div>
                 </td>
 
                 <td className="px-4 py-3">
@@ -183,19 +116,17 @@ export default function OrderPage() {
                 </td>
 
                 <td className="px-4 py-3 text-right">
-                  <button className="px-3 py-1 border rounded-full text-xs">
-                    Xử lý
-                  </button>
+                  <Link
+                    to={`/seller/orders/${order.id}`}
+                    className="px-3 py-1 border rounded-full text-xs hover:bg-purple-50 text-purple-600"
+                  >
+                    Chi tiết
+                  </Link>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-
-        {/* FOOTER */}
-        <div className="px-4 py-3 text-sm text-gray-500">
-          Showing 1 to {orders.length} of {orders.length} results
-        </div>
       </div>
     </div>
   );

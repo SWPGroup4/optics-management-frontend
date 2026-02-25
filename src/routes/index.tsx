@@ -19,6 +19,7 @@ import { PaymentSuccessPage } from "@/features/checkout/pages/PaymentSuccessPage
 import ProductVariantManagePage from "@/features/manager/page/products/ProductVariantManageage"
 import ManageCustomerPage from "@/features/manager/page/Customer/ManagerCustomerPage"
 import OrderPage from "@/features/seller/page/order/OrderPage"
+import OrderDetailPage from "@/features/seller/page/order/OrderDetailPage"
 
 //import { ProtectedRoute } from "./protected-route" // Giả sử bạn vẫn giữ file này từ bước trước
 
@@ -119,12 +120,13 @@ export const router = createBrowserRouter([
   // ===== STAFF =====
   {
     path: "/seller",
-    
-    children: [
-      { index: true, element: <OrderPage /> },
-     
-     
-    ],
+  children: [
+    { index: true, element: <OrderPage /> },
+    {
+      path: "orders/:id",
+      element: <OrderDetailPage />,
+    },
+  ],
   },
 
   // ===== FALLBACK =====
