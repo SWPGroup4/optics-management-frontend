@@ -9,7 +9,7 @@ import HomePage from "@/features/home/page/HomePage"
 import { MainLayout } from "@/components/layout/MainLayout"
 import { PaymentFailurePage } from "@/features/checkout/pages/PaymentFailurePage"
 import { SearchResults } from "@/features/home/page/SearchResults"
-import ManagerDashboardPage from "@/features/manager/page/dashboard/ManagerDashboardPage";
+// import ManagerDashboardPage from "@/features/manager/page/dashboard/ManagerDashboardPage";
 import { ManagerDashboardLayout } from "@/features/manager/layout/ManagerDashboardLayout";
 import ManagerOrderPage from "@/features/manager/page/orders/ManagerOrderPage";
 import ManagerPricingPage from "@/features/manager/page/pricing/ManagerPricingPage";
@@ -18,6 +18,7 @@ import StaffCustomerPage from "@/features/manager/page/staff/StaffCustomerPage";
 import { PaymentSuccessPage } from "@/features/checkout/pages/PaymentSuccessPage"
 import ProductVariantManagePage from "@/features/manager/page/products/ProductVariantManageage"
 import ManageCustomerPage from "@/features/manager/page/Customer/ManagerCustomerPage"
+import DashboardPage from "@/features/manager/page/new-dashboard/DashboardPage.tsx";
 
 //import { ProtectedRoute } from "./protected-route" // Giả sử bạn vẫn giữ file này từ bước trước
 
@@ -102,7 +103,7 @@ export const router = createBrowserRouter([
     path: "/manager",
     element: <ManagerDashboardLayout />,
     children: [
-      { index: true, element: <ManagerDashboardPage /> },
+      { index: true, element: <DashboardPage /> },
       { path: "orders", element: <ManagerOrderPage /> },
       { path: "pricing", element: <ManagerPricingPage /> },
       { path: "products", element: <ProductManagePage /> },
