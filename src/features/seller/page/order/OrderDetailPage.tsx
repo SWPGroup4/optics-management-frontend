@@ -1,9 +1,8 @@
 // src/features/seller/page/order/OrderDetailPage.tsx
 
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function OrderDetailPage() {
-  const { id } = useParams();
   const navigate = useNavigate();
 
   return (
