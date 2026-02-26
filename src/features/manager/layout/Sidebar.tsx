@@ -6,13 +6,13 @@ import {
     Users,
     Tag,
     // Settings,
-    Glasses,
     LogOut,
     ChevronLeft,
     ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useSidebar } from "@/features/manager/hooks/useSidebar.ts";
+import Logo from "@/components/common/Logo";
 
 const navigation = [
     { name: "Dashboard", href: "/manager", icon: LayoutDashboard },
@@ -25,7 +25,7 @@ const navigation = [
 ];
 
 export function Sidebar() {
-    const [collapsed, setCollapsed] = useState(false);
+    const { collapsed, toggleCollapsed } = useSidebar();
     const location = useLocation();
 
     return (
@@ -36,18 +36,12 @@ export function Sidebar() {
             )}
         >
             {/* Logo */}
-            <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
+            <div className="h-16 md:h-20 flex items-center justify-between px-4 border-sidebar-border">
                 {!collapsed && (
-                    <div className="flex items-center gap-2">
-                        <Glasses className="w-6 h-6 text-sidebar-primary" />
-                        <span className="font-semibold text-sidebar-primary tracking-tight">
-              OptiVision
-            </span>
-                    </div>
+                    <Logo />
                 )}
-                {collapsed && <Glasses className="w-6 h-6 text-sidebar-primary mx-auto" />}
                 <button
-                    onClick={() => setCollapsed(!collapsed)}
+                    onClick={toggleCollapsed}
                     className={cn(
                         "p-1.5 rounded-lg text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
                         collapsed && "mx-auto"

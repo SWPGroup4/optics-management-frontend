@@ -1,16 +1,15 @@
-import { useState } from "react";
-import { Camera, Ruler, Info } from "lucide-react";
-// 👇 Import Hook TanStack Query
-import { useProduct } from "../hooks/useProducts";
+import { useState } from 'react';
+import { Camera, Ruler, Info } from 'lucide-react';
+import { useProduct } from '../hooks/useProducts';
 
 export default function ProductGallery({ productId }: { productId: string }) {
   // 1. Lấy dữ liệu từ Hook
   const { data: product, isLoading } = useProduct(productId);
-  
-  // 2. State cho thumbnail
+
+  // 2. State cho thumbnail (lưu trữ URL string)
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  // 3. Loading Skeleton (Check isLoading thay vì !currentProduct)
+  // 3. Loading Skeleton
   if (isLoading || !product) {
     return (
       <div className="space-y-6 animate-pulse">
@@ -24,9 +23,16 @@ export default function ProductGallery({ productId }: { productId: string }) {
     );
   }
 
-  // 4. Logic hiển thị ảnh
-  const activeImage = selectedImage || product.imageUrl?.[0] || "";
-  const images = product.imageUrl || [];
+  // 👇 FIX LOGIC HIỂN THỊ ẢNH
+  // 4a. Bóc tách mảng object thành mảng các đường link (string)
+  const images = product.imageUrl?.map((imgObj) => imgObj.imageUrl) || [];
+
+  // 4b. Link dự phòng an toàn
+  const fallbackImg =
+    'https://images.unsplash.com/photo-1572635196237-14b3f281503f?auto=format&fit=crop&q=80&w=800';
+
+  // 4c. Xác định ảnh active (ưu tiên ảnh đã click -> ảnh đầu tiên -> ảnh dự phòng)
+  const activeImage = selectedImage || (images.length > 0 ? images[0] : fallbackImg);
 
   return (
     <div className="space-y-8 lg:sticky lg:top-24">
@@ -42,17 +48,18 @@ export default function ProductGallery({ productId }: { productId: string }) {
 
       {/* --- VÙNG HIỂN THỊ ẢNH CHÍNH --- */}
       <div className="relative bg-gradient-to-b from-[#F8FAFB] to-[#F1F4F6] rounded-3xl overflow-hidden aspect-square flex items-center justify-center group border border-white shadow-inner">
-        {activeImage ? (
-          <img 
-            key={activeImage} 
-            src={activeImage} 
-            alt={product.name} 
-            className="w-4/5 object-contain mix-blend-multiply transition-all duration-700 group-hover:scale-110 animate-product-in" 
-          />
-        ) : (
-          <div className="text-gray-300 italic">No image preview</div>
-        )}
-        
+        <img
+          key={activeImage}
+          src={activeImage}
+          alt={product.name}
+          className="w-4/5 object-contain mix-blend-multiply transition-all duration-700 group-hover:scale-110 animate-product-in"
+          // Chống lỗi link S3 chết
+          onError={(e) => {
+            e.currentTarget.src = fallbackImg;
+            e.currentTarget.onerror = null;
+          }}
+        />
+
         {/* Nút Virtual Try-On */}
         <button className="absolute bottom-6 flex items-center gap-2 bg-white/80 backdrop-blur-md px-6 py-2.5 rounded-full shadow-xl hover:bg-[#4A8795] hover:text-white transition-all active:scale-95 text-sm font-bold text-[#4A8795] border border-white/50 group/btn">
           <Camera className="w-4 h-4 transition-transform group-hover/btn:rotate-12" />
@@ -63,22 +70,27 @@ export default function ProductGallery({ productId }: { productId: string }) {
       {/* --- DANH SÁCH ẢNH THUMBNAILS --- */}
       {images.length > 1 && (
         <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
-          {images.map((img, index) => {
-            const isActive = activeImage === img;
+          {images.map((imgStr, index) => {
+            const isActive = activeImage === imgStr;
             return (
-              <div 
-                key={`${productId}-${index}`} 
-                onClick={() => setSelectedImage(img)}
+              <div
+                key={`${productId}-${index}`}
+                onClick={() => setSelectedImage(imgStr)}
                 className={`flex-shrink-0 w-20 h-20 rounded-2xl bg-white border-2 cursor-pointer flex items-center justify-center transition-all duration-300 overflow-hidden
-                  ${isActive 
-                    ? 'border-[#4A8795] shadow-lg scale-105' 
-                    : 'border-transparent opacity-60 hover:opacity-100 hover:border-gray-200'}`
-                }
+                  ${
+                    isActive
+                      ? 'border-[#4A8795] shadow-lg scale-105'
+                      : 'border-transparent opacity-60 hover:opacity-100 hover:border-gray-200'
+                  }`}
               >
-                <img 
-                  src={img} 
-                  className="w-5/6 object-contain mix-blend-multiply" 
-                  alt={`Thumb ${index}`} 
+                <img
+                  src={imgStr}
+                  className="w-5/6 object-contain mix-blend-multiply"
+                  alt={`Thumb ${index}`}
+                  onError={(e) => {
+                    e.currentTarget.src = fallbackImg;
+                    e.currentTarget.onerror = null;
+                  }}
                 />
               </div>
             );
@@ -103,14 +115,20 @@ export default function ProductGallery({ productId }: { productId: string }) {
         {/* Grid thông số chính */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label: "Lens", val: "52", sub: "Width" },
-            { label: "Bridge", val: "19", sub: "Dist." },
-            { label: "Temple", val: "145", sub: "Length" },
+            { label: 'Lens', val: '52', sub: 'Width' },
+            { label: 'Bridge', val: '19', sub: 'Dist.' },
+            { label: 'Temple', val: '145', sub: 'Length' },
           ].map((m) => (
-            <div key={m.label} className="bg-[#F8FAFB] rounded-2xl p-3 text-center border border-gray-50 group hover:border-[#4A8795]/20 transition-colors">
-              <p className="text-[9px] uppercase tracking-widest text-gray-400 font-black mb-1">{m.label}</p>
+            <div
+              key={m.label}
+              className="bg-[#F8FAFB] rounded-2xl p-3 text-center border border-gray-50 group hover:border-[#4A8795]/20 transition-colors"
+            >
+              <p className="text-[9px] uppercase tracking-widest text-gray-400 font-black mb-1">
+                {m.label}
+              </p>
               <p className="text-lg font-black text-gray-900 leading-none">
-                {m.val}<span className="text-[10px] font-medium text-gray-500 ml-0.5">mm</span>
+                {m.val}
+                <span className="text-[10px] font-medium text-gray-500 ml-0.5">mm</span>
               </p>
               <p className="text-[8px] text-gray-400 mt-1">{m.sub}</p>
             </div>
@@ -120,9 +138,9 @@ export default function ProductGallery({ productId }: { productId: string }) {
         {/* Danh sách chi tiết */}
         <div className="space-y-3">
           {[
-            { label: "Material", value: product.frameMaterial || "Premium Acetate", icon: "💎" },
-            { label: "Frame Shape", value: product.shape, icon: "👓" },
-            { label: "Face Fit", value: "Medium / Wide", icon: "👤" },
+            { label: 'Material', value: product.frameMaterial || 'Premium Acetate', icon: '💎' },
+            { label: 'Frame Shape', value: product.shape || 'Unknown', icon: '👓' },
+            { label: 'Face Fit', value: 'Medium / Wide', icon: '👤' },
           ].map((item) => (
             <div key={item.label} className="flex items-center justify-between py-2 text-sm">
               <span className="text-gray-500 flex items-center gap-2">
