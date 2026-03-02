@@ -18,7 +18,11 @@ import StaffCustomerPage from "@/features/manager/page/staff/StaffCustomerPage";
 import { PaymentSuccessPage } from "@/features/checkout/pages/PaymentSuccessPage"
 import ProductVariantManagePage from "@/features/manager/page/products/ProductVariantManageage"
 import ManageCustomerPage from "@/features/manager/page/Customer/ManagerCustomerPage"
+
 import DashboardPage from "@/features/manager/page/new-dashboard/DashboardPage.tsx";
+
+import OrderPage from "@/features/seller/page/order/OrderPage"
+import OrderDetailPage from "@/features/seller/page/order/OrderDetailPage"
 
 //import { ProtectedRoute } from "./protected-route" // Giả sử bạn vẫn giữ file này từ bước trước
 
@@ -116,7 +120,17 @@ export const router = createBrowserRouter([
       { path: "staff", element: <StaffCustomerPage /> },
     ],
   },
-
+  // ===== STAFF =====
+  {
+    path: "/seller",
+  children: [
+    { index: true, element: <OrderPage /> },
+    {
+      path: "orders/:id",
+      element: <OrderDetailPage />,
+    },
+  ],
+  },
 
   // ===== FALLBACK =====
   {
