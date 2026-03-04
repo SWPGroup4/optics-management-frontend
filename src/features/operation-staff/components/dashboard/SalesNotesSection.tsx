@@ -1,6 +1,6 @@
 import React from 'react';
 import { AlertTriangle, Info, CheckCircle } from 'lucide-react';
-import type { SalesNote } from '@/features/manager/types/dashboard';
+import type { SalesNote } from '@/features/operation-staff/types/types';
 
 interface SalesNotesSectionProps {
     notes: SalesNote[];
@@ -48,7 +48,7 @@ const SalesNotesSection: React.FC<SalesNotesSectionProps> = ({ notes }) => {
 
     return (
         <section className="pb-24">
-            {notes.map((note) => (
+            {notes?.map((note) => (
                 <div key={note.id} className={`${getNoteStyles(note.type)} p-6 rounded-r-xl shadow-sm flex items-start gap-4 mb-4`}>
                     <div className="flex-shrink-0">
                         <div className={getNoteColor(note.type)}>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Filter, Download } from 'lucide-react';
 import OrdersTabs from './OrdersTabs';
-import type { TabItem } from '@/features/manager/types/dashboard';
+import type { TabItem } from '@/features/operation-staff/types/types';
 
 interface OrdersToolbarProps {
     tabs: TabItem[];

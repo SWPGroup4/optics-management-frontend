@@ -1,8 +1,8 @@
 import React from 'react';
 import PickingListSection from './PickingListSection';
-import PrescriptionSection from './PrescriptionSection';
+// import PrescriptionSection from './PrescriptionSection';
 import SalesNotesSection from './SalesNotesSection';
-import type { OrderDetail } from '@/features/manager/types/dashboard';
+import type { OrderDetail } from '@/features/operation-staff/types/types';
 
 interface DrawerContentProps {
     order: OrderDetail;
@@ -15,7 +15,7 @@ const DrawerContent: React.FC<DrawerContentProps> = ({ order, isOpen }) => {
             isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
         }`}>
             <PickingListSection items={order.pickingItems} />
-            <PrescriptionSection prescription={order.prescription} />
+            {/*<PrescriptionSection prescription={order.prescription} />*/}
             <SalesNotesSection notes={order.salesNotes} />
         </div>
     );

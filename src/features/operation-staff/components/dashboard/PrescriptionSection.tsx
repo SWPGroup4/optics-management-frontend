@@ -1,6 +1,6 @@
 import React from 'react';
 import { Eye } from 'lucide-react';
-import type { Prescription } from '@/features/manager/types/dashboard';
+import type { Prescription } from '@/features/operation-staff/types/types';
 
 interface PrescriptionSectionProps {
     prescription: Prescription;
@@ -40,22 +40,22 @@ const PrescriptionSection: React.FC<PrescriptionSectionProps> = ({ prescription 
                             </td>
                             <td className="py-6 px-4">
                   <span className="font-mono text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white tracking-tighter">
-                    {prescription.od.sphere >= 0 ? '+' : ''}{prescription.od.sphere.toFixed(2)}
+                    {prescription?.od.sphere >= 0 ? '+' : ''}{prescription?.od.sphere.toFixed(2)}
                   </span>
                             </td>
                             <td className="py-6 px-4">
                   <span className="font-mono text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white tracking-tighter">
-                    {prescription.od.cylinder >= 0 ? '+' : ''}{prescription.od.cylinder.toFixed(2)}
+                    {prescription?.od.cylinder >= 0 ? '+' : ''}{prescription?.od.cylinder.toFixed(2)}
                   </span>
                             </td>
                             <td className="py-6 px-4">
                   <span className="font-mono text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white tracking-tighter text-blue-600 dark:text-blue-400">
-                    {prescription.od.axis}
+                    {prescription?.od.axis}
                   </span>
                             </td>
                             <td className="py-6 px-4 bg-slate-50/50 dark:bg-slate-800/20">
                   <span className="font-mono text-4xl lg:text-5xl font-bold text-slate-700 dark:text-slate-300 tracking-tighter">
-                    {prescription.od.pd}
+                    {prescription?.od.pd}
                   </span>
                             </td>
                         </tr>
@@ -70,22 +70,22 @@ const PrescriptionSection: React.FC<PrescriptionSectionProps> = ({ prescription 
                             </td>
                             <td className="py-6 px-4">
                   <span className="font-mono text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white tracking-tighter">
-                    {prescription.os.sphere >= 0 ? '+' : ''}{prescription.os.sphere.toFixed(2)}
+                    {prescription?.os.sphere >= 0 ? '+' : ''}{prescription?.os.sphere.toFixed(2)}
                   </span>
                             </td>
                             <td className="py-6 px-4">
                   <span className="font-mono text-4xl lg:text-5xl font-bold text-slate-400 dark:text-slate-500 tracking-tighter">
-                    {prescription.os.cylinder >= 0 ? '+' : ''}{prescription.os.cylinder.toFixed(2)}
+                    {prescription?.os.cylinder >= 0 ? '+' : ''}{prescription?.os.cylinder.toFixed(2)}
                   </span>
                             </td>
                             <td className="py-6 px-4">
                   <span className="font-mono text-4xl lg:text-5xl font-bold text-slate-400 dark:text-slate-500 tracking-tighter">
-                    {prescription.os.axis}
+                    {prescription?.os.axis}
                   </span>
                             </td>
                             <td className="py-6 px-4 bg-slate-50/50 dark:bg-slate-800/20">
                   <span className="font-mono text-4xl lg:text-5xl font-bold text-slate-700 dark:text-slate-300 tracking-tighter">
-                    {prescription.os.pd}
+                    {prescription?.os.pd}
                   </span>
                             </td>
                         </tr>

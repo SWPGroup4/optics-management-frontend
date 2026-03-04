@@ -1,6 +1,6 @@
 import React from 'react';
 import { Glasses, X } from 'lucide-react';
-import type { OrderDetail } from '@/features/manager/types/dashboard';
+import type { OrderDetail } from '@/features/operation-staff/types/types';
 
 interface DrawerHeaderProps {
     order: OrderDetail;
@@ -20,9 +20,8 @@ const DrawerHeader: React.FC<DrawerHeaderProps> = ({ order, onClose }) => {
                     </div>
                     <div>
                         <h2 className="text-xl md:text-2xl font-extrabold text-slate-900 dark:text-white leading-tight tracking-tight">
-                            {order.orderCode} <span className="text-slate-400 font-light mx-2">|</span> {order.customerName}
+                            Đơn: {order.orderCode} <span className="text-slate-400 font-light mx-2">|</span> Khách hàng: {order.customerName}
                         </h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">Tiếp nhận: {order.receivedTime}</p>
                     </div>
                 </div>
                 <button

@@ -1,5 +1,5 @@
 import React from 'react';
-import type { TabItem } from '@/features/manager/types/dashboard';
+import type { TabItem } from '@/features/operation-staff/types/types';
 
 interface OrdersTabsProps {
     tabs: TabItem[];

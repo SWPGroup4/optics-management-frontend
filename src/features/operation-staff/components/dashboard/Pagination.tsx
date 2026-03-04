@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { PaginationInfo } from '@/features/manager/types/dashboard';
+import type { PaginationInfo } from '@/features/operation-staff/types/types';
 
 interface PaginationProps {
     pagination: PaginationInfo;

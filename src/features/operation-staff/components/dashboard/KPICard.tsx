@@ -1,6 +1,6 @@
 import React from 'react';
 import { AlertTriangle, FileText, Package } from 'lucide-react';
-import type { KPIData } from '@/features/manager/types/dashboard';
+import type { KPIData } from '@/features/operation-staff/types/types';
 
 interface KPICardProps {
     data: KPIData;

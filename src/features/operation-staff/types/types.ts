@@ -1,4 +1,4 @@
-export type OrderStatus = 'waiting_cutting' | 'waiting_packaging' | 'shipping' | 'completed';
+export type OrderStatus = 'waiting_cutting' | 'waiting_packaging' | 'shipping' | 'completed' | 'PROCESSING' | 'PRODUCED' | 'PENDING';
 export type PaymentStatus = 'deposit_50' | 'full_payment' | 'unpaid';
 export type PriorityLevel = 'high' | 'medium' | 'low';
 

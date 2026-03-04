@@ -1,6 +1,6 @@
 import React from 'react';
 import { Package2, MapPin } from 'lucide-react';
-import type { PickingItem } from '@/features/manager/types/dashboard';
+import type { PickingItem } from '@/features/operation-staff/types/types';
 
 interface PickingListSectionProps {
     items: PickingItem[];
@@ -22,12 +22,12 @@ const PickingListSection: React.FC<PickingListSectionProps> = ({ items }) => {
             <div className="flex items-center gap-2 mb-4">
                 <Package2 className="w-5 h-5 text-slate-400" />
                 <h3 className="text-slate-900 dark:text-white text-lg font-bold uppercase tracking-wide">
-                    Danh sách nhặt hàng (Picking List)
+                    Danh sách hàng
                 </h3>
             </div>
 
             <div className="grid grid-cols-1 gap-4">
-                {items.map((item) => (
+                {items?.map((item) => (
                     <div
                         key={item.id}
                         className="group flex flex-col md:flex-row bg-white dark:bg-[#1a2e22] rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-md transition-shadow"

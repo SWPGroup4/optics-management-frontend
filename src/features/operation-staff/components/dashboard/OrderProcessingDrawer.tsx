@@ -4,9 +4,12 @@ import DrawerHeader from './DrawerHeader';
 import DrawerContent from './DrawerContent';
 import DrawerFooter from './DrawerFooter';
 import { useOrderDrawerStore } from '@/features/operation-staff/store/orderDrawerStore.ts';
+import { useProductionStore } from "@/features/operation-staff/store/productionStore.ts";
 
 const OrderProcessingDrawer: React.FC = () => {
     const { isOpen, selectedOrder, closeDrawer } = useOrderDrawerStore();
+    const startOrder = useProductionStore(state => state.startOrder);
+    const finishOrder = useProductionStore(state => state.finishOrder);
 
     useEffect(() => {
         if (isOpen) {
@@ -32,20 +35,31 @@ const OrderProcessingDrawer: React.FC = () => {
         return () => document.removeEventListener('keydown', handleEscape);
     }, [isOpen, closeDrawer]);
 
-    const handleReportError = () => {
+    const handleStartProcessing = () => {
         if (selectedOrder) {
-            console.log('Report error for order:', selectedOrder.id);
-            // Implement error reporting logic
+            startOrder(selectedOrder.id)
+                .then(() => {
+                    console.log('Order started successfully:', selectedOrder.id);
+                })
+                .catch((error) => {
+                    console.error('Failed to start order:', error);
+                });
         }
     };
 
     const handleCompleteProcessing = () => {
         if (selectedOrder) {
-            console.log('Complete processing for order:', selectedOrder.id);
-            // Implement completion logic
-            closeDrawer();
+            finishOrder(selectedOrder.id)
+                .then(() => {
+                    console.log('Order completed successfully:', selectedOrder.id);
+                    closeDrawer();
+                })
+                .catch((error) => {
+                    console.error('Failed to complete order:', error);
+                });
         }
     };
+
 
     return (
         <DrawerOverlay isOpen={isOpen} onClose={closeDrawer}>
@@ -54,7 +68,7 @@ const OrderProcessingDrawer: React.FC = () => {
                     <DrawerHeader order={selectedOrder} onClose={closeDrawer} />
                     <DrawerContent order={selectedOrder} isOpen={isOpen} />
                     <DrawerFooter
-                        onReportError={handleReportError}
+                        onReportError={handleStartProcessing}
                         onCompleteProcessing={handleCompleteProcessing}
                         isProcessing={selectedOrder.processingStatus === 'in_progress'}
                     />

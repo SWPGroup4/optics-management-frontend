@@ -1,6 +1,6 @@
 import React from 'react';
 import OrderRow from './OrderRow';
-import type { Order } from '@/features/manager/types/dashboard';
+import type { Order } from '@/features/operation-staff/types/types';
 
 interface OrdersTableProps {
     orders: Order[];
@@ -16,8 +16,8 @@ const OrdersTable: React.FC<OrdersTableProps> = ({ orders, selectedOrders, onSel
         });
     };
 
-    const isAllSelected = orders.length > 0 && orders.every(order => selectedOrders.has(order.id));
-    const isIndeterminate = selectedOrders.size > 0 && selectedOrders.size < orders.length;
+    const isAllSelected = orders?.length > 0 && orders?.every(order => selectedOrders.has(order.id));
+    const isIndeterminate = selectedOrders?.size > 0 && selectedOrders?.size < orders?.length;
 
     return (
         <div className="overflow-x-auto">
@@ -36,15 +36,15 @@ const OrdersTable: React.FC<OrdersTableProps> = ({ orders, selectedOrders, onSel
                         />
                     </th>
                     <th className="px-6 py-4">Mã đơn hàng</th>
-                    <th className="px-6 py-4">SLA (Thời hạn)</th>
-                    <th className="px-6 py-4 w-1/3">Sản phẩm / Loại tròng</th>
-                    <th className="px-6 py-4">Thanh toán</th>
+                    {/*<th className="px-6 py-4">SLA (Thời hạn)</th>*/}
+                    {/*<th className="px-6 py-4 w-1/3">Sản phẩm / Loại tròng</th>*/}
+                    <th className="px-6 py-4">Trạng thái</th>
                     <th className="px-6 py-4 text-right">Hành động</th>
                 </tr>
                 </thead>
 
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
-                {orders.map((order) => (
+                {orders?.map((order) => (
                     <OrderRow
                         key={order.id}
                         order={order}
