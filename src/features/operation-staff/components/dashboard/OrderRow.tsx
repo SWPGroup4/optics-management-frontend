@@ -1,6 +1,6 @@
 import React from 'react';
 // import { Glasses, Eye } from 'lucide-react';
-import type { Order } from '@/features/operation-staff/types/types';
+import type { Order, OrderDetail } from '@/features/operation-staff/types/types';
 import { useOrderDrawerStore } from '@/features/operation-staff/store/orderDrawerStore.ts';
 // import { mockOrderDetails } from '@/features/manager/data/mockOrderDetails';
 
@@ -15,7 +15,18 @@ const OrderRow: React.FC<OrderRowProps> = ({ order, isSelected, onSelectionChang
 
     const handleProcessOrder = () => {
         if (order) {
-            openDrawer(order);
+            const orderDetail: OrderDetail = {
+                ...order,
+                receivedTime: new Date().toISOString(),
+                pickingItems: [],
+                prescription: {
+                    od: { sphere: 0, cylinder: 0, axis: 0, pd: 0 },
+                    os: { sphere: 0, cylinder: 0, axis: 0, pd: 0 }
+                },
+                salesNotes: [],
+                processingStatus: 'pending' as const
+            };
+            openDrawer(orderDetail);
         }
     };
 

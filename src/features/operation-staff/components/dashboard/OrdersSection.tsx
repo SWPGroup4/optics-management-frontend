@@ -4,7 +4,7 @@ import OrdersTable from '@/features/operation-staff/components/dashboard/OrdersT
 import Pagination from '@/features/operation-staff/components/dashboard/Pagination';
 import OrderProcessingDrawer from "@/features/operation-staff/components/dashboard/OrderProcessingDrawer.tsx";
 // import { mockDashboardOrders } from '@/features/operation-staff/data/mockDashboardOrders.ts';
-import type { TabItem, PaginationInfo } from '@/features/operation-staff/types/types';
+import type { TabItem, PaginationInfo, PaymentStatus, OrderStatus } from '@/features/operation-staff/types/types';
 import { useProductionStore } from "@/features/operation-staff/store/productionStore.ts";
 
 const ITEMS_PER_PAGE = 10;
@@ -37,8 +37,8 @@ const OrdersSection: React.FC = () => {
             productType: 'combo',
             productFeatures: '',
             productIcon: '',
-            paymentStatus: 'unpaid',
-            status: order.orderStatus,
+            paymentStatus: 'unpaid' as PaymentStatus,
+            status: order.orderStatus as OrderStatus,
             isActionable: order?.orderStatus === 'PENDING',
             pickingItems: order.items?.map(item => ({
                 id: item.orderItemId,
