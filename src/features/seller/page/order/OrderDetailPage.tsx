@@ -1,9 +1,30 @@
-// src/features/seller/page/order/OrderDetailPage.tsx
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { orderApi, type Order } from "../../api/order-api";
 
-import { useNavigate } from "react-router-dom";
 
 export default function OrderDetailPage() {
+  const { orderId } = useParams();
   const navigate = useNavigate();
+  const [order, setOrder] = useState<Order | null>(null);
+
+  useEffect(() => {
+    if (!orderId) return;
+
+    const fetchDetail = async () => {
+      const data = await orderApi.getOrderDetail(orderId);
+      setOrder(data);
+    };
+
+    fetchDetail();
+  }, [orderId]);
+
+  if (!order) {
+    return <div className="p-6">Đang tải chi tiết đơn...</div>;
+  }
+
+  const item = order.items[0];
+  const p = item?.prescription;
 
   return (
     <div className="p-6 space-y-6">
@@ -11,56 +32,45 @@ export default function OrderDetailPage() {
         onClick={() => navigate(-1)}
         className="text-sm text-gray-500 hover:underline"
       >
-        ← Quay lại danh sách
+        ← Quay lại
       </button>
 
       <div className="grid grid-cols-12 gap-6">
         {/* LEFT */}
         <div className="col-span-4 space-y-4">
           <div className="bg-white p-4 rounded-xl border">
-            <h3 className="font-semibold mb-3">Thông tin khách hàng</h3>
-            <p className="font-medium">Nguyễn Văn A</p>
-            <p className="text-sm text-gray-500">0901234567</p>
-            <p className="text-sm text-gray-500">
-              123 Lê Lợi, Quận 1, TP.HCM
-            </p>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl border">
-            <h3 className="font-semibold mb-3">Sản phẩm</h3>
-            <p className="font-medium">Ray-Ban Aviator</p>
-            <p className="text-sm text-gray-500">Giá: 2.500.000đ</p>
+            <h3 className="font-semibold mb-3">Khách hàng</h3>
+            <p className="font-medium">{order.phoneNumber}</p>
+            <p className="text-sm text-gray-500">{order.deliveryAddress}</p>
           </div>
         </div>
 
         {/* RIGHT */}
         <div className="col-span-8 bg-white p-6 rounded-xl border">
-          <h3 className="font-semibold mb-4">Ảnh chụp đơn thuốc</h3>
+          <h3 className="font-semibold mb-4">Đơn thuốc</h3>
 
-          <div className="grid grid-cols-2 gap-6">
-            <div className="border rounded-lg h-64 flex items-center justify-center text-gray-400">
-              Image Preview
-            </div>
+          {p && (
+            <>
+              <h4 className="font-medium mb-2">Mắt phải (OD)</h4>
+              <p>SPH: {p.odSphere} | CYL: {p.odCylinder} | AXIS: {p.odAxis}</p>
 
-            <div className="space-y-4">
-              <h4 className="font-medium">Mắt phải (OD)</h4>
-              <div className="flex gap-2">
-                <input className="input" placeholder="SPH -2.50" />
-                <input className="input" placeholder="CYL -0.50" />
-                <input className="input" placeholder="AXIS 180" />
-              </div>
+              <h4 className="font-medium mt-4 mb-2">Mắt trái (OS)</h4>
+              <p>SPH: {p.osSphere} | CYL: {p.osCylinder} | AXIS: {p.osAxis}</p>
 
-              <h4 className="font-medium">Mắt trái (OS)</h4>
-              <div className="flex gap-2">
-                <input className="input" placeholder="SPH -3.00" />
-                <input className="input" placeholder="CYL 0.00" />
-                <input className="input" placeholder="AXIS 0" />
-              </div>
+              <p className="mt-4 text-sm text-gray-500">
+                Ghi chú: {p.note}
+              </p>
+            </>
+          )}
 
-              <button className="w-full mt-6 py-2 bg-purple-600 text-white rounded-lg font-medium">
-                Xác nhận & Chuyển vận hành
-              </button>
-            </div>
+          <div className="flex gap-3 mt-6">
+            <button className="flex-1 py-2 border rounded-lg">
+              Yêu cầu gửi lại
+            </button>
+
+            <button className="flex-1 py-2 bg-purple-600 text-white rounded-lg font-medium">
+              Xác nhận & Chuyển vận hành
+            </button>
           </div>
         </div>
       </div>
