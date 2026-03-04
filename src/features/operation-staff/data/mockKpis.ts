@@ -1,4 +1,4 @@
-import type { KPIData } from '@/features/manager/types/dashboard';
+import type { KPIData } from '@/features/manager/types/dashboard.ts';
 
 export const mockKpis: KPIData[] = [
     {

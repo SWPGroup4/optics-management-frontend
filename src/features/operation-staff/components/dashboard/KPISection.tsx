@@ -1,6 +1,6 @@
 import React from 'react';
 import KPICard from './KPICard';
-import { mockKpis } from '@/features/manager/data/mockKpis';
+import { mockKpis } from '@/features/operation-staff/data/mockKpis.ts';
 
 const KPISection: React.FC = () => {
     return (

@@ -3,7 +3,7 @@ import DrawerOverlay from './DrawerOverlay';
 import DrawerHeader from './DrawerHeader';
 import DrawerContent from './DrawerContent';
 import DrawerFooter from './DrawerFooter';
-import { useOrderDrawerStore } from '@/features/manager/stores/orderDrawerStore';
+import { useOrderDrawerStore } from '@/features/operation-staff/store/orderDrawerStore.ts';
 
 const OrderProcessingDrawer: React.FC = () => {
     const { isOpen, selectedOrder, closeDrawer } = useOrderDrawerStore();

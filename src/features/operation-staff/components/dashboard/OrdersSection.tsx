@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import OrdersToolbar from '@/features/manager/components/new-dashboard/OrdersToolbar';
-import OrdersTable from '@/features/manager/components/new-dashboard/OrdersTable';
-import Pagination from '@/features/manager/components/new-dashboard/Pagination';
-import OrderProcessingDrawer from "@/features/manager/components/new-dashboard/OrderProcessingDrawer.tsx";
-import { mockDashboardOrders } from '@/features/manager/data/mockDashboardOrders';
-import type { TabItem, PaginationInfo } from '@/features/manager/types/dashboard';
+import OrdersToolbar from '@/features/operation-staff/components/dashboard/OrdersToolbar';
+import OrdersTable from '@/features/operation-staff/components/dashboard/OrdersTable';
+import Pagination from '@/features/operation-staff/components/dashboard/Pagination';
+import OrderProcessingDrawer from "@/features/operation-staff/components/dashboard/OrderProcessingDrawer.tsx";
+import { mockDashboardOrders } from '@/features/operation-staff/data/mockDashboardOrders.ts';
+import type { TabItem, PaginationInfo } from '@/features/operation-staff/types/types';
 
 const ITEMS_PER_PAGE = 10;
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Glasses, Eye } from 'lucide-react';
 import type { Order } from '@/features/manager/types/dashboard';
-import { useOrderDrawerStore } from '@/features/manager/stores/orderDrawerStore';
+import { useOrderDrawerStore } from '@/features/operation-staff/store/orderDrawerStore.ts';
 import { mockOrderDetails } from '@/features/manager/data/mockOrderDetails';
 
 interface OrderRowProps {

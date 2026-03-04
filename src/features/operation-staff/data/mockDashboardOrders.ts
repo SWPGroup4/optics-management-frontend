@@ -1,4 +1,4 @@
-import type { Order } from '@/features/manager/types/dashboard';
+import type { Order } from '@/features/manager/types/dashboard.ts';
 
 export const mockDashboardOrders: Order[] = [
     {

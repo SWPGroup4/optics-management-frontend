@@ -1,6 +1,6 @@
 import React from 'react';
-import KPISection from '@/features/manager/components/new-dashboard/KPISection';
-import OrdersSection from '@/features/manager/components/new-dashboard/OrdersSection';
+import KPISection from '@/features/operation-staff/components/dashboard/KPISection';
+import OrdersSection from '@/features/operation-staff/components/dashboard/OrdersSection';
 
 const DashboardPage: React.FC = () => {
     return (

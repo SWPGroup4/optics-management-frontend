@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { OrderDetail, DrawerState } from '@/features/manager/types/dashboard';
+import type { OrderDetail, DrawerState } from '@/features/manager/types/dashboard.ts';
 
 interface OrderDrawerStore extends DrawerState {
     openDrawer: (order: OrderDetail) => void;
