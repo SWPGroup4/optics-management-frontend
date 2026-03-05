@@ -44,6 +44,7 @@ export const authApi = {
     
     return response.result;
   },
+  
 
   // 3. Logout
   logout: (data: LogoutRequest): Promise<void> => {
@@ -51,7 +52,9 @@ export const authApi = {
   },
   
   // 4. Refresh token
-  refreshToken: (token: string) => {
-    return api.post('/auth/refresh', { token });
+
+  refreshToken: async (token: string): Promise<ApiResponse<AuthResponse>> => {
+    const response = await api.post('/auth/refresh', { token });
+    return response.data; // Trả về toàn bộ ApiResponse để Store xử lý .result
   },
 };

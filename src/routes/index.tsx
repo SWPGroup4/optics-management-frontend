@@ -1,142 +1,111 @@
 import { createBrowserRouter, Navigate } from "react-router-dom"
+
 import LoginPage from "@/features/auth/page/LoginPage"
 import RegisterPage from "@/features/auth/page/RegisterPage"
+
 import { ProfileLayout } from "@/features/profile/layout/ProfileLayout"
 import ProfilePage from "@/features/profile/page/ProfilePage"
+
 import ProductDetailPage from "@/features/home/page/ProductDetailPage"
-import CheckoutPage from "@/features/checkout/pages/CheckoutPage"
 import HomePage from "@/features/home/page/HomePage"
-import { MainLayout } from "@/components/layout/MainLayout"
-import { PaymentFailurePage } from "@/features/checkout/pages/PaymentFailurePage"
 import { SearchResults } from "@/features/home/page/SearchResults"
-import ManagerDashboardPage from "@/features/manager/page/dashboard/ManagerDashboardPage";
-import { ManagerDashboardLayout } from "@/features/manager/layout/ManagerDashboardLayout";
-import ManagerOrderPage from "@/features/manager/page/orders/ManagerOrderPage";
-import ManagerPricingPage from "@/features/manager/page/pricing/ManagerPricingPage";
-import ProductManagePage from "@/features/manager/page/products/ProductManagePage.tsx";
-import StaffCustomerPage from "@/features/manager/page/staff/StaffCustomerPage";
+
+import CheckoutPage from "@/features/checkout/pages/CheckoutPage"
+import { PaymentFailurePage } from "@/features/checkout/pages/PaymentFailurePage"
 import { PaymentSuccessPage } from "@/features/checkout/pages/PaymentSuccessPage"
+
+import { MainLayout } from "@/components/layout/MainLayout"
+
+import { ManagerDashboardLayout } from "@/features/manager/layout/ManagerDashboardLayout"
+import ManagerDashboardPage from "@/features/manager/page/dashboard/ManagerDashboardPage";
+import ManagerOrderPage from "@/features/manager/page/orders/ManagerOrderPage"
+import ManagerPricingPage from "@/features/manager/page/pricing/ManagerPricingPage"
+import ProductManagePage from "@/features/manager/page/products/ProductManagePage"
 import ProductVariantManagePage from "@/features/manager/page/products/ProductVariantManageage"
+import StaffCustomerPage from "@/features/manager/page/staff/StaffCustomerPage"
 import ManageCustomerPage from "@/features/manager/page/Customer/ManagerCustomerPage"
 
+import SellerLayout from "@/features/seller/layout/SellerLayout"
 import OrderPage from "@/features/seller/page/order/OrderPage"
 import OrderDetailPage from "@/features/seller/page/order/OrderDetailPage"
-import SellerLayout from "@/features/seller/layout/SellerLayout"
-import {OpsStaffDashboardLayout} from "@/features/operation-staff/layout/OpsStaffDashboardLayout.tsx";
-import OpsStaffDashboardPage from "@/features/operation-staff/page/dashboard/OpsStaffDashboardPage.tsx";
+import { OpsStaffDashboardLayout } from "@/features/operation-staff/layout/OpsStaffDashboardLayout";
+import OpsStaffDashboardPage from "@/features/operation-staff/page/dashboard/OpsStaffDashboardPage";
 
-//import { ProtectedRoute } from "./protected-route" // Giả sử bạn vẫn giữ file này từ bước trước
-
-// Giả lập trang Dashboard cho có chỗ để chuyển hướng
+import { AppAuthProvider } from "./AppAuthProvider"
 
 export const router = createBrowserRouter([
   {
-    path: "/",
-    element: <MainLayout />,
+    element: <AppAuthProvider />,
     children: [
-      // ===== PUBLIC / HOME =====
       {
-        index: true,
-        element: <HomePage />,
-      },
-      {
-        path: "shop", 
-        element: <SearchResults />,
-      },
-
-      // ===== PRODUCTS =====
-      {
-        path: "products",
+        path: "/",
+        element: <MainLayout />,
         children: [
+          { index: true, element: <HomePage /> },
+          { path: "shop", element: <SearchResults /> },
+
           {
-            path: ":productId",
-            element: <ProductDetailPage />,
+            path: "products",
+            children: [
+              { path: ":productId", element: <ProductDetailPage /> },
+            ],
+          },
+
+          {
+            path: "checkout",
+            children: [
+              { index: true, element: <CheckoutPage /> },
+              { path: "failure", element: <PaymentFailurePage /> },
+              { path: "success", element: <PaymentSuccessPage /> },
+            ],
           },
         ],
       },
 
-      // ===== CHECKOUT / PAYMENT =====
       {
-        path: "checkout",
+        path: "auth",
         children: [
-          {
-            index: true,
-            element: <CheckoutPage />,
-          },
-          {
-            path: "failure",
-            element: <PaymentFailurePage />,
-          },
-          {
-            path: "success", 
-            element: <PaymentSuccessPage />,
-          },
+          { path: "login", element: <LoginPage /> },
+          { path: "register", element: <RegisterPage /> },
         ],
       },
+
       {
-        path: "test-catalog",
+        path: "profile",
+        element: <ProfileLayout />,
         children: [
-          {
-            index: true,
-            element: <SearchResults />,
-          },
+          { index: true, element: <ProfilePage /> },
         ],
-      }
-    ],
-  },
-
-  // ===== AUTH =====
-  {
-    path: "/auth",
-    children: [
-      { path: "login", element: <LoginPage /> },
-      { path: "register", element: <RegisterPage /> },
-    ],
-  },
-
-  // ===== USER =====
-  {
-    path: "/profile",
-    element: <ProfileLayout />,
-    children: [
-      { index: true, element: <ProfilePage /> },
-    ],
-  },
-
-  // ===== MANAGER =====
-  {
-    path: "/manager",
-    element: <ManagerDashboardLayout />,
-    children: [
-      { index: true, element: <ManagerDashboardPage /> },
-      { path: "orders", element: <ManagerOrderPage /> },
-      { path: "pricing", element: <ManagerPricingPage /> },
-      { path: "products", element: <ProductManagePage /> },
-       { path: "customers", element: <ManageCustomerPage /> },
-      { 
-        // :productId là tham số động để trang Variant lấy được ID
-        path: "products/:productId/variants", 
-        element: <ProductVariantManagePage /> 
       },
-      { path: "staff", element: <StaffCustomerPage /> },
+
+      {
+        path: "manager",
+        element: <ManagerDashboardLayout />,
+        children: [
+          { index: true, element: <ManagerDashboardPage /> },
+          { path: "orders", element: <ManagerOrderPage /> },
+          { path: "pricing", element: <ManagerPricingPage /> },
+          { path: "products", element: <ProductManagePage /> },
+          { path: "customers", element: <ManageCustomerPage /> },
+          { path: "products/:productId/variants", element: <ProductVariantManagePage /> },
+          { path: "staff", element: <StaffCustomerPage /> },
+        ],
+      },
+
+      {
+        path: "seller",
+        element: <SellerLayout />,
+        children: [
+          { index: true, element: <OrderPage /> },
+          { path: "orders/:orderId", element: <OrderDetailPage /> },
+        ],
+      },
     ],
-  },
-  // ===== STAFF =====
-  {
-    path: "/seller",
-  element: <SellerLayout />,   
-  children: [
-    { index: true, element: <OrderPage /> },
-    {
-      path: "orders/:orderId",
-      element: <OrderDetailPage />,
-    }
-  ],
   },
 
   // ===== Operation Staff =====
   {
-    path: "/ops-staff",
+    path: "ops-staff",
     element: <OpsStaffDashboardLayout />,
     children: [
       { index: true, element: <OpsStaffDashboardPage /> },
@@ -148,4 +117,4 @@ export const router = createBrowserRouter([
     path: "*",
     element: <Navigate to="/" replace />,
   },
-]);
+])
