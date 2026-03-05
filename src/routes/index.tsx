@@ -20,113 +20,90 @@ import ProductVariantManagePage from "@/features/manager/page/products/ProductVa
 import ManageCustomerPage from "@/features/manager/page/Customer/ManagerCustomerPage"
 import OrderPage from "@/features/seller/page/order/OrderPage"
 import OrderDetailPage from "@/features/seller/page/order/OrderDetailPage"
-
-//import { ProtectedRoute } from "./protected-route" // Giả sử bạn vẫn giữ file này từ bước trước
-
-// Giả lập trang Dashboard cho có chỗ để chuyển hướng
+import { AppAuthProvider } from "./AppAuthProvider" // <--- Chạy refresh ngầm tại đây
 
 export const router = createBrowserRouter([
   {
-    path: "/",
-    element: <MainLayout />,
+    // Bọc toàn bộ ứng dụng để duy trì Silent Refresh
+    element: <AppAuthProvider />, 
     children: [
-      // ===== PUBLIC / HOME =====
       {
-        index: true,
-        element: <HomePage />,
-      },
-      {
-        path: "shop", 
-        element: <SearchResults />,
-      },
-
-      // ===== PRODUCTS =====
-      {
-        path: "products",
+        path: "/",
+        element: <MainLayout />,
         children: [
+          // ===== PUBLIC / HOME =====
+          { index: true, element: <HomePage /> },
+          { path: "test", element: <ManagerDashboardPage /> },
+          { path: "shop", element: <SearchResults /> },
+
+          // ===== PRODUCTS =====
           {
-            path: ":productId",
-            element: <ProductDetailPage />,
+            path: "products",
+            children: [
+              { path: ":productId", element: <ProductDetailPage /> },
+            ],
           },
+
+          // ===== CHECKOUT / PAYMENT =====
+          {
+            path: "checkout",
+            children: [
+              { index: true, element: <CheckoutPage /> },
+              { path: "failure", element: <PaymentFailurePage /> },
+              { path: "success", element: <PaymentSuccessPage /> },
+            ],
+          },
+          {
+            path: "test-catalog",
+            children: [
+              { index: true, element: <SearchResults /> },
+            ],
+          }
         ],
       },
 
-      // ===== CHECKOUT / PAYMENT =====
+      // ===== AUTH =====
       {
-        path: "checkout",
+        path: "auth",
         children: [
-          {
-            index: true,
-            element: <CheckoutPage />,
-          },
-          {
-            path: "failure",
-            element: <PaymentFailurePage />,
-          },
-          {
-            path: "success", 
-            element: <PaymentSuccessPage />,
-          },
+          { path: "login", element: <LoginPage /> },
+          { path: "register", element: <RegisterPage /> },
         ],
       },
+
+      // ===== USER PROFILE =====
       {
-        path: "test-catalog",
+        path: "profile",
+        element: <ProfileLayout />,
         children: [
-          {
-            index: true,
-            element: <SearchResults />,
-          },
+          { index: true, element: <ProfilePage /> },
         ],
-      }
-    ],
-  },
-
-  // ===== AUTH =====
-  {
-    path: "/auth",
-    children: [
-      { path: "login", element: <LoginPage /> },
-      { path: "register", element: <RegisterPage /> },
-    ],
-  },
-
-  // ===== USER =====
-  {
-    path: "/profile",
-    element: <ProfileLayout />,
-    children: [
-      { index: true, element: <ProfilePage /> },
-    ],
-  },
-
-  // ===== MANAGER =====
-  {
-    path: "/manager",
-    element: <ManagerDashboardLayout />,
-    children: [
-      { index: true, element: <ManagerDashboardPage /> },
-      { path: "orders", element: <ManagerOrderPage /> },
-      { path: "pricing", element: <ManagerPricingPage /> },
-      { path: "products", element: <ProductManagePage /> },
-       { path: "customers", element: <ManageCustomerPage /> },
-      { 
-        // :productId là tham số động để trang Variant lấy được ID
-        path: "products/:productId/variants", 
-        element: <ProductVariantManagePage /> 
       },
-      { path: "staff", element: <StaffCustomerPage /> },
+
+      // ===== MANAGER =====
+      {
+        path: "manager",
+        element: <ManagerDashboardLayout />,
+        children: [
+          { index: true, element: <ManagerDashboardPage /> },
+          { path: "orders", element: <ManagerOrderPage /> },
+          { path: "pricing", element: <ManagerPricingPage /> },
+          { path: "products", element: <ProductManagePage /> },
+          { path: "customers", element: <ManageCustomerPage /> },
+          { path: "products/:productId/variants", element: <ProductVariantManagePage /> },
+          { path: "staff", element: <StaffCustomerPage /> },
+        ],
+      },
+
+      // ===== SELLER/STAFF =====
+      {
+        path: "seller",
+        children: [
+          { index: true, element: <OrderPage /> },
+          { path: "orders/:id", element: <OrderDetailPage /> },
+        ],
+      },
     ],
-  },
-  // ===== STAFF =====
-  {
-    path: "/seller",
-  children: [
-    { index: true, element: <OrderPage /> },
-    {
-      path: "orders/:id",
-      element: <OrderDetailPage />,
-    },
-  ],
   },
 
   // ===== FALLBACK =====

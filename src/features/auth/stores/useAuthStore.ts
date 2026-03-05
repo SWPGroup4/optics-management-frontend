@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { jwtDecode } from "jwt-decode";
-import { AxiosError } from 'axios';
+import axios, { AxiosError } from 'axios';
 import { authApi } from '../api/auth-api';
 
 import { 
@@ -19,8 +19,44 @@ export const useAuthStore = create<AuthStore>()(
     (set, get) => ({
       user: null,
       token: null,
+      refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
+      updateToken: (newToken: string) => set({ token: newToken }),
+      refreshAction: async () => {
+        const currentToken = get().token;
+        if (!currentToken || !get().isAuthenticated) return;
+
+        const fetchWithRetry = async (retries = 3): Promise<string> => {
+          try {
+            const response = await authApi.refreshToken(currentToken);
+            if (response.result?.token) {
+              return response.result.token;
+            }
+            throw new Error("Không tìm thấy token trong phản hồi");
+          } catch (err) {
+            // Nếu lỗi 401 hoặc 403 (Token thực sự chết), không retry
+            if (axios.isAxiosError(err) && (err.response?.status === 401 || err.response?.status === 403)) {
+              throw err;
+            }
+            // Lỗi mạng hoặc server (5xx), thử lại sau 2 giây
+            if (retries > 0) {
+              await new Promise(res => setTimeout(res, 2000));
+              return fetchWithRetry(retries - 1);
+            }
+            throw err;
+          }
+        };
+
+        try {
+          const newToken = await fetchWithRetry();
+          set({ token: newToken });
+          console.log("🔄 [Auth] Gia hạn token thành công.");
+        } catch (error) {
+          console.error("🚨 [Auth] Gia hạn thất bại, đang đăng xuất...", error);
+          get().logout();
+        }
+      },
 
       // =====================
       // LOGIN
@@ -91,6 +127,8 @@ export const useAuthStore = create<AuthStore>()(
           throw new Error("Có lỗi xảy ra khi tạo tài khoản");
         }
       },
+
+      
 
       // =====================
       // LOGOUT
