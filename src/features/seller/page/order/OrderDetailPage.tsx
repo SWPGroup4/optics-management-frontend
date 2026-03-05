@@ -24,7 +24,7 @@ export default function OrderDetailPage() {
 
   const item = order.items[0];
   const p = item?.prescription;
-
+ console.log("🚀 ~ file: OrderDetailPage.tsx:17 ~ fetchDetail ~ p:", p)
   return (
     <div className="p-6 space-y-6">
       <button

@@ -23,7 +23,6 @@ import DashboardPage from "@/features/manager/page/new-dashboard/DashboardPage.t
 
 import OrderPage from "@/features/seller/page/order/OrderPage"
 import OrderDetailPage from "@/features/seller/page/order/OrderDetailPage"
-import SellerLayout from "@/features/seller/layout/SellerLayout"
 
 //import { ProtectedRoute } from "./protected-route" // Giả sử bạn vẫn giữ file này từ bước trước
 
