@@ -18,11 +18,13 @@ interface CheckoutState {
     phone: string; // Thêm vào
     email: string; // Thêm vào
   };
+  paymentMethod: string;
   
   // Các Actions (Hàm xử lý)
   setStep: (step: number) => void;
   nextStep: () => void;
   prevStep: () => void;
+  setPaymentMethod: (method: string) => void;
   updateShippingData: (data: Partial<CheckoutState['shippingData']>) => void;
   resetCheckout: () => void;
 }
@@ -44,6 +46,7 @@ export const useCheckoutStore = create<CheckoutState>((set) => ({
     phone: '',
     email: ''
   },
+  paymentMethod: 'VNPAY',
 
   // Chuyển đến bước cụ thể (dùng cho nút Edit)
   setStep: (step) => set({ step }),
@@ -62,7 +65,7 @@ export const useCheckoutStore = create<CheckoutState>((set) => ({
   updateShippingData: (data) => set((state) => ({
     shippingData: { ...state.shippingData, ...data }
   })),
-
+setPaymentMethod: (method) => set({ paymentMethod: method }),
   // Reset về trạng thái ban đầu
   resetCheckout: () => set({ 
     step: 1, 

@@ -55,6 +55,7 @@ export interface AuthStore {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  refreshAction: () => Promise<void>;
   
   // Actions
   login: (username: string, pass: string) => Promise<void>;

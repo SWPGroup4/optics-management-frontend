@@ -54,28 +54,77 @@ export default function ProductForm({ productId }: { productId: string }) {
   const handleConfirmVariant = (variant: ProductVariant) => {
     const selectedLens = LENS_OPTIONS.find((l) => l.id === selectedLensId);
 
-    // Giá variant mặc định + Giá tròng kính
     const basePrice = variant.price || 0;
     const finalPrice = basePrice + (selectedLens?.price || 0);
 
-    const hasPrescriptionData =
-      prescription.imageUrl || (prescription.od.sphere && prescription.os.sphere);
     if (!product) return;
 
-    addToCart({
+    // 1. LẤY ẢNH SẢN PHẨM AN TOÀN (Kế thừa từ logic đã fix)
+    const images = Array.isArray(product.imageUrl) ? product.imageUrl.map((imgObj) => imgObj.imageUrl) : [];
+    const fallbackImg = 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?auto=format&fit=crop&q=80&w=800';
+    const safeProductImage = images.length > 0 ? images[0] : fallbackImg;
+
+    // 2. KIỂM TRA ĐIỀU KIỆN ĐƠN KÍNH (BẮT BỆNH Ở ĐÂY)
+    // Dùng Object.values để quét xem có ô nào ở mắt OD/OS được nhập hay không
+    const isOdHasData = Object.values(prescription.od || {}).some(val => val !== '');
+    const isOsHasData = Object.values(prescription.os || {}).some(val => val !== '');
+
+    // Gom điều kiện: Chỉ cần 1 trong 4 cái này có data là HỢP LỆ
+    const hasPrescriptionData = Boolean(
+      prescription.imageUrl || 
+      isOdHasData || 
+      isOsHasData || 
+      prescription.notes
+    );
+
+    // 3. CLONE DỮ LIỆU
+    let prescriptionToSave = undefined;
+    
+    if (hasPrescriptionData) {
+      prescriptionToSave = {
+        imageUrl: prescription.imageUrl || null,
+        notes: prescription.notes || "",
+        od: {
+          sphere: prescription.od?.sphere || "",
+          cylinder: prescription.od?.cylinder || "",
+          axis: prescription.od?.axis || "",
+          add: prescription.od?.add || "",
+          pd: prescription.od?.pd || "",
+        },
+        os: {
+          sphere: prescription.os?.sphere || "",
+          cylinder: prescription.os?.cylinder || "",
+          axis: prescription.os?.axis || "",
+          add: prescription.os?.add || "",
+          pd: prescription.os?.pd || "",
+        }
+      };
+    }
+
+    // 4. ĐÓNG GÓI PAYLOAD
+    const cartPayload = {
       productId: variant.id,
-      // 👇 Sử dụng colorName và sizeLabel thay vì color
       name: `${product.name} - ${variant.colorName || 'Mặc định'} (${variant.sizeLabel || ''})`,
       price: finalPrice,
-      image: product.imageUrl?.[0]?.imageUrl || '',
+      image: safeProductImage, // Truyền ảnh an toàn vào
       quantity: 1,
       lensType: selectedLens?.title,
       orderType: orderType,
-      prescription: hasPrescriptionData ? prescription : undefined,
-    });
+      prescription: prescriptionToSave, // Đã hết undefined!
+    };
+
+    // LOG RA CONSOLE ĐỂ KIỂM TRA
+    console.log("=== DỮ LIỆU ĐẨY VÀO GIỎ HÀNG ===", cartPayload);
+
+    addToCart(cartPayload);
 
     setIsVariantModalOpen(false);
-    resetPrescription();
+    
+    // Đợi 200ms cho chắc chắn
+    setTimeout(() => {
+      resetPrescription();
+    }, 200);
+    
     alert('Đã thêm vào giỏ hàng!');
   };
 
