@@ -124,8 +124,9 @@ export const router = createBrowserRouter([
   // ===== STAFF =====
   {
     path: "/seller",
-  element: <SellerLayout />,   
-  children: [
+  //element: <SellerLayout />,   
+  
+    element: <MainLayout />,children: [
     { index: true, element: <OrderPage /> },
     {
       path: "orders/:orderId",

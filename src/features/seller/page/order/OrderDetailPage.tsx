@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { orderApi, type Order } from "../../api/order-api";
 
-
 export default function OrderDetailPage() {
   const { orderId } = useParams();
   const navigate = useNavigate();
@@ -49,18 +48,40 @@ export default function OrderDetailPage() {
         <div className="col-span-8 bg-white p-6 rounded-xl border">
           <h3 className="font-semibold mb-4">Đơn thuốc</h3>
 
-          {p && (
+          {p ? (
             <>
+              {/* HIỂN THỊ HÌNH ẢNH */}
+              {p.imageUrl ? (
+                <div className="mb-6">
+                  <p className="font-medium mb-2">Ảnh đơn thuốc</p>
+                  <img
+                    src={p.imageUrl}
+                    alt="Prescription"
+                    className="w-full max-w-lg rounded-lg border"
+                  />
+                </div>
+              ) : (
+                <p className="text-sm text-gray-400 mb-4">
+                  Không có hình ảnh đơn thuốc
+                </p>
+              )}
+
               <h4 className="font-medium mb-2">Mắt phải (OD)</h4>
-              <p>SPH: {p.odSphere} | CYL: {p.odCylinder} | AXIS: {p.odAxis}</p>
+              <p>
+                SPH: {p.odSphere} | CYL: {p.odCylinder} | AXIS: {p.odAxis}
+              </p>
 
               <h4 className="font-medium mt-4 mb-2">Mắt trái (OS)</h4>
-              <p>SPH: {p.osSphere} | CYL: {p.osCylinder} | AXIS: {p.osAxis}</p>
+              <p>
+                SPH: {p.osSphere} | CYL: {p.osCylinder} | AXIS: {p.osAxis}
+              </p>
 
               <p className="mt-4 text-sm text-gray-500">
                 Ghi chú: {p.note}
               </p>
             </>
+          ) : (
+            <p className="text-gray-400">Không có thông tin đơn thuốc</p>
           )}
 
           <div className="flex gap-3 mt-6">
