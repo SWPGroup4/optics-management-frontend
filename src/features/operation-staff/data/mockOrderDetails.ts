@@ -1,4 +1,4 @@
-import type { OrderDetail } from '@/features/manager/types/dashboard';
+import type { OrderDetail } from '@/features/operation-staff/types/types';
 
 export const mockOrderDetails: Record<string, OrderDetail> = {
     '1': {

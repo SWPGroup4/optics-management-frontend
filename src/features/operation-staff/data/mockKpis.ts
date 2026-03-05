@@ -1,4 +1,4 @@
-import type { KPIData } from '@/features/manager/types/dashboard.ts';
+import type { KPIData } from '@/features/operation-staff/types/types';
 
 export const mockKpis: KPIData[] = [
     {
@@ -8,7 +8,7 @@ export const mockKpis: KPIData[] = [
         unit: 'đơn hàng',
         percentage: 45,
         variant: 'neutral',
-        icon: 'file-text', // Changed from 'assignment'
+        icon: 'file-text',
         description: 'Đơn hàng cần xử lý'
     },
     {
@@ -18,7 +18,7 @@ export const mockKpis: KPIData[] = [
         unit: 'cần xử lý ngay',
         percentage: 20,
         variant: 'critical',
-        icon: 'warning', // Changed from 'warning' (same name but different icon system)
+        icon: 'warning',
         description: 'Đơn hàng sắp trễ hạn'
     },
     {
@@ -28,7 +28,7 @@ export const mockKpis: KPIData[] = [
         unit: 'đã xong gia công',
         percentage: 68,
         variant: 'success',
-        icon: 'package', // Changed from 'inventory'
+        icon: 'package',
         description: 'Đơn hàng hoàn thành'
     }
 ];
