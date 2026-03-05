@@ -1,42 +1,47 @@
 import { createBrowserRouter, Navigate } from "react-router-dom"
+
 import LoginPage from "@/features/auth/page/LoginPage"
 import RegisterPage from "@/features/auth/page/RegisterPage"
+
 import { ProfileLayout } from "@/features/profile/layout/ProfileLayout"
 import ProfilePage from "@/features/profile/page/ProfilePage"
+
 import ProductDetailPage from "@/features/home/page/ProductDetailPage"
-import CheckoutPage from "@/features/checkout/pages/CheckoutPage"
 import HomePage from "@/features/home/page/HomePage"
-import { MainLayout } from "@/components/layout/MainLayout"
-import { PaymentFailurePage } from "@/features/checkout/pages/PaymentFailurePage"
 import { SearchResults } from "@/features/home/page/SearchResults"
-import ManagerDashboardPage from "@/features/manager/page/dashboard/ManagerDashboardPage";
-import { ManagerDashboardLayout } from "@/features/manager/layout/ManagerDashboardLayout";
-import ManagerOrderPage from "@/features/manager/page/orders/ManagerOrderPage";
-import ManagerPricingPage from "@/features/manager/page/pricing/ManagerPricingPage";
-import ProductManagePage from "@/features/manager/page/products/ProductManagePage.tsx";
-import StaffCustomerPage from "@/features/manager/page/staff/StaffCustomerPage";
+
+import CheckoutPage from "@/features/checkout/pages/CheckoutPage"
+import { PaymentFailurePage } from "@/features/checkout/pages/PaymentFailurePage"
 import { PaymentSuccessPage } from "@/features/checkout/pages/PaymentSuccessPage"
+
+import { MainLayout } from "@/components/layout/MainLayout"
+
+import { ManagerDashboardLayout } from "@/features/manager/layout/ManagerDashboardLayout"
+import DashboardPage from "@/features/manager/page/new-dashboard/DashboardPage"
+import ManagerOrderPage from "@/features/manager/page/orders/ManagerOrderPage"
+import ManagerPricingPage from "@/features/manager/page/pricing/ManagerPricingPage"
+import ProductManagePage from "@/features/manager/page/products/ProductManagePage"
 import ProductVariantManagePage from "@/features/manager/page/products/ProductVariantManageage"
+import StaffCustomerPage from "@/features/manager/page/staff/StaffCustomerPage"
 import ManageCustomerPage from "@/features/manager/page/Customer/ManagerCustomerPage"
+
+import SellerLayout from "@/features/seller/layout/SellerLayout"
 import OrderPage from "@/features/seller/page/order/OrderPage"
 import OrderDetailPage from "@/features/seller/page/order/OrderDetailPage"
-import { AppAuthProvider } from "./AppAuthProvider" // <--- Chạy refresh ngầm tại đây
+
+import { AppAuthProvider } from "./AppAuthProvider"
 
 export const router = createBrowserRouter([
   {
-    // Bọc toàn bộ ứng dụng để duy trì Silent Refresh
-    element: <AppAuthProvider />, 
+    element: <AppAuthProvider />,
     children: [
       {
         path: "/",
         element: <MainLayout />,
         children: [
-          // ===== PUBLIC / HOME =====
           { index: true, element: <HomePage /> },
-          { path: "test", element: <ManagerDashboardPage /> },
           { path: "shop", element: <SearchResults /> },
 
-          // ===== PRODUCTS =====
           {
             path: "products",
             children: [
@@ -44,7 +49,6 @@ export const router = createBrowserRouter([
             ],
           },
 
-          // ===== CHECKOUT / PAYMENT =====
           {
             path: "checkout",
             children: [
@@ -53,16 +57,9 @@ export const router = createBrowserRouter([
               { path: "success", element: <PaymentSuccessPage /> },
             ],
           },
-          {
-            path: "test-catalog",
-            children: [
-              { index: true, element: <SearchResults /> },
-            ],
-          }
         ],
       },
 
-      // ===== AUTH =====
       {
         path: "auth",
         children: [
@@ -71,7 +68,6 @@ export const router = createBrowserRouter([
         ],
       },
 
-      // ===== USER PROFILE =====
       {
         path: "profile",
         element: <ProfileLayout />,
@@ -80,12 +76,11 @@ export const router = createBrowserRouter([
         ],
       },
 
-      // ===== MANAGER =====
       {
         path: "manager",
         element: <ManagerDashboardLayout />,
         children: [
-          { index: true, element: <ManagerDashboardPage /> },
+          { index: true, element: <DashboardPage /> },
           { path: "orders", element: <ManagerOrderPage /> },
           { path: "pricing", element: <ManagerPricingPage /> },
           { path: "products", element: <ProductManagePage /> },
@@ -95,20 +90,19 @@ export const router = createBrowserRouter([
         ],
       },
 
-      // ===== SELLER/STAFF =====
       {
         path: "seller",
+        element: <SellerLayout />,
         children: [
           { index: true, element: <OrderPage /> },
-          { path: "orders/:id", element: <OrderDetailPage /> },
+          { path: "orders/:orderId", element: <OrderDetailPage /> },
         ],
       },
     ],
   },
 
-  // ===== FALLBACK =====
   {
     path: "*",
     element: <Navigate to="/" replace />,
   },
-]);
+])
