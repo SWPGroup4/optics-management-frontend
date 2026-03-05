@@ -31,11 +31,10 @@ import OrderDetailPage from "@/features/seller/page/order/OrderDetailPage"
 import { OpsStaffDashboardLayout } from "@/features/operation-staff/layout/OpsStaffDashboardLayout";
 import OpsStaffDashboardPage from "@/features/operation-staff/page/dashboard/OpsStaffDashboardPage";
 
-import { AppAuthProvider } from "./AppAuthProvider"
 
 export const router = createBrowserRouter([
   {
-    element: <AppAuthProvider />,
+
     children: [
       {
         path: "/",
