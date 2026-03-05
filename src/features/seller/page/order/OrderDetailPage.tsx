@@ -24,7 +24,7 @@ export default function OrderDetailPage() {
 
   const item = order.items[0];
   const p = item?.prescription;
-
+ console.log("🚀 ~ file: OrderDetailPage.tsx:17 ~ fetchDetail ~ p:", p)
   return (
     <div className="p-6 space-y-6">
       <button
@@ -44,56 +44,79 @@ export default function OrderDetailPage() {
           </div>
         </div>
 
-        {/* RIGHT */}
-        <div className="col-span-8 bg-white p-6 rounded-xl border">
-          <h3 className="font-semibold mb-4">Đơn thuốc</h3>
+      {/* RIGHT */}
+<div className="col-span-8 bg-white p-6 rounded-xl border">
+  <h3 className="font-semibold mb-4">Order Items</h3>
 
-          {p ? (
-            <>
-              {/* HIỂN THỊ HÌNH ẢNH */}
-              {p.imageUrl ? (
-                <div className="mb-6">
-                  <p className="font-medium mb-2">Ảnh đơn thuốc</p>
-                  <img
-                    src={p.imageUrl}
-                    alt="Prescription"
-                    className="w-full max-w-lg rounded-lg border"
-                  />
-                </div>
-              ) : (
-                <p className="text-sm text-gray-400 mb-4">
-                  Không có hình ảnh đơn thuốc
-                </p>
-              )}
+  {order.items.map((item) => {
+    const p = item.prescription;
 
-              <h4 className="font-medium mb-2">Mắt phải (OD)</h4>
+    return (
+      <div
+        key={item.orderItemId}
+        className="border rounded-lg p-4 mb-6 space-y-4"
+      >
+        {/* ITEM INFO */}
+        <div>
+          <p className="font-medium">
+            Variant ID: {item.productVariantId}
+          </p>
+          <p className="text-sm text-gray-500">
+            Quantity: {item.quantity}
+          </p>
+          <p className="text-sm text-gray-500">
+            Unit Price: {item.unitPrice}
+          </p>
+          <p className="text-sm text-gray-500">
+            Total: {item.totalPrice}
+          </p>
+        </div>
+
+        {/* PRESCRIPTION */}
+        {p && (
+          <>
+            {p.imageUrl && (
+              <div>
+                <p className="font-medium mb-2">Prescription Image</p>
+                <img
+                  src={p.imageUrl}
+                  alt="Prescription"
+                  className="w-full max-w-md rounded-lg border"
+                />
+              </div>
+            )}
+
+            <div>
+              <h4 className="font-medium mt-2">Mắt phải (OD)</h4>
               <p>
                 SPH: {p.odSphere} | CYL: {p.odCylinder} | AXIS: {p.odAxis}
               </p>
 
-              <h4 className="font-medium mt-4 mb-2">Mắt trái (OS)</h4>
+              <h4 className="font-medium mt-2">Mắt trái (OS)</h4>
               <p>
                 SPH: {p.osSphere} | CYL: {p.osCylinder} | AXIS: {p.osAxis}
               </p>
 
-              <p className="mt-4 text-sm text-gray-500">
-                Ghi chú: {p.note}
+              <p className="text-sm text-gray-500 mt-2">
+                Note: {p.note}
               </p>
-            </>
-          ) : (
-            <p className="text-gray-400">Không có thông tin đơn thuốc</p>
-          )}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  })}
 
-          <div className="flex gap-3 mt-6">
-            <button className="flex-1 py-2 border rounded-lg">
-              Yêu cầu gửi lại
-            </button>
+  <div className="flex gap-3 mt-6">
+    <button className="flex-1 py-2 border rounded-lg">
+      Yêu cầu gửi lại
+    </button>
 
-            <button className="flex-1 py-2 bg-purple-600 text-white rounded-lg font-medium">
-              Xác nhận & Chuyển vận hành
-            </button>
-          </div>
-        </div>
+    <button className="flex-1 py-2 bg-purple-600 text-white rounded-lg font-medium">
+      Xác nhận & Chuyển vận hành
+    </button>
+  </div>
+</div>
       </div>
     </div>
   );
