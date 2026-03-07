@@ -31,11 +31,12 @@ import OrderDetailPage from "@/features/seller/page/order/OrderDetailPage"
 import { OpsStaffDashboardLayout } from "@/features/operation-staff/layout/OpsStaffDashboardLayout";
 import OpsStaffDashboardPage from "@/features/operation-staff/page/dashboard/OpsStaffDashboardPage";
 
-import { AppAuthProvider } from "./AppAuthProvider"
+
+import MyOrders from "@/features/profile/page/MyOrder"
 
 export const router = createBrowserRouter([
   {
-    element: <AppAuthProvider />,
+    
     children: [
       {
         path: "/",
@@ -71,12 +72,13 @@ export const router = createBrowserRouter([
       },
 
       {
-        path: "profile",
-        element: <ProfileLayout />,
-        children: [
-          { index: true, element: <ProfilePage /> },
-        ],
-      },
+  path: "profile",
+  element: <ProfileLayout />,
+  children: [
+    { index: true, element: <ProfilePage /> },
+    { path: "orders", element: <MyOrders /> }, 
+  ],
+},
 
       {
         path: "manager",
