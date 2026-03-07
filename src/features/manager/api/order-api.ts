@@ -36,7 +36,7 @@ export interface OrderItem {
 
 export const orderApi = {
     getOrders: async (): Promise<Order[]> => {
-        const response = await api.get('/management/orders/filter');
+        const response = await api.get('/management/orders');
         return response.data.result;
     },
 
