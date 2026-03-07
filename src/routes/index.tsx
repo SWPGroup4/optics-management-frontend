@@ -5,6 +5,7 @@ import RegisterPage from "@/features/auth/page/RegisterPage"
 
 import { ProfileLayout } from "@/features/profile/layout/ProfileLayout"
 import ProfilePage from "@/features/profile/page/ProfilePage"
+import MyOrders from "@/features/profile/page/MyOrder"
 
 import ProductDetailPage from "@/features/home/page/ProductDetailPage"
 import HomePage from "@/features/home/page/HomePage"
@@ -17,7 +18,7 @@ import { PaymentSuccessPage } from "@/features/checkout/pages/PaymentSuccessPage
 import { MainLayout } from "@/components/layout/MainLayout"
 
 import { ManagerDashboardLayout } from "@/features/manager/layout/ManagerDashboardLayout"
-import ManagerDashboardPage from "@/features/manager/page/dashboard/ManagerDashboardPage";
+import ManagerDashboardPage from "@/features/manager/page/dashboard/ManagerDashboardPage"
 import ManagerOrderPage from "@/features/manager/page/orders/ManagerOrderPage"
 import ManagerPricingPage from "@/features/manager/page/pricing/ManagerPricingPage"
 import ProductManagePage from "@/features/manager/page/products/ProductManagePage"
@@ -28,13 +29,12 @@ import ManageCustomerPage from "@/features/manager/page/Customer/ManagerCustomer
 import SellerLayout from "@/features/seller/layout/SellerLayout"
 import OrderPage from "@/features/seller/page/order/OrderPage"
 import OrderDetailPage from "@/features/seller/page/order/OrderDetailPage"
-import { OpsStaffDashboardLayout } from "@/features/operation-staff/layout/OpsStaffDashboardLayout";
-import OpsStaffDashboardPage from "@/features/operation-staff/page/dashboard/OpsStaffDashboardPage";
 
+import { OpsStaffDashboardLayout } from "@/features/operation-staff/layout/OpsStaffDashboardLayout"
+import OpsStaffDashboardPage from "@/features/operation-staff/page/dashboard/OpsStaffDashboardPage"
 
 export const router = createBrowserRouter([
   {
-
     children: [
       {
         path: "/",
@@ -45,9 +45,7 @@ export const router = createBrowserRouter([
 
           {
             path: "products",
-            children: [
-              { path: ":productId", element: <ProductDetailPage /> },
-            ],
+            children: [{ path: ":productId", element: <ProductDetailPage /> }],
           },
 
           {
@@ -74,6 +72,7 @@ export const router = createBrowserRouter([
         element: <ProfileLayout />,
         children: [
           { index: true, element: <ProfilePage /> },
+          { path: "orders", element: <MyOrders /> },
         ],
       },
 
@@ -106,9 +105,7 @@ export const router = createBrowserRouter([
   {
     path: "ops-staff",
     element: <OpsStaffDashboardLayout />,
-    children: [
-      { index: true, element: <OpsStaffDashboardPage /> },
-    ],
+    children: [{ index: true, element: <OpsStaffDashboardPage /> }],
   },
 
   // ===== FALLBACK =====

@@ -27,7 +27,7 @@ export const profileApi = {
 
   // 4. Lấy đơn hàng của người dùng
   getOrders: () => {
-    return api.get('/profile/orders');
+    return api.get('/orders/me');
   },
 
   // 5. Lấy địa chỉ của người dùng
