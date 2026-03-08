@@ -9,9 +9,29 @@ export const productApi = {
     return response.data as { result: Product[] }; 
   },
 
-  // Tạo mới
-  create: async (payload: any) => {
-    const response = await api.post("/products", payload);
+  create: async ({ productData, file }: { productData: any, file: File | null }) => {
+    const formData = new FormData();
+    
+    // 1. Ép kiểu weightGram về số (đề phòng form input trả về string)
+    const formattedProduct = {
+      ...productData,
+      weightGram: Number(productData.weightGram)
+    };
+
+    // 2. Append JSON string như CURL yêu cầu
+    formData.append("product", JSON.stringify(formattedProduct));
+
+    // 3. Append file nếu có
+    if (file) {
+      formData.append("files", file);
+    }
+
+    // 4. Gửi request (Header tự động ghi đè multipart/form-data)
+    const response = await api.post("/products", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   },
 

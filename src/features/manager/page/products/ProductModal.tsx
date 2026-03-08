@@ -25,6 +25,10 @@ export default function ProductModal({
 }: any) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [imagePreview, setImagePreview] = useState<string>("");
+  
+  // 1. Thêm state để giữ file thực tế
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -37,9 +41,11 @@ export default function ProductModal({
           : [""];
         setForm({ ...product, imageUrl: normalizedImageUrl });
         setImagePreview(normalizedImageUrl[0] ?? "");
+        setSelectedFile(null); // Reset file khi edit
       } else {
         setForm(EMPTY_FORM);
         setImagePreview("");
+        setSelectedFile(null); // Reset file khi create
       }
     }
   }, [open, product]);
@@ -53,18 +59,21 @@ export default function ProductModal({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
+    // 2. Lưu file thực tế vào state
+    setSelectedFile(file);
+
     const objectUrl = URL.createObjectURL(file);
     setImagePreview(objectUrl);
-    // Lưu tên file hoặc objectUrl vào form tuỳ theo API của bạn
-    // Nếu API nhận file upload riêng thì lưu file object vào state khác
-    setForm({ ...form, imageUrl: [objectUrl] });
+    // Vẫn cập nhật form.imageUrl nếu cần thiết cho logic khác, 
+    // nhưng API upload file sẽ ưu tiên lấy từ state selectedFile
+    setForm({ ...form, imageUrl: [objectUrl] }); 
   };
 
   const inputClass =
     "w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50/50 transition-all";
   const labelClass =
     "block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide";
-
   return (
     <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200"
@@ -221,7 +230,8 @@ export default function ProductModal({
             Cancel
           </button>
           <button
-            onClick={() => onSubmit(form)}
+            // 3. Truyền cả form data và file ra ngoài cho onSubmit handler
+            onClick={() => onSubmit({ productData: form, file: selectedFile })}
             disabled={isSubmitting || !form.name || !form.brand}
             className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-slate-900/20"
           >
