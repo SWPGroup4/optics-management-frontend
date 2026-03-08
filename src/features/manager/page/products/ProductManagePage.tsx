@@ -17,9 +17,10 @@ import {
     Package,
     ArrowUpDown,
 } from 'lucide-react';
-import { useDeleteProduct, useProducts } from '../../hooks/useProducts';
+import { useDeleteProduct, useProducts, useCreateProduct, useUpdateProduct } from '../../hooks/useProducts';
 import { useClickOutside } from '../../hooks/useClickOutside';
 import { useNavigate } from 'react-router-dom';
+import ProductModal from './ProductModal';
 
 const ProductManagePage = () => {
     // 1. DATA FETCHING
@@ -30,13 +31,20 @@ const ProductManagePage = () => {
     } = useProducts();
 
     const deleteMutation = useDeleteProduct();
+    const createMutation = useCreateProduct();
+    const updateMutation = useUpdateProduct();
 
     const navigate = useNavigate();
+
     // 2. UI STATES
     const [searchTerm, setSearchTerm] = useState('');
     const [filterCategory, setFilterCategory] = useState<string>('all');
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [openActionId, setOpenActionId] = useState<string | null>(null);
+
+    // Modal states
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingProduct, setEditingProduct] = useState<any>(null);
 
     const filterRef = useRef<HTMLDivElement>(null);
     useClickOutside(filterRef, () => setIsFilterOpen(false));
@@ -69,6 +77,35 @@ const ProductManagePage = () => {
             });
         }
     };
+
+    const handleOpenAdd = () => {
+        setEditingProduct(null);
+        setIsModalOpen(true);
+    };
+
+    const handleOpenEdit = (product: any) => {
+        setEditingProduct(product);
+        setIsModalOpen(true);
+        setOpenActionId(null);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setEditingProduct(null);
+    };
+
+    const handleSubmit = (form: any) => {
+        if (editingProduct) {
+            updateMutation.mutate(
+                { id: editingProduct.id, payload: form },
+                { onSuccess: handleCloseModal }
+            );
+        } else {
+            createMutation.mutate(form, { onSuccess: handleCloseModal });
+        }
+    };
+
+    const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
     // --- STYLING HELPERS (Đã phóng to badge) ---
     const getCategoryBadge = (category: string) => {
@@ -174,7 +211,7 @@ const ProductManagePage = () => {
                         </div>
                         
                         {/* Add Button: Tăng padding */}
-                        <button className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-semibold shadow-lg hover:bg-slate-800 transition-all active:scale-95">
+                        <button className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-semibold shadow-lg hover:bg-slate-800 transition-all active:scale-95" onClick={handleOpenAdd}>
                             <Plus className="w-4 h-4" /> 
                             <span>Add New</span>
                         </button>
@@ -224,7 +261,7 @@ const ProductManagePage = () => {
                                                 <div className="w-14 h-14 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
                                                     {product.imageUrl && product.imageUrl.length > 0 ? (
                                                         <img 
-                                                            src={product.imageUrl[0]} 
+                                                            src={typeof product.imageUrl[0] === 'string' ? product.imageUrl[0] : product.imageUrl[0].imageUrl}
                                                             alt={product.name} 
                                                             className="w-full h-full object-cover"
                                                         />
@@ -318,7 +355,7 @@ const ProductManagePage = () => {
                      className="w-full px-4 py-2 text-sm text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2 transition-colors font-medium">
                         <Eye className="w-4 h-4" /> View Details
                     </button>
-                    <button className="w-full px-4 py-2 text-sm text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2 transition-colors font-medium">
+                    <button onClick={() => handleOpenEdit(product)} className="w-full px-4 py-2 text-sm text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2 transition-colors font-medium">
                         <Edit className="w-4 h-4" /> Edit Info
                     </button>
                     <div className="h-px bg-slate-100 my-1 mx-2"></div>
@@ -380,6 +417,14 @@ const ProductManagePage = () => {
                     </div>
                 </div>
             </div>
+
+            <ProductModal
+                open={isModalOpen}
+                onClose={handleCloseModal}
+                onSubmit={handleSubmit}
+                product={editingProduct}
+                isSubmitting={isSubmitting}
+            />
         </div>
     );
 };

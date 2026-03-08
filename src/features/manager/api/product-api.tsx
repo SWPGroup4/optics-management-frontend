@@ -6,9 +6,19 @@ export const productApi = {
   // Lấy danh sách
   getAll: async () => {
     const response = await api.get("/products");
-    // Giả sử API trả về structure: { result: Product[], ... }
-    // Nếu dùng axios interceptor trả về data rồi thì response chính là data
     return response.data as { result: Product[] }; 
+  },
+
+  // Tạo mới
+  create: async (payload: any) => {
+    const response = await api.post("/products", payload);
+    return response.data;
+  },
+
+  // Cập nhật
+  update: async (id: string, payload: any) => {
+    const response = await api.put(`/products/${id}`, payload);
+    return response.data;
   },
 
   // Xóa sản phẩm
