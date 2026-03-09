@@ -3,7 +3,7 @@ import type { Order } from '../types';
 
 export const productionApi = {
     getProcessingOrders: async (): Promise<Order[]> => {
-        const response = await api.get('/production/orders/processing');
+        const response = await api.get('/management/orders');
         return response.data.result;
     },
 
