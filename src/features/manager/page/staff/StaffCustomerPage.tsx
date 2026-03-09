@@ -1,14 +1,14 @@
 // src/features/users/pages/StaffCustomerPage.tsx
 import { useState } from 'react';
-import { Trash2, Loader2 } from 'lucide-react';
-import { useDeleteUser, useUsers } from '../../hooks/useUsers';
+import { Trash2, Loader2, ShieldCheck, X } from 'lucide-react';
+import { useDeleteUser, useUsers, useAssignRole } from '../../hooks/useUsers';
 
 type StaffRole = 'SALE' | 'OPERATION' | 'SHIPPER';
 
-const STAFF_ROLES: { key: StaffRole; label: string }[] = [
-    { key: 'SALE', label: 'Sale' },
-    { key: 'OPERATION', label: 'Operation' },
-    { key: 'SHIPPER', label: 'Shipper' },
+const STAFF_ROLES: { key: StaffRole; label: string; color: string }[] = [
+    { key: 'SALE', label: 'Sale', color: 'bg-blue-50 text-blue-600 hover:bg-blue-100' },
+    { key: 'OPERATION', label: 'Operation', color: 'bg-purple-50 text-purple-600 hover:bg-purple-100' },
+    { key: 'SHIPPER', label: 'Shipper', color: 'bg-green-50 text-green-600 hover:bg-green-100' },
 ];
 
 const StaffView = () => {
@@ -99,42 +99,121 @@ const StaffView = () => {
     );
 };
 
+// Modal chọn role
+const AssignRoleModal = ({
+    customer,
+    onClose,
+}: {
+    customer: any;
+    onClose: () => void;
+}) => {
+    const assignMutation = useAssignRole();
+
+    const handleAssign = (role: StaffRole) => {
+        assignMutation.mutate(
+            { userId: customer.id, newRole: role },
+            { onSuccess: onClose }
+        );
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+                <div className="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 className="font-bold text-slate-900 text-lg">Nâng quyền</h3>
+                        <p className="text-sm text-slate-500 mt-0.5">
+                            Chọn role cho <span className="font-semibold text-slate-700">{customer.username}</span>
+                        </p>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                        <X className="w-4 h-4 text-slate-500" />
+                    </button>
+                </div>
+
+                <div className="space-y-2">
+                    {STAFF_ROLES.map((role) => (
+                        <button
+                            key={role.key}
+                            onClick={() => handleAssign(role.key)}
+                            disabled={assignMutation.isPending}
+                            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 ${role.color}`}
+                        >
+                            <span>{role.label}</span>
+                            {assignMutation.isPending && assignMutation.variables?.newRole === role.key
+                                ? <Loader2 className="w-4 h-4 animate-spin" />
+                                : <ShieldCheck className="w-4 h-4" />
+                            }
+                        </button>
+                    ))}
+                </div>
+
+                <button
+                    onClick={onClose}
+                    className="w-full mt-4 py-2 text-sm text-slate-500 hover:text-slate-700 transition-colors"
+                >
+                    Huỷ
+                </button>
+            </div>
+        </div>
+    );
+};
+
 const CustomerView = () => {
     const { data: customerList = [], isLoading } = useUsers('CUSTOMER');
+    const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
 
     if (isLoading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin" /></div>;
 
     return (
-        <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-                <thead>
-                    <tr className="bg-slate-50 border-b">
-                        <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Customer Name</th>
-                        <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Email</th>
-                        <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Status</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                    {customerList.length === 0 ? (
-                        <tr>
-                            <td colSpan={3} className="px-6 py-12 text-center text-slate-400">
-                                Không có khách hàng nào
-                            </td>
+        <>
+            {selectedCustomer && (
+                <AssignRoleModal
+                    customer={selectedCustomer}
+                    onClose={() => setSelectedCustomer(null)}
+                />
+            )}
+            <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="bg-slate-50 border-b">
+                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Customer Name</th>
+                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Email</th>
+                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Status</th>
+                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right">Actions</th>
                         </tr>
-                    ) : (
-                        customerList.map((customer: any) => (
-                            <tr key={customer.id}>
-                                <td className="px-6 py-4 font-medium text-slate-900">{customer.username}</td>
-                                <td className="px-6 py-4 text-slate-600">{customer.email || 'N/A'}</td>
-                                <td className="px-6 py-4">
-                                    <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs">Customer</span>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                        {customerList.length === 0 ? (
+                            <tr>
+                                <td colSpan={4} className="px-6 py-12 text-center text-slate-400">
+                                    Không có khách hàng nào
                                 </td>
                             </tr>
-                        ))
-                    )}
-                </tbody>
-            </table>
-        </div>
+                        ) : (
+                            customerList.map((customer: any) => (
+                                <tr key={customer.id} className="hover:bg-slate-50/50">
+                                    <td className="px-6 py-4 font-medium text-slate-900">{customer.username}</td>
+                                    <td className="px-6 py-4 text-slate-600">{customer.email || 'N/A'}</td>
+                                    <td className="px-6 py-4">
+                                        <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs">Customer</span>
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <button
+                                            onClick={() => setSelectedCustomer(customer)}
+                                            className="flex items-center gap-1.5 ml-auto px-3 py-1.5 bg-slate-900 text-white text-xs font-semibold rounded-lg hover:bg-slate-700 transition-colors"
+                                        >
+                                            <ShieldCheck className="w-3.5 h-3.5" />
+                                            Nâng quyền
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </>
     );
 };
 

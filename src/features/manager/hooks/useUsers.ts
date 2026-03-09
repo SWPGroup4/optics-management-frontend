@@ -16,3 +16,13 @@ export const useDeleteUser = (role: UserRole) => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users', role] }),
   });
 };
+
+export const useAssignRole = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: userApi.assignRole,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+  });
+};

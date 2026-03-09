@@ -12,4 +12,11 @@ export const userApi = {
     const response = await api.delete(`/users/${id}`);
     return response.data;
   },
+
+  assignRole: async ({ userId, newRole }: { userId: string; newRole: string }) => {
+    const response = await api.patch(`/roles/${userId}/roles`, null, {
+      params: { newRole },
+    });
+    return response.data;
+  },
 };
