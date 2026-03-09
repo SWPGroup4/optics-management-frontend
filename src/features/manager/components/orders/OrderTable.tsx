@@ -175,32 +175,32 @@ export function OrdersTable() {
                             {filteredOrders.map((order) => {
                                 const orderType = getOrderType(order);
                                 return (
-                                    <TableRow key={order.orderId}>
+                                    <TableRow key={order?.orderId}>
                                         <TableCell className="font-mono text-sm font-medium">
-                                            {order.orderId}
+                                            {order?.orderId}
                                         </TableCell>
                                         <TableCell>
                                             <div>
-                                                <p className="font-medium">#{order.customerId}</p>
-                                                <p className="text-sm text-muted-foreground">{order.phoneNumber}</p>
+                                                <p className="font-medium">#{order?.customerId}</p>
+                                                <p className="text-sm text-muted-foreground">{order?.phoneNumber}</p>
                                                 <p className="text-xs text-muted-foreground truncate max-w-[200px]">
-                                                    {order.deliveryAddress}
+                                                    {order?.deliveryAddress}
                                                 </p>
                                             </div>
                                         </TableCell>
                                         <TableCell>
                                             <Badge variant="outline" className={typeStyles[orderType]}>
-                                                {orderType === "PRESCRIPTION" ? "Rx" : orderType.replace("_", " ")}
+                                                {orderType === "PRESCRIPTION" ? "Rx" : orderType?.replace("_", " ")}
                                             </Badge>
                                         </TableCell>
                                         <TableCell>
                                             <Badge variant="secondary" className={statusStyles[order.orderStatus]}>
-                                                {statusLabels[order.orderStatus]}
+                                                {statusLabels[order?.orderStatus]}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell>{order.items.length}</TableCell>
-                                        <TableCell>${order.totalAmount?.toFixed(2) ?? 0}</TableCell>
-                                        <TableCell>${order.depositAmount?.toFixed(2) ?? 0}</TableCell>
+                                        <TableCell>{order?.items?.length}</TableCell>
+                                        <TableCell>${order?.totalAmount?.toFixed(2) ?? 0}</TableCell>
+                                        <TableCell>${order?.depositAmount?.toFixed(2) ?? 0}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
                                                 <Button
@@ -245,62 +245,62 @@ export function OrdersTable() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <p className="text-sm text-muted-foreground">Order ID</p>
-                                    <p className="font-medium">{selectedOrder.orderId}</p>
+                                    <p className="font-medium">{selectedOrder?.orderId}</p>
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Customer ID</p>
-                                    <p className="font-medium">#{selectedOrder.customerId}</p>
+                                    <p className="font-medium">#{selectedOrder?.customerId}</p>
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Phone Number</p>
-                                    <p className="font-medium">{selectedOrder.phoneNumber}</p>
+                                    <p className="font-medium">{selectedOrder?.phoneNumber}</p>
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Delivery Address</p>
-                                    <p className="font-medium text-sm">{selectedOrder.deliveryAddress}</p>
+                                    <p className="font-medium text-sm">{selectedOrder?.deliveryAddress}</p>
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Order Status</p>
-                                    <Badge variant="secondary" className={statusStyles[selectedOrder.orderStatus]}>
-                                        {statusLabels[selectedOrder.orderStatus]}
+                                    <Badge variant="secondary" className={statusStyles[selectedOrder?.orderStatus]}>
+                                        {statusLabels[selectedOrder?.orderStatus]}
                                     </Badge>
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Total Amount</p>
-                                    <p className="font-medium">${selectedOrder.totalAmount.toFixed(2)}</p>
+                                    <p className="font-medium">${selectedOrder?.totalAmount?.toFixed(2)}</p>
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Deposit Amount</p>
-                                    <p className="font-medium">${selectedOrder.depositAmount.toFixed(2)}</p>
+                                    <p className="font-medium">${selectedOrder?.depositAmount?.toFixed(2)}</p>
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Balance</p>
-                                    <p className="font-medium">${(selectedOrder.totalAmount - selectedOrder.depositAmount).toFixed(2)}</p>
+                                    <p className="font-medium">${(selectedOrder?.totalAmount - selectedOrder?.depositAmount)?.toFixed(2)}</p>
                                 </div>
                             </div>
 
                             {/* Items */}
                             <div>
-                                <h4 className="font-medium mb-3">Order Items ({selectedOrder.items.length})</h4>
+                                <h4 className="font-medium mb-3">Order Items ({selectedOrder?.items?.length})</h4>
                                 <div className="space-y-3">
-                                    {selectedOrder.items.map((item) => (
+                                    {selectedOrder.items?.map((item) => (
                                         <div key={item.productVariantId} className="border rounded-lg p-4">
                                             <div className="flex justify-between items-start mb-3">
                                                 <div>
                                                     <span className="font-medium">Variant: {item.productVariantId}</span>
                                                     <div className="flex gap-2 mt-1">
                                                         <Badge variant="outline">
-                                                            {item.orderItemType.replace("_", " ")}
+                                                            {item.orderItemType?.replace("_", " ")}
                                                         </Badge>
                                                         <Badge variant="secondary">
-                                                            {item.status.replace("_", " ")}
+                                                            {item.status?.replace("_", " ")}
                                                         </Badge>
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="font-medium">${item.totalPrice.toFixed(2)}</p>
+                                                    <p className="font-medium">${item?.totalPrice?.toFixed(2)}</p>
                                                     <p className="text-sm text-muted-foreground">
-                                                        ${item.unitPrice.toFixed(2)} × {item.quantity}
+                                                        ${item?.unitPrice?.toFixed(2)} × {item?.quantity}
                                                     </p>
                                                 </div>
                                             </div>
@@ -313,28 +313,28 @@ export function OrdersTable() {
                                                         <div>
                                                             <p className="font-medium text-muted-foreground mb-2">Right Eye (OD)</p>
                                                             <div className="space-y-1">
-                                                                <p>Sphere: {item.prescription.odSphere.toFixed(2)}</p>
-                                                                <p>Cylinder: {item.prescription.odCylinder.toFixed(2)}</p>
-                                                                <p>Axis: {item.prescription.odAxis}°</p>
-                                                                <p>Add: {item.prescription.odAdd.toFixed(2)}</p>
-                                                                <p>PD: {item.prescription.odPd.toFixed(1)}mm</p>
+                                                                <p>Sphere: {item?.prescription?.odSphere.toFixed(2)}</p>
+                                                                <p>Cylinder: {item?.prescription?.odCylinder.toFixed(2)}</p>
+                                                                <p>Axis: {item?.prescription?.odAxis}°</p>
+                                                                <p>Add: {item?.prescription?.odAdd.toFixed(2)}</p>
+                                                                <p>PD: {item?.prescription?.odPd.toFixed(1)}mm</p>
                                                             </div>
                                                         </div>
                                                         <div>
                                                             <p className="font-medium text-muted-foreground mb-2">Left Eye (OS)</p>
                                                             <div className="space-y-1">
-                                                                <p>Sphere: {item.prescription.osSphere.toFixed(2)}</p>
-                                                                <p>Cylinder: {item.prescription.osCylinder.toFixed(2)}</p>
-                                                                <p>Axis: {item.prescription.osAxis}°</p>
-                                                                <p>Add: {item.prescription.osAdd.toFixed(2)}</p>
-                                                                <p>PD: {item.prescription.osPd.toFixed(1)}mm</p>
+                                                                <p>Sphere: {item?.prescription?.osSphere.toFixed(2)}</p>
+                                                                <p>Cylinder: {item?.prescription?.osCylinder.toFixed(2)}</p>
+                                                                <p>Axis: {item?.prescription?.osAxis}°</p>
+                                                                <p>Add: {item?.prescription?.osAdd?.toFixed(2)}</p>
+                                                                <p>PD: {item?.prescription?.osPd?.toFixed(1)}mm</p>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    {item.prescription.note && (
+                                                    {item?.prescription?.note && (
                                                         <div className="mt-2">
                                                             <p className="text-sm text-muted-foreground">Notes:</p>
-                                                            <p className="text-sm">{item.prescription.note}</p>
+                                                            <p className="text-sm">{item?.prescription?.note}</p>
                                                         </div>
                                                     )}
                                                 </div>
