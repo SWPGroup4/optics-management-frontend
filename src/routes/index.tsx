@@ -32,6 +32,7 @@ import OrderDetailPage from "@/features/seller/page/order/OrderDetailPage"
 
 import { OpsStaffDashboardLayout } from "@/features/operation-staff/layout/OpsStaffDashboardLayout"
 import OpsStaffDashboardPage from "@/features/operation-staff/page/dashboard/OpsStaffDashboardPage"
+import ShippingPage from "@/features/operation-staff/page/shipping/ShippingPage";
 
 export const router = createBrowserRouter([
   {
@@ -105,7 +106,10 @@ export const router = createBrowserRouter([
   {
     path: "ops-staff",
     element: <OpsStaffDashboardLayout />,
-    children: [{ index: true, element: <OpsStaffDashboardPage /> }],
+    children: [
+      { index: true, element: <OpsStaffDashboardPage /> },
+      { path: "shipping", element: <ShippingPage /> }
+    ],
   },
 
   // ===== FALLBACK =====

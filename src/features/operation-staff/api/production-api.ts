@@ -24,4 +24,16 @@ export const productionApi = {
         const response = await api.put(`/production/orders/items/${orderItemId}/status?status=${status}`);
         return response.data.result;
     },
+
+    getReadyToShipOrders: async (): Promise<BEOrder[]> => {
+        const response = await api.get('/management/orders?status=READY_TO_SHIP');
+        return response.data.result;
+    },
+
+    bulkReadyToShip: async (orderIds: string[]): Promise<void> => {
+        const response = await api.put('/production/orders/ready-to-ship', {
+            orderIds
+        });
+        return response.data;
+    },
 };
