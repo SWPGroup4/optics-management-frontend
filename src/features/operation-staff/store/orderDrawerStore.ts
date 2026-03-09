@@ -1,10 +1,10 @@
 import { create } from 'zustand';
-import type { OrderDetail, DrawerState } from '@/features/operation-staff/types/types';
+import type { BEOrder, DrawerState } from '@/features/operation-staff/types/types';
 
 interface OrderDrawerStore extends DrawerState {
-    openDrawer: (order: OrderDetail) => void;
+    openDrawer: (order: BEOrder) => void;
     closeDrawer: () => void;
-    setSelectedOrder: (order: OrderDetail | null) => void;
+    setSelectedOrder: (order: BEOrder | null) => void;
 }
 
 export const useOrderDrawerStore = create<OrderDrawerStore>((set) => ({

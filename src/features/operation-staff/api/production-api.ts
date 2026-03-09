@@ -1,18 +1,18 @@
 import { api } from '@/lib/axios';
-import type { Order } from '../types';
+import type { BEOrder, BEOrderItem } from "@/features/operation-staff/types/types";
 
 export const productionApi = {
-    getProcessingOrders: async (): Promise<Order[]> => {
-        const response = await api.get('/production/orders/processing');
+    getProcessingOrders: async (): Promise<BEOrder[]> => {
+        const response = await api.get('/management/orders');
         return response.data.result;
     },
 
-    startOrder: async (orderId: string): Promise<Order> => {
+    startOrder: async (orderId: string): Promise<BEOrder> => {
         const response = await api.put(`/production/orders/${orderId}/start`);
         return response.data.result;
     },
 
-    finishOrder: async (orderId: string): Promise<Order> => {
+    finishOrder: async (orderId: string): Promise<BEOrder> => {
         const response = await api.put(`/production/orders/${orderId}/finish`);
         return response.data.result;
     },
@@ -20,7 +20,7 @@ export const productionApi = {
     updateItemStatus: async (
         orderItemId: string,
         status: string
-    ): Promise<Order> => {
+    ): Promise<BEOrderItem> => {
         const response = await api.put(`/production/orders/items/${orderItemId}/status`, {
             status,
         });

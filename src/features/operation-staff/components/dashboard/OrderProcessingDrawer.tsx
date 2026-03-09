@@ -23,7 +23,6 @@ const OrderProcessingDrawer: React.FC = () => {
         };
     }, [isOpen]);
 
-    // Close on Escape key
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
             if (e.key === 'Escape' && isOpen) {
@@ -37,9 +36,9 @@ const OrderProcessingDrawer: React.FC = () => {
 
     const handleStartProcessing = () => {
         if (selectedOrder) {
-            startOrder(selectedOrder.id)
+            startOrder(selectedOrder.orderId)
                 .then(() => {
-                    console.log('Order started successfully:', selectedOrder.id);
+                    console.log('Order started successfully:', selectedOrder.orderId);
                 })
                 .catch((error) => {
                     console.error('Failed to start order:', error);
@@ -49,9 +48,9 @@ const OrderProcessingDrawer: React.FC = () => {
 
     const handleCompleteProcessing = () => {
         if (selectedOrder) {
-            finishOrder(selectedOrder.id)
+            finishOrder(selectedOrder.orderId)
                 .then(() => {
-                    console.log('Order completed successfully:', selectedOrder.id);
+                    console.log('Order completed successfully:', selectedOrder.orderId);
                     closeDrawer();
                 })
                 .catch((error) => {
@@ -59,7 +58,6 @@ const OrderProcessingDrawer: React.FC = () => {
                 });
         }
     };
-
 
     return (
         <DrawerOverlay isOpen={isOpen} onClose={closeDrawer}>
@@ -70,7 +68,7 @@ const OrderProcessingDrawer: React.FC = () => {
                     <DrawerFooter
                         onReportError={handleStartProcessing}
                         onCompleteProcessing={handleCompleteProcessing}
-                        isProcessing={selectedOrder.processingStatus === 'in_progress'}
+                        // isProcessing={selectedOrder.processingStatus === 'in_progress'}
                     />
                 </>
             )}

@@ -19,7 +19,7 @@ const DrawerFooter: React.FC<DrawerFooterProps> = ({
                     onClick={onReportError}
                     className="flex-1 md:flex-[1] flex items-center justify-center gap-2 rounded-lg border-2 border-red-200 hover:border-red-500 text-red-600 hover:text-red-700 dark:text-red-400 dark:border-red-900 font-bold transition-all uppercase tracking-wide hover:bg-red-50 dark:hover:bg-red-900/20"
                 >
-                    Bắt đầu xử lý
+                    Báo lỗi
                 </button>
 
                 <button

@@ -3,8 +3,7 @@ import OrdersToolbar from '@/features/operation-staff/components/dashboard/Order
 import OrdersTable from '@/features/operation-staff/components/dashboard/OrdersTable';
 import Pagination from '@/features/operation-staff/components/dashboard/Pagination';
 import OrderProcessingDrawer from "@/features/operation-staff/components/dashboard/OrderProcessingDrawer.tsx";
-// import { mockDashboardOrders } from '@/features/operation-staff/data/mockDashboardOrders.ts';
-import type { TabItem, PaginationInfo, PaymentStatus, OrderStatus } from '@/features/operation-staff/types/types';
+import type { TabItem, PaginationInfo } from '@/features/operation-staff/types/types';
 import { useProductionStore } from "@/features/operation-staff/store/productionStore.ts";
 
 const ITEMS_PER_PAGE = 10;
@@ -25,45 +24,19 @@ const OrdersSection: React.FC = () => {
         fetchProcessingOrders();
     }, [fetchProcessingOrders]);
 
-    const transformedOrders = useMemo(() => {
-        return processingOrders?.map(order => ({
-            id: order.orderId,
-            orderCode: order.orderId,
-            customerName: order.customerId,
-            sla: '24h',
-            slaHours: 24,
-            priority: 'medium' as const,
-            productName: order.comboName,
-            productType: 'combo',
-            productFeatures: '',
-            productIcon: '',
-            paymentStatus: 'unpaid' as PaymentStatus,
-            status: order.orderStatus as OrderStatus,
-            isActionable: order?.orderStatus === 'PENDING',
-            pickingItems: order.items?.map(item => ({
-                id: item.orderItemId,
-                type: item.orderItemType === 'frame' ? 'frame' as const : 'lens' as const,
-                name: item.productVariantId,
-                sku: item.productVariantId,
-                quantity: item.quantity,
-                location: 'A1-B2',
-                locationType: 'shelf' as const,
-                imageUrl: item.prescription?.imageUrl || undefined
-            })) || []
-        }));
-    }, [processingOrders]);
-
     const tabs: TabItem[] = [
         { id: 'all', label: 'Tất cả', isActive: activeTab === 'all' },
         { id: 'PENDING', label: 'Chờ xử lý', isActive: activeTab === 'PENDING' },
         { id: 'PROCESSING', label: 'Đang xử lý', isActive: activeTab === 'PROCESSING' },
-        { id: 'PRODUCED', label: 'Đã xử lý', isActive: activeTab === 'PRODUCED' }
+        { id: 'PRODUCED', label: 'Đã sản xuất', isActive: activeTab === 'PRODUCED' },
+        { id: 'READY_TO_SHIP', label: 'Sẵn sàng giao', isActive: activeTab === 'READY_TO_SHIP' },
+        { id: 'COMPLETED', label: 'Hoàn thành', isActive: activeTab === 'COMPLETED' }
     ];
 
     const filteredOrders = useMemo(() => {
-        if (activeTab === 'all') return transformedOrders;
-        return transformedOrders.filter(order => order.status === activeTab);
-    }, [transformedOrders, activeTab]);
+        if (activeTab === 'all') return processingOrders;
+        return processingOrders.filter(order => order.orderStatus === activeTab);
+    }, [processingOrders, activeTab]);
 
     const pagination: PaginationInfo = useMemo(() => {
         const totalItems = filteredOrders?.length || 0;

@@ -1,9 +1,9 @@
 import React from 'react';
 import OrderRow from './OrderRow';
-import type { Order } from '@/features/operation-staff/types/types';
+import type { BEOrder } from '@/features/operation-staff/types/types';
 
 interface OrdersTableProps {
-    orders: Order[];
+    orders: BEOrder[];
     selectedOrders: Set<string>;
     onSelectionChange: (orderId: string, selected: boolean) => void;
 }
@@ -12,11 +12,11 @@ const OrdersTable: React.FC<OrdersTableProps> = ({ orders, selectedOrders, onSel
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
         const checked = e.target.checked;
         orders.forEach(order => {
-            onSelectionChange(order.id, checked);
+            onSelectionChange(order.orderId, checked);
         });
     };
 
-    const isAllSelected = orders?.length > 0 && orders?.every(order => selectedOrders.has(order.id));
+    const isAllSelected = orders?.length > 0 && orders?.every(order => selectedOrders.has(order.orderId));
     const isIndeterminate = selectedOrders?.size > 0 && selectedOrders?.size < orders?.length;
 
     return (
@@ -36,8 +36,6 @@ const OrdersTable: React.FC<OrdersTableProps> = ({ orders, selectedOrders, onSel
                         />
                     </th>
                     <th className="px-6 py-4">Mã đơn hàng</th>
-                    {/*<th className="px-6 py-4">SLA (Thời hạn)</th>*/}
-                    {/*<th className="px-6 py-4 w-1/3">Sản phẩm / Loại tròng</th>*/}
                     <th className="px-6 py-4">Trạng thái</th>
                     <th className="px-6 py-4 text-right">Hành động</th>
                 </tr>
@@ -46,9 +44,9 @@ const OrdersTable: React.FC<OrdersTableProps> = ({ orders, selectedOrders, onSel
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                 {orders?.map((order) => (
                     <OrderRow
-                        key={order.id}
+                        key={order.orderId}
                         order={order}
-                        isSelected={selectedOrders.has(order.id)}
+                        isSelected={selectedOrders.has(order.orderId)}
                         onSelectionChange={onSelectionChange}
                     />
                 ))}

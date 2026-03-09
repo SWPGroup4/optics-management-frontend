@@ -1,20 +1,30 @@
 import React from 'react';
-import { Package2, MapPin } from 'lucide-react';
-import type { PickingItem } from '@/features/operation-staff/types/types';
+import { Package2, ChevronDown } from 'lucide-react';
+import type { BEOrderItem, BEOrderItemStatus } from '@/features/operation-staff/types/types';
+import { useProductionStore } from "@/features/operation-staff/store/productionStore";
 
 interface PickingListSectionProps {
-    items: PickingItem[];
+    items: BEOrderItem[];
 }
 
 const PickingListSection: React.FC<PickingListSectionProps> = ({ items }) => {
-    const getLocationIcon = () => {
-        return <MapPin className="w-4 h-4" />;
+    const { updateItemStatus, loading } = useProductionStore();
+
+    const getStatusText = (status: BEOrderItemStatus) => {
+        switch (status) {
+            case 'IN_PRODUCTION':
+                return 'Đang sản xuất';
+            case 'PRODUCED':
+                return 'Đã hoàn thành';
+            default:
+                return "Đang sản xuất";
+        }
     };
 
-    const getLocationColor = (type: 'shelf' | 'cabinet') => {
-        return type === 'shelf'
-            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-100 dark:border-blue-800'
-            : 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-100 dark:border-purple-800';
+    const availableStatuses: BEOrderItemStatus[] = ['IN_PRODUCTION', 'PRODUCED'];
+
+    const handleStatusChange = async (orderItemId: string, newStatus: BEOrderItemStatus) => {
+        await updateItemStatus(orderItemId, newStatus);
     };
 
     return (
@@ -29,34 +39,39 @@ const PickingListSection: React.FC<PickingListSectionProps> = ({ items }) => {
             <div className="grid grid-cols-1 gap-4">
                 {items?.map((item) => (
                     <div
-                        key={item.id}
+                        key={item.orderItemId}
                         className="group flex flex-col md:flex-row bg-white dark:bg-[#1a2e22] rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-md transition-shadow"
                     >
                         <div className="w-full md:w-32 h-32 md:h-auto bg-slate-100 relative shrink-0">
-                            {item.imageUrl && (
-                                <div
-                                    className="absolute inset-0 bg-cover bg-center"
-                                    style={{ backgroundImage: `url(${item.imageUrl})` }}
-                                />
-                            )}
                         </div>
 
                         <div className="flex-1 p-5 flex flex-col justify-center">
                             <div className="flex justify-between items-start mb-2">
                                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                                  {item.type === 'frame' ? 'Gọng kính' : 'Tròng kính'}
-                                </span>
-                                <span className={`inline-flex items-center gap-1.5 rounded-full ${getLocationColor(item.locationType)} px-3 py-1 text-sm font-bold border`}>
-                                  {getLocationIcon()} {item.location}
+                                  Tròng kính
                                 </span>
                             </div>
-                            <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{item.name}</h4>
+                            <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{item.lensName}</h4>
                             <p className="text-slate-500 dark:text-slate-400 text-sm">
-                                SKU: {item.sku} | Số lượng: {item.quantity} {item.type === 'lens' ? 'cặp' : ''}
+                                Số lượng: {item.quantity}
                             </p>
                         </div>
 
-                        <div className="w-2 bg-slate-200 dark:bg-slate-600 group-hover:bg-primary transition-colors"></div>
+                        <div className="w-48 p-3 flex items-center relative">
+                            <select
+                                value={item.status}
+                                onChange={(e) => handleStatusChange(item.orderItemId, e.target.value as BEOrderItemStatus)}
+                                disabled={loading}
+                                className="w-full px-3 py-2 pr-10 text-sm font-medium bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer appearance-none"
+                            >
+                                {availableStatuses.map((status) => (
+                                    <option key={status} value={status}>
+                                        {getStatusText(status)}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-6 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        </div>
                     </div>
                 ))}
             </div>

@@ -1,11 +1,11 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import type { Order } from '../types';
 import { productionApi } from "@/features/operation-staff/api/production-api.ts";
+import type { BEOrder, BEOrderItemStatus } from "@/features/operation-staff/types/types";
 
 interface ProductionStore {
     // State
-    processingOrders: Order[];
+    processingOrders: BEOrder[];
     loading: boolean;
     error: string | null;
 
@@ -90,13 +90,17 @@ export const useProductionStore = create<ProductionStore>()(
             updateItemStatus: async (orderItemId: string, status: string) => {
                 set({ loading: true, error: null });
                 try {
-                    const updatedOrder = await productionApi.updateItemStatus(orderItemId, status);
+                    await productionApi.updateItemStatus(orderItemId, status);
 
-                    // Update local state with returned order
                     set(state => ({
-                        processingOrders: state.processingOrders.map(order =>
-                            order.orderId === updatedOrder.orderId ? updatedOrder : order
-                        ),
+                        processingOrders: state.processingOrders.map(order => ({
+                            ...order,
+                            items: order.items.map(item =>
+                                item.orderItemId === orderItemId
+                                    ? { ...item, status: status as BEOrderItemStatus }
+                                    : item
+                            )
+                        })),
                         loading: false
                     }));
                 } catch (error) {

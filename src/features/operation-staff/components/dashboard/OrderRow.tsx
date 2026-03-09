@@ -1,11 +1,9 @@
 import React from 'react';
-// import { Glasses, Eye } from 'lucide-react';
-import type { Order, OrderDetail } from '@/features/operation-staff/types/types';
+import type { BEOrder } from '@/features/operation-staff/types/types';
 import { useOrderDrawerStore } from '@/features/operation-staff/store/orderDrawerStore.ts';
-// import { mockOrderDetails } from '@/features/manager/data/mockOrderDetails';
 
 interface OrderRowProps {
-    order: Order;
+    order: BEOrder;
     isSelected: boolean;
     onSelectionChange: (orderId: string, selected: boolean) => void;
 }
@@ -15,100 +13,61 @@ const OrderRow: React.FC<OrderRowProps> = ({ order, isSelected, onSelectionChang
 
     const handleProcessOrder = () => {
         if (order) {
-            const orderDetail: OrderDetail = {
-                ...order,
-                receivedTime: new Date().toISOString(),
-                pickingItems: [],
-                prescription: {
-                    od: { sphere: 0, cylinder: 0, axis: 0, pd: 0 },
-                    os: { sphere: 0, cylinder: 0, axis: 0, pd: 0 }
-                },
-                salesNotes: [],
-                processingStatus: 'pending' as const
-            };
-            openDrawer(orderDetail);
+            openDrawer(order);
         }
     };
-
-    const getPriorityStyles = () => {
-        switch (order.priority) {
-            case 'high':
-                return 'hover:bg-red-50/30 dark:hover:bg-red-900/10';
-            default:
-                return 'hover:bg-slate-50 dark:hover:bg-slate-800/50';
-        }
-    };
-
-    // const getSlaStyles = () => {
-    //     if (order.slaHours <= 2) {
-    //         return 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-100 dark:border-red-800';
-    //     } else if (order.slaHours <= 5) {
-    //         return 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-100 dark:border-yellow-800';
-    //     } else {
-    //         return 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800';
-    //     }
-    // };
-    //
-    // const getPaymentStyles = () => {
-    //     switch (order.paymentStatus) {
-    //         case 'deposit_50':
-    //             return 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-100 dark:border-blue-800';
-    //         case 'full_payment':
-    //             return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-100 dark:border-emerald-800';
-    //         default:
-    //             return 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400 border-slate-200 dark:border-slate-600';
-    //     }
-    // };
 
     const getStatusStyles = () => {
-        switch (order.status) {
+        switch (order.orderStatus) {
+            case 'PENDING':
+            case 'AWAITING_VERIFICATION':
+            case 'ON_HOLD':
+                return 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 border-yellow-100 dark:border-yellow-800';
+            case 'CONFIRMED':
+            case 'PREPARING':
             case 'PROCESSING':
                 return 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-100 dark:border-blue-800';
             case 'PRODUCED':
+            case 'READY_TO_SHIP':
                 return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-100 dark:border-emerald-800';
+            case 'SHIPPED':
+            case 'DELIVERING':
+            case 'DELIVERED':
+            case 'COMPLETED':
+                return 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300 border-green-100 dark:border-green-800';
+            case 'CANCELLED':
+                return 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300 border-red-100 dark:border-red-800';
             default:
                 return 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400 border-slate-200 dark:border-slate-600';
         }
     };
 
-    // const getPaymentText = () => {
-    //     switch (order.paymentStatus) {
-    //         case 'deposit_50': return 'Đã cọc 50%';
-    //         case 'full_payment': return 'Đã Full';
-    //         default: return 'Chưa TT';
-    //     }
-    // };
-
-    // const getSlaDotColor = () => {
-    //     if (order.slaHours <= 2) return 'bg-red-500 animate-pulse';
-    //     if (order.slaHours <= 5) return 'bg-yellow-500';
-    //     return 'bg-emerald-500';
-    // };
-
-    // const getProductIcon = () => {
-    //     switch (order.productIcon) {
-    //         case 'visibility':
-    //             return <Eye className="w-5 h-5" />;
-    //         default:
-    //             return <Glasses className="w-5 h-5" />;
-    //     }
-    // };
-
     const getStatus = () => {
-        switch (order.status) {
-            case 'PENDING': return 'Đang chờ';
+        switch (order.orderStatus) {
+            case 'PENDING': return 'Chờ xử lý';
+            case 'AWAITING_VERIFICATION': return 'Chờ xác minh';
+            case 'ON_HOLD': return 'Tạm dừng';
+            case 'CONFIRMED': return 'Đã xác nhận';
+            case 'AWAITING_FINAL_PAYMENT': return 'Chờ thanh toán';
+            case 'PREPARING': return 'Đang chuẩn bị';
             case 'PROCESSING': return 'Đang xử lý';
-            case 'PRODUCED': return 'Đã xử lý';
-            default: return 'Đang chờ';
+            case 'PRODUCED': return 'Đã sản xuất';
+            case 'READY_TO_SHIP': return 'Sẵn sàng giao';
+            case 'SHIPPED': return 'Đang vận chuyển';
+            case 'DELIVERING': return 'Đang giao hàng';
+            case 'DELIVERED': return 'Đã giao hàng';
+            case 'COMPLETED': return 'Hoàn thành';
+            case 'CANCELLED': return 'Đã hủy';
+            default: return 'Chờ xử lý';
         }
     };
 
     return (
-        <tr className={`group ${getPriorityStyles()} transition-colors`}>
+        <tr className={`group transition-colors`}>
             <td className="px-6 py-4 align-middle">
                 <input
                     checked={isSelected}
-                    onChange={(e) => onSelectionChange(order.id, e.target.checked)}
+                    onChange={(e) => onSelectionChange(order.orderId, e.target.checked)}
                     className="rounded border-slate-300 text-primary focus:ring-primary/20 bg-white dark:bg-slate-700 dark:border-slate-600"
                     type="checkbox"
                 />
@@ -116,29 +75,10 @@ const OrderRow: React.FC<OrderRowProps> = ({ order, isSelected, onSelectionChang
 
             <td className="px-6 py-4 align-middle">
                 <div className="flex flex-col">
-                    <span className="font-bold text-slate-900 dark:text-white">{order.orderCode}</span>
-                    <span className="text-xs text-slate-500">Khách: {order.customerName}</span>
+                    <span className="font-bold text-slate-900 dark:text-white">{order.orderId}</span>
+                    <span className="text-xs text-slate-500">Khách: {order.customerId}</span>
                 </div>
             </td>
-
-            {/*<td className="px-6 py-4 align-middle">*/}
-            {/*    <div className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full ${getSlaStyles()}`}>*/}
-            {/*        <span className={`w-2 h-2 rounded-full ${getSlaDotColor()}`}></span>*/}
-            {/*        <span className="text-xs font-bold">{order.sla}</span>*/}
-            {/*    </div>*/}
-            {/*</td>*/}
-
-            {/*<td className="px-6 py-4 align-middle">*/}
-            {/*    <div className="flex items-center gap-3">*/}
-            {/*        <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center flex-shrink-0 text-slate-400">*/}
-            {/*            {getProductIcon()}*/}
-            {/*        </div>*/}
-            {/*        <div className="flex flex-col">*/}
-            {/*            <span className="font-medium text-slate-900 dark:text-white">{order.productName}</span>*/}
-            {/*            <span className="text-xs text-slate-500">{order.productType}</span>*/}
-            {/*        </div>*/}
-            {/*    </div>*/}
-            {/*</td>*/}
 
             <td className="px-6 py-4 align-middle">
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusStyles()}`}>
@@ -148,15 +88,8 @@ const OrderRow: React.FC<OrderRowProps> = ({ order, isSelected, onSelectionChang
 
             <td className="px-6 py-4 align-middle text-right">
                 <button
-                    disabled={!order.isActionable}
                     onClick={handleProcessOrder}
-                    className={`inline-flex items-center justify-center px-4 py-2 text-xs font-bold rounded-lg transition-colors shadow-sm ${
-                        order.isActionable
-                            ? order.priority === 'high'
-                                ? 'bg-primary hover:bg-primary/90 text-white shadow-primary/20'
-                                : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed border border-transparent'
-                    }`}
+                    className={`inline-flex items-center justify-center px-4 py-2 text-xs font-bold rounded-lg transition-colors shadow-sm`}
                 >
                     Xử lý ngay
                 </button>
