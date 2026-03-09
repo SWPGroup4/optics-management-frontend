@@ -94,10 +94,14 @@ const ProductManagePage = () => {
         setEditingProduct(null);
     };
 
-    const handleSubmit = (form: any) => {
+   const handleSubmit = (form: any) => {
         if (editingProduct) {
             updateMutation.mutate(
-                { id: editingProduct.id, payload: form },
+                { 
+                    id: editingProduct.id, 
+                    productData: form.productData, 
+                    file: form.file 
+                },
                 { onSuccess: handleCloseModal }
             );
         } else {

@@ -6,6 +6,7 @@ export default function OrderDetailPage() {
   const { orderId } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState<Order | null>(null);
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
     if (!orderId) return;
@@ -21,6 +22,20 @@ export default function OrderDetailPage() {
   if (!order) {
     return <div className="p-6">Đang tải chi tiết đơn...</div>;
   }
+
+  const handleVerify = async (isApproved: boolean) => {
+    if (!orderId) return;
+    setVerifying(true);
+    try {
+      await orderApi.verifyOrder(orderId, isApproved);
+      navigate(-1);
+    } catch (error) {
+      console.error("Lỗi xác nhận đơn:", error);
+      alert("Có lỗi xảy ra, vui lòng thử lại.");
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   const item = order.items[0];
   const p = item?.prescription;
@@ -108,12 +123,20 @@ export default function OrderDetailPage() {
   })}
 
   <div className="flex gap-3 mt-6">
-    <button className="flex-1 py-2 border rounded-lg">
+    <button
+      onClick={() => handleVerify(false)}
+      disabled={verifying}
+      className="flex-1 py-2 border rounded-lg disabled:opacity-50"
+    >
       Yêu cầu gửi lại
     </button>
 
-    <button className="flex-1 py-2 bg-purple-600 text-white rounded-lg font-medium">
-      Xác nhận & Chuyển vận hành
+    <button
+      onClick={() => handleVerify(true)}
+      disabled={verifying}
+      className="flex-1 py-2 bg-purple-600 text-white rounded-lg font-medium disabled:opacity-50"
+    >
+      {verifying ? "Đang xử lý..." : "Xác nhận & Chuyển vận hành"}
     </button>
   </div>
 </div>
