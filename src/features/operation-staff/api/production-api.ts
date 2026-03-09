@@ -21,9 +21,7 @@ export const productionApi = {
         orderItemId: string,
         status: string
     ): Promise<BEOrderItem> => {
-        const response = await api.put(`/production/orders/items/${orderItemId}/status`, {
-            status,
-        });
+        const response = await api.put(`/production/orders/items/${orderItemId}/status?status=${status}`);
         return response.data.result;
     },
 };

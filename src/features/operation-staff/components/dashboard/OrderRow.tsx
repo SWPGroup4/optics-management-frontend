@@ -1,6 +1,7 @@
 import React from 'react';
 import type { BEOrder } from '@/features/operation-staff/types/types';
 import { useOrderDrawerStore } from '@/features/operation-staff/store/orderDrawerStore.ts';
+import { useProductionStore } from "@/features/operation-staff/store/productionStore.ts";
 
 interface OrderRowProps {
     order: BEOrder;
@@ -10,10 +11,16 @@ interface OrderRowProps {
 
 const OrderRow: React.FC<OrderRowProps> = ({ order, isSelected, onSelectionChange }) => {
     const { openDrawer } = useOrderDrawerStore();
+    const { startOrder } = useProductionStore();
 
-    const handleProcessOrder = () => {
+    const handleProcessOrder = async () => {
         if (order) {
-            openDrawer(order);
+            try {
+                await startOrder(order.orderId);
+                openDrawer(order);
+            } catch (error) {
+                console.error('Failed to start order:', error);
+            }
         }
     };
 

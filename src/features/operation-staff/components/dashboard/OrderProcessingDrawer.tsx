@@ -8,7 +8,6 @@ import { useProductionStore } from "@/features/operation-staff/store/productionS
 
 const OrderProcessingDrawer: React.FC = () => {
     const { isOpen, selectedOrder, closeDrawer } = useOrderDrawerStore();
-    const startOrder = useProductionStore(state => state.startOrder);
     const finishOrder = useProductionStore(state => state.finishOrder);
 
     useEffect(() => {
@@ -34,18 +33,6 @@ const OrderProcessingDrawer: React.FC = () => {
         return () => document.removeEventListener('keydown', handleEscape);
     }, [isOpen, closeDrawer]);
 
-    const handleStartProcessing = () => {
-        if (selectedOrder) {
-            startOrder(selectedOrder.orderId)
-                .then(() => {
-                    console.log('Order started successfully:', selectedOrder.orderId);
-                })
-                .catch((error) => {
-                    console.error('Failed to start order:', error);
-                });
-        }
-    };
-
     const handleCompleteProcessing = () => {
         if (selectedOrder) {
             finishOrder(selectedOrder.orderId)
@@ -66,7 +53,6 @@ const OrderProcessingDrawer: React.FC = () => {
                     <DrawerHeader order={selectedOrder} onClose={closeDrawer} />
                     <DrawerContent order={selectedOrder} isOpen={isOpen} />
                     <DrawerFooter
-                        onReportError={handleStartProcessing}
                         onCompleteProcessing={handleCompleteProcessing}
                         // isProcessing={selectedOrder.processingStatus === 'in_progress'}
                     />
