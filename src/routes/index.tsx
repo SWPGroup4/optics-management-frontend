@@ -32,6 +32,7 @@ import OrderDetailPage from "@/features/seller/page/order/OrderDetailPage"
 
 import { OpsStaffDashboardLayout } from "@/features/operation-staff/layout/OpsStaffDashboardLayout"
 import OpsStaffDashboardPage from "@/features/operation-staff/page/dashboard/OpsStaffDashboardPage"
+import LensesManagerPage from "@/features/manager/page/Lenses/LensesManagerPage"
 
 export const router = createBrowserRouter([
   {
@@ -87,6 +88,7 @@ export const router = createBrowserRouter([
           { path: "customers", element: <ManageCustomerPage /> },
           { path: "products/:productId/variants", element: <ProductVariantManagePage /> },
           { path: "staff", element: <StaffCustomerPage /> },
+          { path: "lenses", element: <LensesManagerPage /> }
         ],
       },
 
