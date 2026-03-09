@@ -1,23 +1,15 @@
 // src/features/users/hooks/useUsers.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { userApi } from "../api/user-api";
+import { userApi, type UserRole } from "../api/user-api";
 
-export const useUsers = (role: 'SALE' | 'CUSTOMER') => {
+export const useUsers = (role: UserRole) => {
   return useQuery({
     queryKey: ['users', role],
     queryFn: () => userApi.getUsersByRole(role),
   });
 };
 
-export const useCreateStaff = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: userApi.createStaff,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users', 'SALE'] }),
-  });
-};
-
-export const useDeleteUser = (role: 'SALE' | 'CUSTOMER') => {
+export const useDeleteUser = (role: UserRole) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: userApi.deleteUser,
