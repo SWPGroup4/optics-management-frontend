@@ -99,8 +99,10 @@ const ProductManagePage = () => {
             updateMutation.mutate(
                 { 
                     id: editingProduct.id, 
-                    productData: form.productData, 
-                    file: form.file 
+                    payload: {
+                        productData: form.productData, 
+                        file: form.file
+                    }
                 },
                 { onSuccess: handleCloseModal }
             );
