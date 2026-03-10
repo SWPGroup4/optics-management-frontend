@@ -44,7 +44,7 @@ export interface UserState {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'operations' | 'sales' | 'customer' | 'staff';
+  role: 'admin' | 'operations' | 'sales' | 'customer' | 'manager' | 'shipper';
   avatar?: string;
 }
 
