@@ -49,11 +49,11 @@ export default function ProductInfo({ productId }: { productId: string }) {
       {/* Price - Hiển thị khoảng giá từ API */}
       <div className="flex items-baseline gap-3">
         <span className="text-3xl font-bold text-[#4A8795]">
-          ${product.minPrice.toLocaleString()}
+          {product.minPrice.toLocaleString()}₫
         </span>
         {product.maxPrice > product.minPrice && (
           <span className="text-lg text-gray-400 line-through decoration-gray-300">
-            ${product.maxPrice.toLocaleString()}
+            {product.maxPrice.toLocaleString()}₫
           </span>
         )}
       </div>

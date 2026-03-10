@@ -9,6 +9,7 @@ import {
     LogOut,
     ChevronLeft,
     ChevronRight,
+    Glasses,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/features/manager/hooks/useSidebar.ts";
@@ -21,6 +22,7 @@ const navigation = [
     { name: "Pricing", href: "/manager/pricing", icon: Tag },
     { name: "Staff", href: "/manager/staff", icon: Users },
     { name: "Customers", href: "/manager/customers", icon: Users },
+    { name: "Lenses", href: "/manager/lenses", icon: Glasses },
     // { name: "Settings", href: "/manager/settings", icon: Settings },
 ];
 

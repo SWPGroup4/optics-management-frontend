@@ -6,9 +6,39 @@ export const productApi = {
   // Lấy danh sách
   getAll: async () => {
     const response = await api.get("/products");
-    // Giả sử API trả về structure: { result: Product[], ... }
-    // Nếu dùng axios interceptor trả về data rồi thì response chính là data
     return response.data as { result: Product[] }; 
+  },
+
+  create: async ({ productData, file }: { productData: any, file: File | null }) => {
+    const formData = new FormData();
+    
+    // 1. Ép kiểu weightGram về số (đề phòng form input trả về string)
+    const formattedProduct = {
+      ...productData,
+      weightGram: Number(productData.weightGram)
+    };
+
+    // 2. Append JSON string như CURL yêu cầu
+    formData.append("product", JSON.stringify(formattedProduct));
+
+    // 3. Append file nếu có
+    if (file) {
+      formData.append("files", file);
+    }
+
+    // 4. Gửi request (Header tự động ghi đè multipart/form-data)
+    const response = await api.post("/products", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  },
+
+  // Cập nhật
+  update: async (id: string, payload: any) => {
+    const response = await api.put(`/products/${id}`, payload);
+    return response.data;
   },
 
   // Xóa sản phẩm
