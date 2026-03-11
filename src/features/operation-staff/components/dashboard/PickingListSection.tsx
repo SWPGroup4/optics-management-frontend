@@ -43,6 +43,10 @@ const PickingListSection: React.FC<PickingListSectionProps> = ({ items }) => {
                         className="group flex flex-col md:flex-row bg-white dark:bg-[#1a2e22] rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-md transition-shadow"
                     >
                         <div className="w-full md:w-32 h-32 md:h-auto bg-slate-100 relative shrink-0">
+                            <div
+                                className="absolute inset-0 bg-cover bg-center"
+                                style={{ backgroundImage: `url(https://lh3.googleusercontent.com/aida-public/AB6AXuA5DKaYtinaxneCfbfJ4nTl44qyrd1mylVFsGtLRRM2iZl11ABhQaHiQ0dVrMROnfy-4ilYN2hidwHRmIsmcP37qVGUl-cIFDG_wVcS2GoLRBO2ciOPZzRHK9ZFH1aScYnrRGCwA5k2THqi9wmZHWmYyU426Rh6Fsw84P7d5qEDMsxxa2Vpkn6lrJhdbO49B625jTZJrc3e30_8hez6Hb9IZW2j4cDvSncHN-ea-DX79rN-Tub42VjPvO78nvleh4io6lWUg2X4BTU)` }}
+                            />
                         </div>
 
                         <div className="flex-1 p-5 flex flex-col justify-center">
