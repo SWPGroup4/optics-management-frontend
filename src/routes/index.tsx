@@ -35,6 +35,8 @@ import { OpsStaffDashboardLayout } from "@/features/operation-staff/layout/OpsSt
 import OpsStaffDashboardPage from "@/features/operation-staff/page/dashboard/OpsStaffDashboardPage"
 import { RequireRole } from "./protected-route"
 import ShippingPage from "@/features/operation-staff/page/shipping/ShippingPage";
+import {ShipperDashboardLayout} from "@/features/shipper/layout/ShipperDashboardLayout";
+import ShipperDashboardPage from "@/features/shipper/page/dashboard/ShipperDashboardPage";
 
 export const router = createBrowserRouter([
   {
@@ -134,6 +136,19 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <OpsStaffDashboardPage /> },
       { path: "shipping", element: <ShippingPage /> }
+    ],
+  },
+
+  // Protected Shipper Routes
+  {
+    path: "shipper",
+    element: (
+        <RequireRole allowedRoles={['shipper', 'admin']}>
+          <ShipperDashboardLayout />
+        </RequireRole>
+    ),
+    children: [
+      { index: true, element: <ShipperDashboardPage /> },
     ],
   },
 
