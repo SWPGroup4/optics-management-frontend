@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   Search, Plus, MoreHorizontal, Trash2, Edit,
   ArrowLeft, ImageIcon, Package, Tag,
-  Loader2, AlertCircle, DollarSign,
+  Loader2, AlertCircle,
 } from 'lucide-react';
 import { useVariants, useCreateVariant, useUpdateVariant, useDeleteVariant } from '../../hooks/useVariants';
 import VariantModal from '../../page/products/VariantModal';
