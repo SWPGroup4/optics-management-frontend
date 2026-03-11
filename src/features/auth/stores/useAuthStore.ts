@@ -23,7 +23,6 @@ export const useAuthStore = create<AuthStore>()(
       isAuthenticated: false,
       isLoading: false,
       updateToken: (newToken: string) => set({ token: newToken }),
-      
 
       // =====================
       // LOGIN
@@ -85,6 +84,24 @@ export const useAuthStore = create<AuthStore>()(
           throw error;
         }
       },
+      redirectByRole: () => {
+        const role = get().user?.role;
+        if (!role) return '/';
+
+        switch (role) {
+          case 'admin':
+          case 'manager':
+            return '/manager';
+          case 'operations':
+            return '/ops-staff';
+          case 'sales':
+            return '/seller';
+          case 'shipper':
+            return '/shipper'; // nếu có
+          default:
+            return '/';
+        }
+      },
 
       // =====================
       // REGISTER
@@ -107,38 +124,41 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
       // Trong useAuthStore
-refreshAction: async () => {
-  const currentToken = get().token;
-  if (!currentToken || !get().isAuthenticated) return;
+      refreshAction: async () => {
+        const currentToken = get().token;
+        if (!currentToken || !get().isAuthenticated) return;
 
-  const fetchWithRetry = async (retries = 3): Promise<string> => {
-    try {
-      const response = await authApi.refreshToken(currentToken); // gửi currentToken (Bearer hoặc body tùy backend)
-      if (response.result?.token) {
-        return response.result.token;
-      }
-      throw new Error('Không tìm thấy token mới');
-    } catch (err) {
-      if (axios.isAxiosError(err) && (err.response?.status === 401 || err.response?.status === 403)) {
-        throw err; // token cũ chết thật → logout
-      }
-      if (retries > 0) {
-        await new Promise((res) => setTimeout(res, 2000));
-        return fetchWithRetry(retries - 1);
-      }
-      throw err;
-    }
-  };
+        const fetchWithRetry = async (retries = 3): Promise<string> => {
+          try {
+            const response = await authApi.refreshToken(currentToken); // gửi currentToken (Bearer hoặc body tùy backend)
+            if (response.result?.token) {
+              return response.result.token;
+            }
+            throw new Error('Không tìm thấy token mới');
+          } catch (err) {
+            if (
+              axios.isAxiosError(err) &&
+              (err.response?.status === 401 || err.response?.status === 403)
+            ) {
+              throw err; // token cũ chết thật → logout
+            }
+            if (retries > 0) {
+              await new Promise((res) => setTimeout(res, 2000));
+              return fetchWithRetry(retries - 1);
+            }
+            throw err;
+          }
+        };
 
-  try {
-    const newToken = await fetchWithRetry();
-    set({ token: newToken });
-    console.log('🔄 Token refreshed successfully');
-  } catch (error) {
-    console.error('🚨 Refresh failed, logging out...', error);
-    get().logout();
-  }
-},
+        try {
+          const newToken = await fetchWithRetry();
+          set({ token: newToken });
+          console.log('🔄 Token refreshed successfully');
+        } catch (error) {
+          console.error('🚨 Refresh failed, logging out...', error);
+          get().logout();
+        }
+      },
 
       // =====================
       // LOGOUT

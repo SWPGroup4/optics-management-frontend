@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 import { ScanFace, Glasses } from "lucide-react";
 import Header from "@/components/layout/header";
 import Footer from "./footer/Footer";
+import { CartDrawer } from "@/features/cart/components/CartDrawer";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -10,6 +11,7 @@ interface AuthLayoutProps {
 export default function AuthLayout({ children }: AuthLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <CartDrawer />
       <Header />
 
       <div className="flex-1 flex items-center justify-center p-6 md:p-12">

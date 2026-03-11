@@ -1,15 +1,24 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom"
+import { useAuthStore } from "@/features/auth/stores/useAuthStore";
+import { Navigate } from "react-router-dom";
 
-export const ProtectedRoute = () => {
-  // Thực tế: Lấy token từ localStorage hoặc Zustand Store
-  const isAuthenticated = !!localStorage.getItem("accessToken")
-  const location = useLocation()
+// components/ProtectedRoute.tsx
+type AllowedRoles = 'admin' | 'manager' | 'operations' | 'sales' | 'shipper' | 'customer';
+
+interface Props {
+  children: React.ReactNode;
+  allowedRoles?: AllowedRoles[];
+}
+
+export function RequireRole({ children, allowedRoles }: Props) {
+  const { user, isAuthenticated } = useAuthStore();
 
   if (!isAuthenticated) {
-    // Đá về login, nhưng nhớ lưu lại trang họ định vào (state: from)
-    // để login xong redirect lại đúng chỗ đó cho trải nghiệm tốt.
-    return <Navigate to="/login" state={{ from: location }} replace />
+    return <Navigate to="/auth/login" replace />;
   }
 
-  return <Outlet />
+  if (allowedRoles && !allowedRoles.includes(user!.role)) {
+    return <Navigate to="/" replace />; // hoặc trang "Không có quyền"
+  }
+
+  return <>{children}</>;
 }
