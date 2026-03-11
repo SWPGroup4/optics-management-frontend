@@ -49,9 +49,9 @@ export default function ProductInfo({ productId }: { productId: string }) {
       {/* Price - Hiển thị khoảng giá từ API */}
       <div className="flex items-baseline gap-3">
         <span className="text-3xl font-bold text-[#4A8795]">
-          {product.minPrice.toLocaleString()}₫
+          {(product.minPrice ?? 0).toLocaleString()}₫
         </span>
-        {product.maxPrice > product.minPrice && (
+        {product.maxPrice != null && product.minPrice != null && product.maxPrice > product.minPrice && (
           <span className="text-lg text-gray-400 line-through decoration-gray-300">
             {product.maxPrice.toLocaleString()}₫
           </span>
@@ -72,7 +72,7 @@ export default function ProductInfo({ productId }: { productId: string }) {
                   {product.status}
                 </span>
               </div>
-              <p className="text-sm text-gray-600">Full payment of <span className="font-bold">${product.minPrice}</span></p>
+              <p className="text-sm text-gray-600">Full payment of <span className="font-bold">{(product.minPrice ?? 0).toLocaleString()}₫</span></p>
               <p className="text-xs text-gray-400 mt-1">Weight: {product.weightGram}g | Gender: {product.gender}</p>
             </div>
             <div className="bg-[#4A8795] text-white rounded-full p-0.5">
@@ -89,7 +89,7 @@ export default function ProductInfo({ productId }: { productId: string }) {
                   <span className="font-bold text-gray-900">Pre-Order</span>
                   <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">50% DEPOSIT</span>
                 </div>
-                <p className="text-sm text-gray-600">Secure your pair for <span className="font-bold">${(product.minPrice / 2).toFixed(2)}</span></p>
+                <p className="text-sm text-gray-600">Secure your pair for <span className="font-bold">{((product.minPrice ?? 0) / 2).toLocaleString()}₫</span></p>
                 <p className="text-xs text-orange-400 italic mt-1">Shipping expected: late next month</p>
              </div>
              <div className="h-5 w-5 rounded-full border border-gray-300"></div>
