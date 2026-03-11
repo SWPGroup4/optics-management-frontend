@@ -62,8 +62,6 @@ export default function OrderDetailPage() {
     }
   };
 
-  const item = order.items[0];
-  const _p = item?.prescription;
   return (
     <div className="p-6 space-y-6">
       {/* Toast */}
