@@ -1,5 +1,54 @@
-import { useEffect, useRef, useState } from "react";
+// src/features/products/api/product-api.ts
+import { api } from "@/lib/axios";
+
+
+export const productApi = {
+  // Lấy danh sách
+  getAll: async () => {
+    const response = await api.get("/products");
+    return response.data as { result: Product[] }; 
+  },
+
+  create: async ({ productData, file }: { productData: any, file: File | null }) => {
+    const formData = new FormData();
+    
+    // 1. Ép kiểu weightGram về số (đề phòng form input trả về string)
+    const formattedProduct = {
+      ...productData,
+      weightGram: Number(productData.weightGram)
+    };
+
+    // 2. Append JSON string như CURL yêu cầu
+    formData.append("product", JSON.stringify(formattedProduct));
+
+    // 3. Append file nếu có
+    if (file) {
+      formData.append("files", file);
+    }
+
+    // 4. Gửi request (Header tự động ghi đè multipart/form-data)
+    const response = await api.post("/products", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  },
+
+  // Cập nhật
+  update: async (id: string, payload: any) => {
+    const response = await api.put(`/products/${id}`, payload);
+    return response.data;
+  },
+
+  // Xóa sản phẩm
+  delete: async (id: string) => {
+    const response = await api.delete(`/products/${id}`);
+    return response.data;
+  },
+}; import { useEffect, useRef, useState } from "react";
 import { X, Loader2, ImageIcon, Upload } from "lucide-react";
+import type { Product } from "../../types/types";
 
 const EMPTY_FORM = {
   name: "",
@@ -59,8 +108,7 @@ export default function ProductModal({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
-    // 2. Lưu file thực tế vào state
+// 2. Lưu file thực tế vào state
     setSelectedFile(file);
 
     const objectUrl = URL.createObjectURL(file);
@@ -126,8 +174,7 @@ export default function ProductModal({
                 <option value="CONTACT">Contact</option>
               </select>
             </div>
-
-            <div>
+<div>
               <label className={labelClass}>Frame Type</label>
               <input name="frameType" placeholder="e.g. Full-rim"
                 value={form.frameType} onChange={handleChange} className={inputClass} />
@@ -191,7 +238,7 @@ export default function ProductModal({
                   className="flex-1 flex items-center gap-3 px-4 py-3 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50 hover:border-indigo-400 hover:bg-indigo-50/30 cursor-pointer transition-all group"
                 >
                   <Upload className="w-4 h-4 text-slate-400 group-hover:text-indigo-500 shrink-0 transition-colors" />
-                  <span className="text-sm text-slate-400 group-hover:text-indigo-500 transition-colors truncate">
+<span className="text-sm text-slate-400 group-hover:text-indigo-500 transition-colors truncate">
                     {imagePreview ? "Click to change image" : "Click to upload image"}
                   </span>
                   <input

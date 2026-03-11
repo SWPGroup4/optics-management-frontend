@@ -36,14 +36,31 @@ export const productApi = {
   },
 
   // Cập nhật
-  update: async (id: string, payload: any) => {
-    const response = await api.put(`/products/${id}`, payload);
-    return response.data;
-  },
+  update: async (id: string, { productData, file }: { productData: any, file: File | null }) => {
+  const formData = new FormData();
+
+  const formattedProduct = {
+    ...productData,
+    weightGram: Number(productData.weightGram)
+  };
+
+  formData.append("product", JSON.stringify(formattedProduct));
+
+  if (file) {
+    formData.append("files", file);
+  }
+
+  const response = await api.put(`/products/${id}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data;
+},
 
   // Xóa sản phẩm
   delete: async (id: string) => {
     const response = await api.delete(`/products/${id}`);
     return response.data;
   },
-};
+}; 

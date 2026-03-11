@@ -50,4 +50,7 @@ export const orderApi = {
     const res = await api.get(`/management/orders/${orderId}`);
     return res.data.result;
   },
+  verifyOrder: async (orderId: string, isApproved: boolean): Promise<void> => {
+    await api.put(`/sales/orders/${orderId}/verify?isApproved=${isApproved}`);
+  },
 };
