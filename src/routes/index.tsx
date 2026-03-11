@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router-dom"
+import { createBrowserRouter, Navigate, Outlet } from "react-router-dom"
 
 import LoginPage from "@/features/auth/page/LoginPage"
 import RegisterPage from "@/features/auth/page/RegisterPage"
@@ -25,6 +25,7 @@ import ProductManagePage from "@/features/manager/page/products/ProductManagePag
 import ProductVariantManagePage from "@/features/manager/page/products/ProductVariantManageage"
 import StaffCustomerPage from "@/features/manager/page/staff/StaffCustomerPage"
 import ManageCustomerPage from "@/features/manager/page/Customer/ManagerCustomerPage"
+import LensesManagerPage from "@/features/manager/page/Lenses/LensesManagerPage"
 
 import SellerLayout from "@/features/seller/layout/SellerLayout"
 import OrderPage from "@/features/seller/page/order/OrderPage"
@@ -32,7 +33,7 @@ import OrderDetailPage from "@/features/seller/page/order/OrderDetailPage"
 
 import { OpsStaffDashboardLayout } from "@/features/operation-staff/layout/OpsStaffDashboardLayout"
 import OpsStaffDashboardPage from "@/features/operation-staff/page/dashboard/OpsStaffDashboardPage"
-import LensesManagerPage from "@/features/manager/page/Lenses/LensesManagerPage"
+import { RequireRole } from "./protected-route"
 
 export const router = createBrowserRouter([
   {
@@ -43,14 +44,16 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <HomePage /> },
           { path: "shop", element: <SearchResults /> },
-
           {
             path: "products",
             children: [{ path: ":productId", element: <ProductDetailPage /> }],
           },
-
+          // Protected Checkout - requires authentication (and perhaps specific roles)
           {
             path: "checkout",
+            element: <RequireRole allowedRoles={['customer']}>
+                <Outlet />
+              </RequireRole>, // Wrapper for checkout routes
             children: [
               { index: true, element: <CheckoutPage /> },
               { path: "failure", element: <PaymentFailurePage /> },
@@ -60,6 +63,7 @@ export const router = createBrowserRouter([
         ],
       },
 
+      // Public Auth Routes
       {
         path: "auth",
         children: [
@@ -68,18 +72,28 @@ export const router = createBrowserRouter([
         ],
       },
 
+      // Protected Profile - General authentication (omitting allowedRoles acts as a simple auth check)
       {
         path: "profile",
-        element: <ProfileLayout />,
+        element: (
+          <RequireRole>
+            <ProfileLayout />
+          </RequireRole>
+        ),
         children: [
           { index: true, element: <ProfilePage /> },
           { path: "orders", element: <MyOrders /> },
         ],
       },
 
+      // Protected Manager Routes
       {
         path: "manager",
-        element: <ManagerDashboardLayout />,
+        element: (
+          <RequireRole allowedRoles={['manager', 'admin']}>
+            <ManagerDashboardLayout />
+          </RequireRole>
+        ),
         children: [
           { index: true, element: <ManagerDashboardPage /> },
           { path: "orders", element: <ManagerOrderPage /> },
@@ -92,9 +106,14 @@ export const router = createBrowserRouter([
         ],
       },
 
+      // Protected Seller Routes
       {
         path: "seller",
-        element: <SellerLayout />,
+        element: (
+          <RequireRole allowedRoles={['sales', 'admin']}>
+            <SellerLayout />
+          </RequireRole>
+        ),
         children: [
           { index: true, element: <OrderPage /> },
           { path: "orders/:orderId", element: <OrderDetailPage /> },
@@ -103,10 +122,14 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // ===== Operation Staff =====
+  // Protected Operation Staff Routes
   {
     path: "ops-staff",
-    element: <OpsStaffDashboardLayout />,
+    element: (
+      <RequireRole allowedRoles={['operations', 'admin']}>
+        <OpsStaffDashboardLayout />
+      </RequireRole>
+    ),
     children: [{ index: true, element: <OpsStaffDashboardPage /> }],
   },
 

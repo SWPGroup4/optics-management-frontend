@@ -25,8 +25,8 @@ export const useLoginForm = () => {
     try {
       await login(data.username, data.password);
       
-      // Login thành công -> Chuyển trang
-      navigate('/'); 
+      const redirectPath = useAuthStore.getState().redirectByRole();
+      navigate(redirectPath, { replace: true });
     } catch (error) { 
 
       const errorMessage = error instanceof Error ? error.message : "Đăng nhập thất bại";
