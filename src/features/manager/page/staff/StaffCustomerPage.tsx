@@ -1,6 +1,6 @@
 // src/features/users/pages/StaffCustomerPage.tsx
 import { useState } from 'react';
-import { Trash2, Loader2, ShieldCheck, X } from 'lucide-react';
+import { Trash2, Loader2, ShieldCheck, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { useDeleteUser, useUsers, useAssignRole } from '../../hooks/useUsers';
 
 type StaffRole = 'SALE' | 'OPERATION' | 'SHIPPER';
@@ -11,19 +11,46 @@ const STAFF_ROLES: { key: StaffRole; label: string; color: string }[] = [
     { key: 'SHIPPER', label: 'Shipper', color: 'bg-green-50 text-green-600 hover:bg-green-100' },
 ];
 
+// ✅ Toast notification component
+const Toast = ({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) => (
+    <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-semibold transition-all ${
+        type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+    }`}>
+        {type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+        <span>{message}</span>
+        <button onClick={onClose} className="ml-2 hover:opacity-70">
+            <X className="w-4 h-4" />
+        </button>
+    </div>
+);
+
 const StaffView = () => {
     const [activeRole, setActiveRole] = useState<StaffRole>('SALE');
     const { data: staffList = [], isLoading } = useUsers(activeRole);
     const deleteMutation = useDeleteUser(activeRole);
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+    const showToast = (message: string, type: 'success' | 'error') => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 3000);
+    };
 
     const handleDelete = (id: string) => {
         if (window.confirm("Are you sure you want to delete this staff?")) {
-            deleteMutation.mutate(id);
+            deleteMutation.mutate(id, {
+                onSuccess: () => showToast("Xoá nhân viên thành công!", "success"),
+                onError: (error: any) => showToast(
+                    error?.response?.data?.message || "Xoá thất bại, thử lại!",
+                    "error"
+                ),
+            });
         }
     };
 
     return (
         <div>
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
             {/* Sub-tabs */}
             <div className="flex gap-1 px-6 pt-4 border-b border-slate-100">
                 {STAFF_ROLES.map((role) => (
@@ -83,9 +110,13 @@ const StaffView = () => {
                                         <td className="px-6 py-4 text-right">
                                             <button
                                                 onClick={() => handleDelete(staff.id)}
-                                                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                disabled={deleteMutation.isPending}
+                                                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                                             >
-                                                <Trash2 className="w-4 h-4" />
+                                                {deleteMutation.isPending
+                                                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                                                    : <Trash2 className="w-4 h-4" />
+                                                }
                                             </button>
                                         </td>
                                     </tr>
@@ -99,20 +130,37 @@ const StaffView = () => {
     );
 };
 
-// Modal chọn role
+// ✅ Modal với error handling đầy đủ
 const AssignRoleModal = ({
     customer,
     onClose,
+    onSuccess,
 }: {
     customer: any;
     onClose: () => void;
+    onSuccess: (message: string) => void;
 }) => {
     const assignMutation = useAssignRole();
+    const [error, setError] = useState<string | null>(null);
 
     const handleAssign = (role: StaffRole) => {
+        setError(null);
         assignMutation.mutate(
             { userId: customer.id, newRole: role },
-            { onSuccess: onClose }
+            {
+                onSuccess: () => {
+                    onSuccess(`Đã nâng quyền ${customer.username} thành ${role}!`);
+                    onClose();
+                },
+                // ✅ Hiển thị lỗi rõ ràng thay vì im lặng
+                onError: (error: any) => {
+                    const message =
+                        error?.response?.data?.message ||
+                        error?.response?.data?.error ||
+                        "Nâng quyền thất bại. Vui lòng thử lại!";
+                    setError(message);
+                },
+            }
         );
     };
 
@@ -130,6 +178,14 @@ const AssignRoleModal = ({
                         <X className="w-4 h-4 text-slate-500" />
                     </button>
                 </div>
+
+                {/* ✅ Hiển thị lỗi trong modal */}
+                {error && (
+                    <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                        <span>{error}</span>
+                    </div>
+                )}
 
                 <div className="space-y-2">
                     {STAFF_ROLES.map((role) => (
@@ -150,7 +206,8 @@ const AssignRoleModal = ({
 
                 <button
                     onClick={onClose}
-                    className="w-full mt-4 py-2 text-sm text-slate-500 hover:text-slate-700 transition-colors"
+                    disabled={assignMutation.isPending}
+                    className="w-full mt-4 py-2 text-sm text-slate-500 hover:text-slate-700 transition-colors disabled:opacity-50"
                 >
                     Huỷ
                 </button>
@@ -162,15 +219,28 @@ const AssignRoleModal = ({
 const CustomerView = () => {
     const { data: customerList = [], isLoading } = useUsers('CUSTOMER');
     const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-    if (isLoading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin" /></div>;
+    const showToast = (message: string, type: 'success' | 'error') => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 3000);
+    };
+
+    if (isLoading) return (
+        <div className="flex justify-center p-20">
+            <Loader2 className="animate-spin" />
+        </div>
+    );
 
     return (
         <>
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
             {selectedCustomer && (
                 <AssignRoleModal
                     customer={selectedCustomer}
                     onClose={() => setSelectedCustomer(null)}
+                    onSuccess={(msg) => showToast(msg, "success")}
                 />
             )}
             <div className="overflow-x-auto">
