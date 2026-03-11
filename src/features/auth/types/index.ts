@@ -44,9 +44,10 @@ export interface UserState {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'operations' | 'sales' | 'customer' | 'staff';
+  role: AllowedRoles;
   avatar?: string;
 }
+export type AllowedRoles = 'admin' | 'manager' | 'operations' | 'sales' | 'shipper' | 'customer';
 
 // --- Store State ---
 // Định nghĩa toàn bộ State và Action của Store
@@ -56,11 +57,12 @@ export interface AuthStore {
   isAuthenticated: boolean;
   isLoading: boolean;
   refreshAction: () => Promise<void>;
-  
+
   // Actions
   login: (username: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
   registerUser: (data: RegisterInput) => Promise<void>;
+  redirectByRole: () => string;
 }
 export interface ApiResponse<T> {
   code: number;
