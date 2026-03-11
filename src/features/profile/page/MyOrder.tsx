@@ -57,7 +57,7 @@ export default function MyOrders() {
           <div className="flex justify-between items-center mb-4">
             <div>
               <p className="font-semibold">
-                Order ID: {order.orderId.slice(0, 8)}
+                Order ID: {order.orderId?.slice(0, 8) ?? "N/A"}
               </p>
 
               <p className="text-sm text-gray-500">
@@ -101,7 +101,7 @@ export default function MyOrders() {
                 {/* ITEM INFO */}
                 <div className="flex-1">
                   <p className="font-medium">
-                    Product Variant: {item.productVariantId.slice(0, 8)}
+                    Product Variant: {item.productVariantId?.slice(0, 8) ?? "N/A"}
                   </p>
 
                   <p className="text-sm text-gray-500">

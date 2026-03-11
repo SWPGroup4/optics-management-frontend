@@ -1,26 +1,33 @@
-// src/components/auth/AppAuthProvider.tsx
-import { useAuthStore } from "@/features/auth/stores/useAuthStore";
-import { useEffect } from "react";
-import { Outlet } from "react-router-dom";
+// src/components/AuthProvider.tsx (hoặc wrap trong App)
+import { useEffect } from 'react';
+import { jwtDecode } from 'jwt-decode';
+import { useAuthStore } from '@/features/auth/stores/useAuthStore';
 
-export const AppAuthProvider = () => {
-  const { isAuthenticated, refreshAction } = useAuthStore();
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const { token, refreshAction, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !token) return;
 
-    // Chạy ngay lập tức khi app load để kiểm tra token cũ trong storage
-    refreshAction();
+    const checkAndRefresh = () => {
+      try {
+        const decoded = jwtDecode<{ exp: number }>(token);
+        const timeLeft = decoded.exp * 1000 - Date.now();
+        if (timeLeft < 2 * 60 * 1000 && timeLeft > 0) { // còn < 2 phút
+          refreshAction();
+        }
+      } catch {
+        // Token invalid → logout
+        useAuthStore.getState().logout();
+      }
+    };
 
-    // Thiết lập chạy định kỳ mỗi 1 phút
-    const interval = setInterval(() => {
-      console.log("🔄 [System] Khởi chạy làm mới token định kỳ...");
-      refreshAction();
-    }, 60000);
+    checkAndRefresh(); // check ngay khi mount
+
+    const interval = setInterval(checkAndRefresh, 60 * 1000); // mỗi phút
 
     return () => clearInterval(interval);
-  }, [isAuthenticated, refreshAction]);
+  }, [token, isAuthenticated, refreshAction]);
 
-  // Trả về Outlet để các route con (MainLayout, ManagerLayout...) hiển thị bên dưới nó
-  return <Outlet />;
+  return <>{children}</>;
 };
