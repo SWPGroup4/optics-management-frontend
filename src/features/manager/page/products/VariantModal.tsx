@@ -53,14 +53,14 @@ export default function VariantModal({ open, onClose, onSubmit, variant, isSubmi
     >
       <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl shadow-slate-900/20 animate-in zoom-in-95 fade-in duration-200 max-h-[90vh] flex flex-col">
 
-        {/* Header */}
+        {/* Tiêu đề (Header) */}
         <div className="flex items-center justify-between px-7 py-5 border-b border-slate-100">
           <div>
             <h2 className="text-xl font-extrabold text-slate-900">
-              {variant ? "Edit Variant" : "Add New Variant"}
+              {variant ? "Chỉnh sửa biến thể" : "Thêm biến thể mới"}
             </h2>
             <p className="text-sm text-slate-500 mt-0.5">
-              {variant ? "Update the variant information below." : "Fill in the details for the new variant."}
+              {variant ? "Cập nhật các thông tin chi tiết cho biến thể này." : "Điền các thông tin cần thiết để tạo biến thể mới."}
             </p>
           </div>
           <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all">
@@ -68,82 +68,82 @@ export default function VariantModal({ open, onClose, onSubmit, variant, isSubmi
           </button>
         </div>
 
-        {/* Body */}
+        {/* Nội dung (Body) */}
         <div className="overflow-y-auto px-7 py-6 flex-1">
           <div className="grid grid-cols-2 gap-x-5 gap-y-4">
 
             <div>
-              <label className={labelClass}>Color Name *</label>
-              <input name="colorName" placeholder="e.g. Black Metal"
+              <label className={labelClass}>Tên màu sắc *</label>
+              <input name="colorName" placeholder="Ví dụ: Đen nhám, Vàng đồng..."
                 value={form.colorName} onChange={handleChange} className={inputClass} />
             </div>
 
             <div>
-              <label className={labelClass}>Frame Finish</label>
-              <input name="frameFinish" placeholder="e.g. Matte"
+              <label className={labelClass}>Kiểu hoàn thiện</label>
+              <input name="frameFinish" placeholder="Ví dụ: Bóng, Nhám, Mạ titan..."
                 value={form.frameFinish} onChange={handleChange} className={inputClass} />
             </div>
 
             <div>
-              <label className={labelClass}>Size Label</label>
-              <input name="sizeLabel" placeholder="e.g. Large"
+              <label className={labelClass}>Nhãn kích thước</label>
+              <input name="sizeLabel" placeholder="Ví dụ: Lớn, Nhỏ, 52-18-140..."
                 value={form.sizeLabel} onChange={handleChange} className={inputClass} />
             </div>
 
             <div>
-              <label className={labelClass}>Price (VND)</label>
-              <input type="number" name="price" placeholder="e.g. 4700000"
+              <label className={labelClass}>Giá bán (VNĐ)</label>
+              <input type="number" name="price" placeholder="Ví dụ: 4700000"
                 value={form.price || ""} onChange={handleChange} className={inputClass} min={0} />
             </div>
 
             <div>
-              <label className={labelClass}>Lens Width (mm)</label>
-              <input type="number" name="lensWidthMm" placeholder="e.g. 62"
+              <label className={labelClass}>Chiều rộng tròng (mm)</label>
+              <input type="number" name="lensWidthMm" placeholder="Ví dụ: 62"
                 value={form.lensWidthMm || ""} onChange={handleChange} className={inputClass} min={0} />
             </div>
 
             <div>
-              <label className={labelClass}>Bridge Width (mm)</label>
-              <input type="number" name="bridgeWidthMm" placeholder="e.g. 14"
+              <label className={labelClass}>Chiều rộng cầu mắt (mm)</label>
+              <input type="number" name="bridgeWidthMm" placeholder="Ví dụ: 14"
                 value={form.bridgeWidthMm || ""} onChange={handleChange} className={inputClass} min={0} />
             </div>
 
             <div>
-              <label className={labelClass}>Temple Length (mm)</label>
-              <input type="number" name="templeLengthMm" placeholder="e.g. 140"
+              <label className={labelClass}>Chiều dài càng kính (mm)</label>
+              <input type="number" name="templeLengthMm" placeholder="Ví dụ: 140"
                 value={form.templeLengthMm || ""} onChange={handleChange} className={inputClass} min={0} />
             </div>
 
             <div>
-              <label className={labelClass}>Quantity</label>
-              <input type="number" name="quantity" placeholder="e.g. 50"
+              <label className={labelClass}>Số lượng trong kho</label>
+              <input type="number" name="quantity" placeholder="Ví dụ: 50"
                 value={form.quantity || ""} onChange={handleChange} className={inputClass} min={0} />
             </div>
 
             <div>
-              <label className={labelClass}>Order Item Type</label>
+              <label className={labelClass}>Loại kho hàng</label>
               <select name="orderItemType" value={form.orderItemType} onChange={handleChange} className={inputClass}>
-                <option value="IN_STOCK">In Stock</option>
-                <option value="PRE_ORDER">Pre Order</option>
+                <option value="IN_STOCK">Có sẵn (In Stock)</option>
+                <option value="PRE_ORDER">Đặt trước (Pre Order)</option>
               </select>
             </div>
 
             <div>
-              <label className={labelClass}>Status</label>
+              <label className={labelClass}>Trạng thái</label>
               <select name="status" value={form.status} onChange={handleChange} className={inputClass}>
-                <option value="ACTIVE">Active</option>
-                <option value="INACTIVE">Inactive</option>
+                <option value="ACTIVE">Đang hoạt động</option>
+                <option value="INACTIVE">Tạm ngưng</option>
               </select>
             </div>
 
           </div>
         </div>
 
-        {/* Footer */}
+        {/* Chân trang (Footer) */}
         <div className="flex items-center justify-end gap-3 px-7 py-5 border-t border-slate-100 bg-slate-50/50">
           <button onClick={onClose} disabled={isSubmitting}
             className="px-5 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-all disabled:opacity-50">
-            Cancel
+            Hủy bỏ
           </button>
           <button
             onClick={() => onSubmit(form)}
@@ -151,7 +151,7 @@ export default function VariantModal({ open, onClose, onSubmit, variant, isSubmi
             className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-slate-900/20"
           >
             {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-            {variant ? "Save Changes" : "Create Variant"}
+            {variant ? "Lưu thay đổi" : "Tạo biến thể"}
           </button>
         </div>
 
