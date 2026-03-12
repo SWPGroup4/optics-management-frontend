@@ -34,7 +34,6 @@ export default function VirtualTryOn({
 }: VirtualTryOnProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const captureCanvasRef = useRef<HTMLCanvasElement>(null);
   const faceLandmarkerRef = useRef<FaceLandmarker | null>(null);
   const animFrameRef = useRef<number>(0);
   const streamRef = useRef<MediaStream | null>(null);
@@ -63,21 +62,23 @@ export default function VirtualTryOn({
   // Preload glasses images
   const glassesImagesRef = useRef<HTMLImageElement[]>([]);
 
-  const proxyImageUrl = (url: string) => {
+  const proxyImageUrl = useCallback((url: string) => {
     const s3Host = "https://optics-management-storage.s3.amazonaws.com";
     if (url.startsWith(s3Host)) {
       return url.replace(s3Host, "/s3-proxy");
     }
     return url;
-  };
+  }, []);
 
   useEffect(() => {
     glassesImagesRef.current = variantImages.map((v) => {
       const img = new Image();
+      // 👇 FIX 1: Cực kỳ quan trọng để tránh lỗi Tainted Canvas khi chụp ảnh
+      img.crossOrigin = "anonymous"; 
       img.src = proxyImageUrl(v.imageUrl);
       return img;
     });
-  }, [variantImages]);
+  }, [variantImages, proxyImageUrl]);
 
   const drawGlasses = useCallback(
     (landmarks: { x: number; y: number; z: number }[]) => {
@@ -142,10 +143,10 @@ export default function VirtualTryOn({
       ctx.restore();
       ctx.filter = "none";
     },
-    []
+    [] // Giữ nguyên rỗng vì ref không thay đổi trigger
   );
 
-  const detectLoop = useCallback(() => {
+  const detectLoop = useCallback(function detectLoop() {
     const video = videoRef.current;
     const landmarker = faceLandmarkerRef.current;
     if (!video || !landmarker || !runningRef.current) return;
@@ -163,6 +164,7 @@ export default function VirtualTryOn({
       }
     }
 
+    // Lúc này gọi detectLoop sẽ không bị lỗi nữa
     animFrameRef.current = requestAnimationFrame(detectLoop);
   }, [drawGlasses]);
 
@@ -236,7 +238,7 @@ export default function VirtualTryOn({
         faceLandmarkerRef.current = null;
       }
     };
-  }, [open]);
+  }, [open, initFaceLandmarker]);
 
   const handleCapture = () => {
     const video = videoRef.current;
@@ -256,14 +258,14 @@ export default function VirtualTryOn({
     const tempCtx = tempCanvas.getContext("2d");
     if (!tempCtx) return;
 
-    // Draw mirrored video (same-origin, no taint)
+    // Draw mirrored video
     tempCtx.save();
     tempCtx.translate(tempCanvas.width, 0);
     tempCtx.scale(-1, 1);
     tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
     tempCtx.restore();
 
-    // Redraw glasses directly (avoid tainted overlay canvas)
+    // Redraw glasses directly
     const s = smoothRef.current;
     const glasses = glassesImagesRef.current[selectedIdxRef.current];
     if (glasses && glasses.complete && glasses.naturalWidth > 0 && s.width > 0) {
@@ -290,7 +292,7 @@ export default function VirtualTryOn({
       setCapturedImage(dataUrl);
     } catch (e) {
       console.error("Capture failed:", e);
-      setError("Failed to capture photo. Please try again.");
+      setError("Failed to capture photo. Vui lòng kiểm tra lại CORS proxy.");
     }
   };
 
@@ -400,6 +402,7 @@ export default function VirtualTryOn({
                 width={640}
                 height={480}
                 className="absolute top-0 left-0 w-full h-full pointer-events-none"
+                style={{ transform: "scaleX(-1)" }}
               />
 
               {isLoading && (
@@ -500,9 +503,6 @@ export default function VirtualTryOn({
           </div>
         )}
       </div>
-
-      {/* Hidden capture canvas */}
-      <canvas ref={captureCanvasRef} className="hidden" />
     </div>,
     document.body
   );

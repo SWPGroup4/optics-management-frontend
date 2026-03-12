@@ -10,13 +10,16 @@ export default function LoginForm() {
   const { register, handleSubmit, formState: { errors } } = form;
 
   return (
-    // Tăng max-w một chút từ 380px lên 420px để cân bằng với layout lớn
     <div className="w-full max-w-[420px] mx-auto transition-all duration-500">
       
-      {/* HEADER: Tăng size chữ và margin */}
+      {/* HEADER */}
       <div className="mb-12 text-center">
-        <h2 className="text-4xl font-bold text-zinc-900 mb-3 tracking-tight">Welcome back</h2>
-        <p className="text-gray-500 text-base font-medium">Please enter your details to sign in.</p>
+        <h2 className="text-4xl font-bold text-zinc-900 mb-3 tracking-tight">
+          Chào mừng quay lại
+        </h2>
+        <p className="text-gray-500 text-base font-medium">
+          Vui lòng nhập thông tin để đăng nhập.
+        </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -27,12 +30,14 @@ export default function LoginForm() {
           </div>
         )}
 
-        {/* Username Field: Tăng chiều cao h-16 và padding */}
+        {/* Username */}
         <div className="space-y-2">
-          <Label className="sr-only" htmlFor="username">Username</Label>
+          <Label className="sr-only" htmlFor="username">
+            Tên đăng nhập
+          </Label>
           <Input
             id="username"
-            placeholder="USERNAME / EMAIL"
+            placeholder="TÊN ĐĂNG NHẬP / EMAIL"
             disabled={isLoading}
             {...register("username")} 
             className={`rounded-2xl h-16 px-6 bg-gray-50 border-transparent 
@@ -47,13 +52,15 @@ export default function LoginForm() {
           )}
         </div>
 
-        {/* Password Field */}
+        {/* Password */}
         <div className="space-y-2">
-          <Label className="sr-only" htmlFor="password">Password</Label>
+          <Label className="sr-only" htmlFor="password">
+            Mật khẩu
+          </Label>
           <Input
             id="password"
             type="password"
-            placeholder="PASSWORD"
+            placeholder="MẬT KHẨU"
             disabled={isLoading}
             {...register("password")}
             className={`rounded-2xl h-16 px-6 bg-gray-50 border-transparent 
@@ -68,7 +75,7 @@ export default function LoginForm() {
           )}
         </div>
 
-        {/* Submit Button: Tăng độ cao và hiệu ứng đổ bóng mạnh hơn */}
+        {/* Submit */}
         <div className="pt-4">
           <Button 
             type="submit" 
@@ -77,32 +84,39 @@ export default function LoginForm() {
           >
             {isLoading ? (
               <>
-                <span className="animate-pulse">LOGGING IN...</span>
+                <span className="animate-pulse">ĐANG ĐĂNG NHẬP...</span>
                 <Loader2 className="w-5 h-5 animate-spin" />
               </>
             ) : (
               <>
-                <span>SIGN IN</span>
+                <span>ĐĂNG NHẬP</span>
                 <ArrowRight className="w-5 h-5" />
               </>
             )}
           </Button>
         </div>
 
-        {/* Extra Links: Căn chỉnh lại font size cho dễ đọc */}
+        {/* Extra Links */}
         <div className="flex justify-between items-center px-2 text-[12px] text-gray-400 font-bold tracking-wider uppercase mt-4">
-          <a href="#" className="hover:text-zinc-900 transition-colors border-b border-transparent hover:border-zinc-900">Forgot Password</a>
-          <a href="#" className="hover:text-zinc-900 transition-colors border-b border-transparent hover:border-zinc-900">Privacy Policy</a>
+          <a href="#" className="hover:text-zinc-900 transition-colors border-b border-transparent hover:border-zinc-900">
+            Quên mật khẩu
+          </a>
+          <a href="#" className="hover:text-zinc-900 transition-colors border-b border-transparent hover:border-zinc-900">
+            Chính sách bảo mật
+          </a>
         </div>
 
         {/* FOOTER */}
         <div className="relative mt-10 pt-10 border-t border-gray-100">
-            <p className="text-center text-base text-gray-500">
-              Don't have an account?{" "}
-              <Link to="/auth/register" className="font-bold text-zinc-900 hover:text-emerald-600 transition-colors inline-flex items-center gap-1 hover:underline underline-offset-8">
-                Sign up for free
-              </Link>
-            </p>
+          <p className="text-center text-base text-gray-500">
+            Chưa có tài khoản?{" "}
+            <Link 
+              to="/auth/register" 
+              className="font-bold text-zinc-900 hover:text-emerald-600 transition-colors inline-flex items-center gap-1 hover:underline underline-offset-8"
+            >
+              Đăng ký miễn phí
+            </Link>
+          </p>
         </div>
 
       </form>
