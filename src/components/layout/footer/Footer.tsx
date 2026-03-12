@@ -10,8 +10,9 @@ const Footer: React.FC = () => {
           <Logo className="" iconSize={6} textSize="text-xl" />
 
           <p style={styles.description}>
-            Revolutionizing eyewear since 2012. We combine artisan craftsmanship
-            with digital precision to bring you the finest optical experience.
+            Đổi mới ngành kính mắt từ năm 2012. Chúng tôi kết hợp tay nghề thủ công
+            tinh xảo với công nghệ số hiện đại để mang đến trải nghiệm quang học
+            tốt nhất cho bạn.
           </p>
 
           <div style={styles.social}>
@@ -22,33 +23,33 @@ const Footer: React.FC = () => {
 
         {/* Shop */}
         <div style={styles.column}>
-          <h4 style={styles.title}>SHOP</h4>
+          <h4 style={styles.title}>MUA SẮM</h4>
           <ul style={styles.list}>
-            <li>All Eyewear</li>
-            <li>New Arrivals</li>
-            <li>Blue Light</li>
-            <li>Sunglasses</li>
+            <li>Tất cả kính</li>
+            <li>Sản phẩm mới</li>
+            <li>Kính chống ánh sáng xanh</li>
+            <li>Kính râm</li>
           </ul>
         </div>
 
         {/* Support */}
         <div style={styles.column}>
-          <h4 style={styles.title}>SUPPORT</h4>
+          <h4 style={styles.title}>HỖ TRỢ</h4>
           <ul style={styles.list}>
-            <li>Track Order</li>
-            <li>Returns</li>
-            <li>Store Locator</li>
-            <li>Help Center</li>
+            <li>Theo dõi đơn hàng</li>
+            <li>Đổi / Trả hàng</li>
+            <li>Tìm cửa hàng</li>
+            <li>Trung tâm trợ giúp</li>
           </ul>
         </div>
 
         {/* Legal */}
         <div style={styles.column}>
-          <h4 style={styles.title}>LEGAL</h4>
+          <h4 style={styles.title}>PHÁP LÝ</h4>
           <ul style={styles.list}>
-            <li>Privacy Policy</li>
-            <li>Terms of Use</li>
-            <li>Accessibility</li>
+            <li>Chính sách bảo mật</li>
+            <li>Điều khoản sử dụng</li>
+            <li>Khả năng truy cập</li>
           </ul>
         </div>
       </div>
