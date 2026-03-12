@@ -1,7 +1,7 @@
 // src/features/users/pages/StaffCustomerPage.tsx
 import { useState } from 'react';
 import { Trash2, Loader2, ShieldCheck, X, CheckCircle, AlertCircle } from 'lucide-react';
-import { useDeleteUser, useUsers, useAssignRole } from '../../hooks/useUsers';
+import { useUsers, useAssignRole } from '../../hooks/useUsers';
 
 type StaffRole = 'SALE' | 'OPERATION' | 'SHIPPER';
 
@@ -11,7 +11,6 @@ const STAFF_ROLES: { key: StaffRole; label: string; color: string }[] = [
     { key: 'SHIPPER', label: 'Shipper', color: 'bg-green-50 text-green-600 hover:bg-green-100' },
 ];
 
-// ✅ Toast notification component
 const Toast = ({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) => (
     <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-semibold transition-all ${
         type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
@@ -27,7 +26,7 @@ const Toast = ({ message, type, onClose }: { message: string; type: 'success' | 
 const StaffView = () => {
     const [activeRole, setActiveRole] = useState<StaffRole>('SALE');
     const { data: staffList = [], isLoading } = useUsers(activeRole);
-    const deleteMutation = useDeleteUser(activeRole);
+    const assignMutation = useAssignRole();
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
     const showToast = (message: string, type: 'success' | 'error') => {
@@ -35,15 +34,18 @@ const StaffView = () => {
         setTimeout(() => setToast(null), 3000);
     };
 
-    const handleDelete = (id: string) => {
-        if (window.confirm("Are you sure you want to delete this staff?")) {
-            deleteMutation.mutate(id, {
-                onSuccess: () => showToast("Xoá nhân viên thành công!", "success"),
-                onError: (error: any) => showToast(
-                    error?.response?.data?.message || "Xoá thất bại, thử lại!",
-                    "error"
-                ),
-            });
+    const handleDelete = (staff: any) => {
+        if (window.confirm(`Bạn có chắc muốn xoá nhân viên "${staff.username}"?\nHọ sẽ được chuyển thành Customer.`)) {
+            assignMutation.mutate(
+                { userId: staff.id, newRole: 'CUSTOMER' },
+                {
+                    onSuccess: () => showToast(`Đã chuyển "${staff.username}" thành Customer!`, "success"),
+                    onError: (error: any) => showToast(
+                        error?.response?.data?.message || "Thao tác thất bại, thử lại!",
+                        "error"
+                    ),
+                }
+            );
         }
     };
 
@@ -78,10 +80,10 @@ const StaffView = () => {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50 border-b">
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Staff Member</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Nhân viên</th>
                                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Email</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Role</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right">Actions</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Vai trò</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right">Hành động</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -109,11 +111,12 @@ const StaffView = () => {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <button
-                                                onClick={() => handleDelete(staff.id)}
-                                                disabled={deleteMutation.isPending}
+                                                onClick={() => handleDelete(staff)}
+                                                disabled={assignMutation.isPending}
+                                                title="Xoá nhân viên (chuyển thành Customer)"
                                                 className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                                             >
-                                                {deleteMutation.isPending
+                                                {assignMutation.isPending && assignMutation.variables?.userId === staff.id
                                                     ? <Loader2 className="w-4 h-4 animate-spin" />
                                                     : <Trash2 className="w-4 h-4" />
                                                 }
@@ -130,7 +133,6 @@ const StaffView = () => {
     );
 };
 
-// ✅ Modal với error handling đầy đủ
 const AssignRoleModal = ({
     customer,
     onClose,
@@ -152,7 +154,6 @@ const AssignRoleModal = ({
                     onSuccess(`Đã nâng quyền ${customer.username} thành ${role}!`);
                     onClose();
                 },
-                // ✅ Hiển thị lỗi rõ ràng thay vì im lặng
                 onError: (error: any) => {
                     const message =
                         error?.response?.data?.message ||
@@ -171,7 +172,7 @@ const AssignRoleModal = ({
                     <div>
                         <h3 className="font-bold text-slate-900 text-lg">Nâng quyền</h3>
                         <p className="text-sm text-slate-500 mt-0.5">
-                            Chọn role cho <span className="font-semibold text-slate-700">{customer.username}</span>
+                            Chọn vai trò cho <span className="font-semibold text-slate-700">{customer.username}</span>
                         </p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
@@ -179,7 +180,6 @@ const AssignRoleModal = ({
                     </button>
                 </div>
 
-                {/* ✅ Hiển thị lỗi trong modal */}
                 {error && (
                     <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
                         <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -247,10 +247,10 @@ const CustomerView = () => {
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-slate-50 border-b">
-                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Customer Name</th>
+                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Khách hàng</th>
                             <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Email</th>
-                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Status</th>
-                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right">Actions</th>
+                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Trạng thái</th>
+                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right">Hành động</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -266,7 +266,7 @@ const CustomerView = () => {
                                     <td className="px-6 py-4 font-medium text-slate-900">{customer.username}</td>
                                     <td className="px-6 py-4 text-slate-600">{customer.email || 'N/A'}</td>
                                     <td className="px-6 py-4">
-                                        <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs">Customer</span>
+                                        <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs font-semibold">Customer</span>
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <button
@@ -294,8 +294,8 @@ const StaffCustomerPage = () => {
         <div className="p-8 bg-slate-50 min-h-screen">
             <div className="flex justify-between items-end mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">User Management</h1>
-                    <p className="text-slate-500 mt-1">Manage your team and view customer insights</p>
+                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Quản lý người dùng</h1>
+                    <p className="text-slate-500 mt-1">Quản lý nhân viên và khách hàng</p>
                 </div>
             </div>
 
@@ -305,13 +305,13 @@ const StaffCustomerPage = () => {
                     onClick={() => setActiveTab('staff')}
                     className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'staff' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}
                 >
-                    Staff Members
+                    Nhân viên
                 </button>
                 <button
                     onClick={() => setActiveTab('customer')}
                     className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'customer' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}
                 >
-                    Customers
+                    Khách hàng
                 </button>
             </div>
 
