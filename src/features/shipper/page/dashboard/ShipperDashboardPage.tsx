@@ -1,79 +1,101 @@
-import React, { useState, useEffect } from 'react';
-import { Package, Truck } from 'lucide-react';
-import Pagination from '@/features/operation-staff/components/dashboard/Pagination';
-import type { PaginationInfo } from '@/features/shipper/types';
+import React, { useState, useCallback, useEffect } from 'react';
+import { ScreenSelectOrders } from '@/features/shipper/components/dashboard/ScreenSelectOrders';
+import { ScreenDeliveryList } from '@/features/shipper/components/dashboard/ScreenDeliveryList';
+import { ScreenOrderDetail } from '@/features/shipper/components/dashboard/ScreenOrderDetail';
 import { useShipperStore } from "@/features/shipper/store/shipperStore.ts";
-import ShipperOrderTable from "@/features/shipper/components/dashboard/ShipperOrderTable";
 
-const ITEMS_PER_PAGE = 10;
+type Screen = "select" | "list" | "detail";
 
 const ShipperDashboardPage: React.FC = () => {
-    const [currentPage, setCurrentPage] = useState(1);
+    const [screen, setScreen] = useState<Screen>("select");
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+    const [startedIds, setStartedIds] = useState<Set<string>>(new Set());
+    const [activeOrderId, setActiveOrderId] = useState<string | null>(null);
 
     const readyToShipOrders = useShipperStore(state => state.readyToShipOrders);
+    const acceptedOrders = useShipperStore(state => state.acceptedOrders);
     const loading = useShipperStore(state => state.loading);
     const error = useShipperStore(state => state.error);
     const fetchReadyToShipOrders = useShipperStore(state => state.fetchReadyToShipOrders);
+    const acceptOrders = useShipperStore(state => state.acceptOrders);
+    const fetchAcceptedOrders = useShipperStore(state => state.fetchAcceptedOrders);
     const startDelivery = useShipperStore(state => state.startDelivery);
+    const confirmDelivered = useShipperStore(state => state.confirmDelivered);
     const clearError = useShipperStore(state => state.clearError);
 
     useEffect(() => {
         fetchReadyToShipOrders();
     }, [fetchReadyToShipOrders]);
 
-    const pagination: PaginationInfo = {
-        currentPage,
-        totalPages: Math.ceil((readyToShipOrders?.length || 0) / ITEMS_PER_PAGE),
-        totalItems: readyToShipOrders?.length || 0,
-        itemsPerPage: ITEMS_PER_PAGE,
-        startIndex: (currentPage - 1) * ITEMS_PER_PAGE + 1,
-        endIndex: Math.min(currentPage * ITEMS_PER_PAGE, readyToShipOrders?.length || 0)
-    };
+    useEffect(() => {
+        if (screen === "list") {
+            fetchAcceptedOrders();
+        }
+    }, [screen, fetchAcceptedOrders]);
 
-    const paginatedOrders = readyToShipOrders?.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE
-    ) || [];
+    const toggleOrder = useCallback((id: string) => {
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    }, []);
 
-    const handleStartDelivery = async (orderId: string) => {
-        // Get shipperId from auth store or context
-        // This would need to be adapted based on your auth implementation
-        const shipperId = 'current-shipper-id'; // Replace with actual shipper ID from auth
+    const confirmRoute = useCallback(async () => {
+        if (selectedIds.size > 0) {
+            try {
+                await acceptOrders(Array.from(selectedIds));
+                setScreen("list");
+                setSelectedIds(new Set());
+            } catch (error) {
+                console.error('Failed to accept orders:', error);
+            }
+        }
+    }, [selectedIds, acceptOrders]);
 
+    const startOrder = useCallback(async (id: string) => {
         try {
-            await startDelivery(orderId, shipperId);
+            await startDelivery(id);
+            setActiveOrderId(id);
+            setStartedIds((prev) => new Set(prev).add(id));
+            setScreen("detail");
         } catch (error) {
             console.error('Failed to start delivery:', error);
         }
-    };
+    }, [startDelivery]);
+
+    const goBackToList = useCallback(() => {
+        setScreen("list");
+    }, []);
+
+    const completeOrder = useCallback(async () => {
+        if (activeOrderId) {
+            try {
+                await confirmDelivered(activeOrderId);
+                setCompletedIds((prev) => new Set(prev).add(activeOrderId));
+                setActiveOrderId(null);
+                setScreen("list");
+            } catch (error) {
+                console.error('Failed to confirm delivery:', error);
+            }
+        }
+    }, [activeOrderId, confirmDelivered]);
+
+    // const selectedOrders = readyToShipOrders.filter((o) => selectedIds.has(o.orderId));
+    const activeOrder = acceptedOrders.find((o) => o.orderId === activeOrderId) || null;
 
     return (
-        <div className="flex flex-col gap-6 h-full">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="p-3 bg-primary/10 rounded-lg">
-                        <Truck className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                            Bảng điều khiển Vận chuyển
-                        </h1>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                            Quản lý các đơn hàng sẵn sàng để vận chuyển
-                        </p>
-                    </div>
-                </div>
-            </div>
-
+        <div className="min-h-screen bg-background">
             {/* Error Display */}
             {error && (
-                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                    <div className="flex items-center justify-between">
-                        <span className="text-red-700 dark:text-red-300">{error}</span>
+                <div className="fixed top-0 left-0 right-0 z-50 p-4 bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800">
+                    <div className="flex items-center justify-between max-w-md mx-auto">
+                        <span className="text-red-700 dark:text-red-300 text-sm">{error}</span>
                         <button
                             onClick={clearError}
-                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 ml-4"
                         >
                             ×
                         </button>
@@ -81,40 +103,38 @@ const ShipperDashboardPage: React.FC = () => {
                 </div>
             )}
 
-            {/* Orders Table */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-                    <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-                        Danh sách đơn hàng sẵn sàng giao ({readyToShipOrders?.length || 0})
-                    </h2>
+            {/* Screen Content */}
+            {loading ? (
+                <div className="flex items-center justify-center min-h-screen">
+                    <div className="text-slate-500">Đang tải...</div>
                 </div>
-
-                {loading ? (
-                    <div className="flex items-center justify-center py-12">
-                        <div className="text-slate-500">Đang tải...</div>
-                    </div>
-                ) : paginatedOrders.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12">
-                        <Package className="w-12 h-12 text-slate-400 mb-4" />
-                        <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
-                            Không có đơn hàng nào
-                        </h3>
-                        <p className="text-slate-500 dark:text-slate-400">
-                            Hiện tại không có đơn hàng nào sẵn sàng để vận chuyển.
-                        </p>
-                    </div>
-                ) : (
-                    <ShipperOrderTable
-                        orders={paginatedOrders}
-                        onStartDelivery={handleStartDelivery}
-                        loading={loading}
-                    />
-                )}
-            </div>
-
-            {/* Pagination */}
-            {pagination.totalPages > 1 && (
-                <Pagination pagination={pagination} onPageChange={setCurrentPage} />
+            ) : (
+                <>
+                    {screen === "select" && (
+                        <ScreenSelectOrders
+                            orders={readyToShipOrders}
+                            selectedIds={selectedIds}
+                            onToggle={toggleOrder}
+                            onConfirm={confirmRoute}
+                        />
+                    )}
+                    {screen === "list" && (
+                        <ScreenDeliveryList
+                            orders={acceptedOrders}
+                            completedIds={completedIds}
+                            startedIds={startedIds}
+                            onStart={startOrder}
+                            onBack={() => setScreen("select")}
+                        />
+                    )}
+                    {screen === "detail" && activeOrder && (
+                        <ScreenOrderDetail
+                            order={activeOrder}
+                            onBack={goBackToList}
+                            onComplete={completeOrder}
+                        />
+                    )}
+                </>
             )}
         </div>
     );

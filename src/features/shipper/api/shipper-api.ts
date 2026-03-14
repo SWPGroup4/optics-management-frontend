@@ -7,8 +7,23 @@ export const shipperApi = {
         return response.data.result;
     },
 
-    startDelivery: async (orderId: string, shipperId: string): Promise<void> => {
-        const response = await api.post(`/ship/orders/${orderId}/start-delivery?shipperId=${shipperId}`);
+    acceptOrders: async (orderIds: string[]): Promise<void> => {
+        const response = await api.patch('/ship/orders/accept', { orderIds });
+        return response.data;
+    },
+
+    getMyAcceptedOrders: async (): Promise<BEOrder[]> => {
+        const response = await api.get('/ship/orders/my-orders-accepted');
+        return response.data.result;
+    },
+
+    startDelivery: async (orderId: string): Promise<void> => {
+        const response = await api.patch(`/ship/orders/${orderId}/start-delivery`);
+        return response.data;
+    },
+
+    confirmDelivered: async (orderId: string): Promise<void> => {
+        const response = await api.patch(`/ship/orders/${orderId}/confirm-delivered`);
         return response.data;
     },
 };
