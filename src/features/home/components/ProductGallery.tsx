@@ -1,6 +1,28 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense, useEffect } from 'react';
 import { Camera, Ruler, Info } from 'lucide-react';
 import { useProduct } from '../hooks/useProducts';
+import { api } from '@/lib/axios';
+
+const VirtualTryOn = lazy(() => import('@/components/common/VirtualTryOn'));
+
+// Interface cho state của VirtualTryOn
+interface VariantForTryOn {
+  id: string;
+  variantName?: string;
+  color?: string;
+  imageUrl: string;
+}
+
+// Thêm interface cho dữ liệu Variant trả về từ API
+interface ApiVariant {
+  id: string;
+  colorName?: string;
+}
+
+// Thêm interface cho object hình ảnh của Product
+interface ProductImage {
+  imageUrl: string;
+}
 
 export default function ProductGallery({ productId }: { productId: string }) {
   // 1. Lấy dữ liệu từ Hook
@@ -8,6 +30,57 @@ export default function ProductGallery({ productId }: { productId: string }) {
 
   // 2. State cho thumbnail (lưu trữ URL string)
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [tryOnOpen, setTryOnOpen] = useState(false);
+  const [variantImages, setVariantImages] = useState<VariantForTryOn[]>([]);
+
+  // Fetch variants for Virtual Try-On
+  useEffect(() => {
+    if (!productId) return;
+    const fetchVariants = async () => {
+      try {
+        const res = await api.get(`/products/${productId}/variants`, {
+          params: { page: 0, size: 10, sortBy: 'id', sortDir: 'asc' },
+        });
+        const items = res.data?.result?.items ?? [];
+        
+        // Build variant images: use product images as fallback per variant
+        const mapped: VariantForTryOn[] = items
+          .map((v: ApiVariant) => ({
+            id: v.id,
+            variantName: v.colorName || undefined,
+            color: v.colorName || undefined,
+            imageUrl: '', // will be filled below
+          }));
+          
+        // If product has images, assign first image to each variant as try-on image
+        if (mapped.length > 0 && product?.imageUrl?.length) {
+          mapped.forEach((m: VariantForTryOn, idx: number) => {
+            m.imageUrl = product.imageUrl[idx % product.imageUrl.length]?.imageUrl || '';
+          });
+          setVariantImages(mapped.filter((m: VariantForTryOn) => m.imageUrl));
+        } else if (product?.imageUrl?.length) {
+          // No variants — use product images directly
+          setVariantImages(
+            product.imageUrl.map((img: ProductImage, idx: number) => ({
+              id: `img-${idx}`,
+              imageUrl: img.imageUrl,
+            }))
+          );
+        }
+      } catch {
+        // Fallback: use product images if variant fetch fails
+        if (product?.imageUrl?.length) {
+          setVariantImages(
+            product.imageUrl.map((img: ProductImage, idx: number) => ({
+              id: `img-${idx}`,
+              imageUrl: img.imageUrl,
+            }))
+          );
+        }
+      }
+    };
+    fetchVariants();
+  }, [productId, product]);
 
   // 3. Loading Skeleton
   if (isLoading || !product) {
@@ -25,7 +98,7 @@ export default function ProductGallery({ productId }: { productId: string }) {
 
   // 👇 FIX LOGIC HIỂN THỊ ẢNH
   // 4a. Bóc tách mảng object thành mảng các đường link (string)
-  const images = product.imageUrl?.map((imgObj) => imgObj.imageUrl) || [];
+  const images = product.imageUrl?.map((imgObj: ProductImage) => imgObj.imageUrl) || [];
 
   // 4b. Link dự phòng an toàn
   const fallbackImg =
@@ -61,7 +134,10 @@ export default function ProductGallery({ productId }: { productId: string }) {
         />
 
         {/* Nút Virtual Try-On */}
-        <button className="absolute bottom-6 flex items-center gap-2 bg-white/80 backdrop-blur-md px-6 py-2.5 rounded-full shadow-xl hover:bg-[#4A8795] hover:text-white transition-all active:scale-95 text-sm font-bold text-[#4A8795] border border-white/50 group/btn">
+        <button
+          onClick={() => setTryOnOpen(true)}
+          className="absolute bottom-6 flex items-center gap-2 bg-white/80 backdrop-blur-md px-6 py-2.5 rounded-full shadow-xl hover:bg-[#4A8795] hover:text-white transition-all active:scale-95 text-sm font-bold text-[#4A8795] border border-white/50 group/btn"
+        >
           <Camera className="w-4 h-4 transition-transform group-hover/btn:rotate-12" />
           Virtual Try-On
         </button>
@@ -70,7 +146,7 @@ export default function ProductGallery({ productId }: { productId: string }) {
       {/* --- DANH SÁCH ẢNH THUMBNAILS --- */}
       {images.length > 1 && (
         <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
-          {images.map((imgStr, index) => {
+          {images.map((imgStr: string, index: number) => {
             const isActive = activeImage === imgStr;
             return (
               <div
@@ -151,6 +227,17 @@ export default function ProductGallery({ productId }: { productId: string }) {
           ))}
         </div>
       </div>
+      {/* Virtual Try-On Overlay */}
+      {tryOnOpen && (
+        <Suspense fallback={null}>
+          <VirtualTryOn
+            open={tryOnOpen}
+            onClose={() => setTryOnOpen(false)}
+            productName={product.name}
+            variantImages={variantImages}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

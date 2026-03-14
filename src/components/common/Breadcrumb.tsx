@@ -12,9 +12,9 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
   return (
     <nav className="flex items-center text-sm text-gray-500 mb-8 overflow-hidden whitespace-nowrap">
       
-      {/* Luôn có nút Home đầu tiên */}
+      {/* Luôn có nút Trang chủ đầu tiên */}
       <Link to="/" className="hover:text-gray-900 flex items-center gap-1">
-        <Home className="w-4 h-4" /> Home
+        <Home className="w-4 h-4" /> Trang chủ
       </Link>
 
       {items.map((item, index) => (
@@ -26,7 +26,6 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
               {item.label}
             </Link>
           ) : (
-            // Phần tử cuối cùng (trang hiện tại) thường không click được và đậm hơn
             <span className="text-gray-900 font-semibold truncate max-w-[200px]">
               {item.label}
             </span>
