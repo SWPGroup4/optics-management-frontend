@@ -1,5 +1,5 @@
 import type { BEOrder } from "@/features/operation-staff/types/types";
-import { Package } from "lucide-react";
+import { Package, Truck, ArrowRight } from "lucide-react";
 import { useSidebar } from "@/features/shipper/hooks/useSidebar.ts";
 
 interface Props {
@@ -7,9 +7,10 @@ interface Props {
     selectedIds: Set<string>;
     onToggle: (id: string) => void;
     onConfirm: () => void;
+    onViewAccepted: () => void;
 }
 
-export function ScreenSelectOrders({ orders, selectedIds, onToggle, onConfirm }: Props) {
+export function ScreenSelectOrders({ orders, selectedIds, onToggle, onConfirm, onViewAccepted }: Props) {
     const count = selectedIds.size;
     const { collapsed } = useSidebar();
 
@@ -25,6 +26,21 @@ export function ScreenSelectOrders({ orders, selectedIds, onToggle, onConfirm }:
                     Đã chọn {count} / {orders.length} đơn
                 </p>
             </header>
+
+            {/* Navigation Button */}
+            <div className="px-4 py-3">
+                <button
+                    type="button"
+                    onClick={onViewAccepted}
+                    className="w-full rounded-xl bg-card border-2 border-border px-4 py-3 text-sm font-medium text-foreground hover:bg-accent hover:border-accent-foreground/20 active:bg-accent/90 transition-all duration-150"
+                >
+                    <div className="flex items-center justify-center gap-2">
+                        <Truck className="h-4 w-4" />
+                        <span>Xem đơn hàng đã chấp nhận</span>
+                        <ArrowRight className="h-4 w-4" />
+                    </div>
+                </button>
+            </div>
 
             {/* Order list */}
             <main className="flex-1 px-4 py-3 pb-28 space-y-3">

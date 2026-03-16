@@ -26,11 +26,11 @@ const OrdersSection: React.FC = () => {
 
     const tabs: TabItem[] = [
         { id: 'all', label: 'Tất cả', isActive: activeTab === 'all' },
-        { id: 'PENDING', label: 'Chờ xử lý', isActive: activeTab === 'PENDING' },
-        { id: 'PROCESSING', label: 'Đang xử lý', isActive: activeTab === 'PROCESSING' },
-        { id: 'PRODUCED', label: 'Đã sản xuất', isActive: activeTab === 'PRODUCED' },
-        { id: 'READY_TO_SHIP', label: 'Sẵn sàng giao', isActive: activeTab === 'READY_TO_SHIP' },
-        { id: 'COMPLETED', label: 'Hoàn thành', isActive: activeTab === 'COMPLETED' }
+        // { id: 'PENDING', label: 'Chờ xử lý', isActive: activeTab === 'PENDING' },
+        // { id: 'PROCESSING', label: 'Đang xử lý', isActive: activeTab === 'PROCESSING' },
+        // { id: 'PRODUCED', label: 'Đã sản xuất', isActive: activeTab === 'PRODUCED' },
+        // { id: 'READY_TO_SHIP', label: 'Sẵn sàng giao', isActive: activeTab === 'READY_TO_SHIP' },
+        // { id: 'COMPLETED', label: 'Hoàn thành', isActive: activeTab === 'COMPLETED' }
     ];
 
     const filteredOrders = useMemo(() => {

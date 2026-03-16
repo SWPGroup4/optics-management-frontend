@@ -69,7 +69,7 @@ const ShippingPage: React.FC = () => {
                     </div>
                     <div>
                         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                            Đóng gói và giao hàng
+                            Đóng gói
                         </h1>
                         <p className="text-sm text-slate-600 dark:text-slate-400">
                             Quản lý các đơn hàng sẵn sàng để đóng gói và vận chuyển
@@ -88,7 +88,7 @@ const ShippingPage: React.FC = () => {
                             className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <Package className="w-4 h-4" />
-                            {loading ? 'Đang xử lý...' : 'Đóng gói và giao hàng'}
+                            {loading ? 'Đang xử lý...' : 'Đóng gói'}
                         </button>
                     </div>
                 )}

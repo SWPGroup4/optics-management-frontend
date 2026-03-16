@@ -9,7 +9,7 @@ interface Props {
 }
 
 export function ScreenOrderDetail({ order, onBack, onComplete }: Props) {
-    const codAmount = order.totalAmount - order.depositAmount;
+    const codAmount = order?.totalAmount - order?.depositAmount;
     const { collapsed } = useSidebar();
 
     return (
@@ -69,15 +69,15 @@ export function ScreenOrderDetail({ order, onBack, onComplete }: Props) {
                             <div key={item.orderItemId} className="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-700 last:border-0">
                                 <div>
                                     <p className="font-medium text-foreground text-sm">
-                                        {item.lensName}
+                                        {item?.lensName}
                                     </p>
                                     <p className="text-xs text-muted-foreground">
-                                        SL: {item.quantity}
+                                        SL: {item?.quantity}
                                     </p>
                                 </div>
                                 <span className="text-sm font-medium text-foreground">
-                  {item.totalPrice.toLocaleString("vi-VN")}₫
-                </span>
+                                  {item.totalPrice?.toLocaleString("vi-VN")}₫
+                                </span>
                             </div>
                         ))}
                     </div>
@@ -90,16 +90,16 @@ export function ScreenOrderDetail({ order, onBack, onComplete }: Props) {
                         <span className="text-sm font-medium">Tiền thu hộ (COD)</span>
                     </div>
                     <p className={`text-2xl font-extrabold ${codAmount > 0 ? "text-foreground" : "text-muted-foreground"}`}>
-                        {codAmount > 0 ? `${codAmount.toLocaleString("vi-VN")}₫` : "Không thu tiền"}
+                        {codAmount > 0 ? `${codAmount?.toLocaleString("vi-VN")}₫` : "Không thu tiền"}
                     </p>
                     <div className="mt-2 pt-2 border-t border-border">
                         <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">Tổng tiền:</span>
-                            <span>{order.totalAmount.toLocaleString("vi-VN")}₫</span>
+                            <span>{order.totalAmount?.toLocaleString("vi-VN")}₫</span>
                         </div>
                         <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">Đã cọc:</span>
-                            <span>-{order.depositAmount.toLocaleString("vi-VN")}₫</span>
+                            <span>-{order.depositAmount?.toLocaleString("vi-VN")}₫</span>
                         </div>
                     </div>
                 </div>
@@ -112,11 +112,11 @@ export function ScreenOrderDetail({ order, onBack, onComplete }: Props) {
                             <span className="text-sm font-medium">Combo</span>
                         </div>
                         <p className="text-base font-medium text-foreground">
-                            {order.comboName}
+                            {order?.comboName}
                         </p>
-                        {order.comboDiscountAmount && (
+                        {order?.comboDiscountAmount && (
                             <p className="text-sm text-success">
-                                Giảm: {order.comboDiscountAmount.toLocaleString("vi-VN")}₫
+                                Giảm: {order.comboDiscountAmount?.toLocaleString("vi-VN")}₫
                             </p>
                         )}
                     </div>

@@ -10,9 +10,10 @@ interface Props {
     onBack: () => void;
 }
 
-export function ScreenDeliveryList({ orders, completedIds, startedIds, onStart, onBack }: Props) {
+export function ScreenDeliveryList({ orders, completedIds, onStart, onBack }: Props) {
     const doneCount = orders.filter((o) => completedIds.has(o.orderId)).length;
     const loading = useShipperStore(state => state.loading);
+    const hasDeliveringOrder = orders?.some(order => order.orderStatus === "DELIVERING");
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -34,8 +35,8 @@ export function ScreenDeliveryList({ orders, completedIds, startedIds, onStart, 
             {/* Order cards */}
             <main className="flex-1 px-4 py-3 space-y-3 pb-6">
                 {orders.map((order) => {
-                    const done = completedIds.has(order.orderId);
-                    const started = startedIds.has(order.orderId) && !done;
+                    const done = order.orderStatus === "COMPLETED";
+                    const started = order.orderStatus === "DELIVERING";
                     const codAmount = order.totalAmount - order.depositAmount;
 
                     return (
@@ -102,10 +103,14 @@ export function ScreenDeliveryList({ orders, completedIds, startedIds, onStart, 
                                     <button
                                         type="button"
                                         onClick={() => onStart(order.orderId)}
-                                        disabled={loading}
-                                        className="shrink-0 rounded-xl bg-primary px-6 py-3 text-base font-bold text-primary-foreground active:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        disabled={loading || hasDeliveringOrder}
+                                        className={`shrink-0 rounded-xl px-6 py-3 text-base font-bold transition-colors ${
+                                            loading || hasDeliveringOrder
+                                                ? "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
+                                                : "bg-primary text-primary-foreground active:bg-primary/90"
+                                        }`}
                                     >
-                                        {loading ? "Đang xử lý..." : "Bắt đầu"}
+                                        {hasDeliveringOrder ? "Đang giao đơn khác" : (loading ? "Đang xử lý..." : "Bắt đầu")}
                                     </button>
                                 )}
                             </div>

@@ -84,10 +84,10 @@ export const useShipperStore = create<ShipperStore>()(
                     await shipperApi.startDelivery(orderId);
 
                     // const response = await shipperApi.getMyAcceptedOrders();
-                    // set({
-                    //     acceptedOrders: response,
-                    //     loading: false
-                    // });
+                    set({
+                        // acceptedOrders: response,
+                        loading: false
+                    });
                 } catch (error) {
                     set({
                         error: error instanceof Error ? error.message : 'Failed to start delivery',
@@ -102,10 +102,10 @@ export const useShipperStore = create<ShipperStore>()(
                     await shipperApi.confirmDelivered(orderId);
 
                     // const response = await shipperApi.getMyAcceptedOrders();
-                    // set({
-                    //     acceptedOrders: response,
-                    //     loading: false
-                    // });
+                    set({
+                        // acceptedOrders: response,
+                        loading: false
+                    });
                 } catch (error) {
                     set({
                         error: error instanceof Error ? error.message : 'Failed to confirm delivery',

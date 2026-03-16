@@ -83,6 +83,10 @@ const ShipperDashboardPage: React.FC = () => {
         }
     }, [activeOrderId, confirmDelivered]);
 
+    const goToDeliveryList = useCallback(() => {
+        setScreen("list");
+    }, []);
+
     // const selectedOrders = readyToShipOrders.filter((o) => selectedIds.has(o.orderId));
     const activeOrder = acceptedOrders.find((o) => o.orderId === activeOrderId) || null;
 
@@ -116,6 +120,7 @@ const ShipperDashboardPage: React.FC = () => {
                             selectedIds={selectedIds}
                             onToggle={toggleOrder}
                             onConfirm={confirmRoute}
+                            onViewAccepted={goToDeliveryList}
                         />
                     )}
                     {screen === "list" && (

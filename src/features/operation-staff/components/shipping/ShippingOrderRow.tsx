@@ -19,7 +19,7 @@ const ShippingOrderRow: React.FC<ShippingOrderRowProps> = ({ order, isSelected, 
 
     const getStatus = () => {
         switch (order.orderStatus) {
-            case 'READY_TO_SHIP': return 'Sẵn sàng giao';
+            case 'PRODUCED': return 'Chờ xử lý';
             default: return 'Chờ xử lý';
         }
     };

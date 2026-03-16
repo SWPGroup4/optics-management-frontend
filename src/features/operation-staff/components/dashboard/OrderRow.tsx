@@ -57,8 +57,8 @@ const OrderRow: React.FC<OrderRowProps> = ({ order, isSelected, onSelectionChang
             case 'CONFIRMED': return 'Đã xác nhận';
             case 'AWAITING_FINAL_PAYMENT': return 'Chờ thanh toán';
             case 'PREPARING': return 'Đang chuẩn bị';
-            case 'PROCESSING': return 'Đang xử lý';
-            case 'PRODUCED': return 'Đã sản xuất';
+            case 'PROCESSING': return 'Chờ xử lý';
+            case 'PRODUCED': return 'Đã xử lý';
             case 'READY_TO_SHIP': return 'Sẵn sàng giao';
             case 'SHIPPED': return 'Đang vận chuyển';
             case 'DELIVERING': return 'Đang giao hàng';
