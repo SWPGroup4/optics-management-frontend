@@ -119,20 +119,24 @@ export const CartItemRow = ({
 
               <div className="flex flex-col gap-3">
                   
-                  {/* HÀNG 1: ẢNH (TRÁI) VÀ BẢNG NHẬP TAY (PHẢI) */}
+                  {/* HÀNG 1: ẢNH VÀ BẢNG NHẬP TAY */}
                   {(hasImage || hasManualInput) && (
                     <div className="flex gap-3 items-start w-full">
                       
-                      {/* CỘT TRÁI: ẢNH ĐƠN KÍNH */}
+                      {/* CỘT TRÁI/HOẶC TOÀN BỘ CỘT: ẢNH ĐƠN KÍNH */}
                       {hasImage && (
-                        <div className="flex flex-col gap-1.5 shrink-0 w-[72px]">
+                        <div className={`flex flex-col gap-1.5 ${!hasManualInput ? 'w-full' : 'shrink-0 w-[72px]'}`}>
                           <span className="flex items-center gap-1 text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-0.5">
                             <FileText className="w-3 h-3" /> Ảnh
                           </span>
                           <img 
                             src={item.prescription?.imageUrl || ''} 
                             alt="Ảnh đơn kính" 
-                            className="w-[72px] h-[72px] object-cover bg-white rounded-lg border border-zinc-200 shadow-sm"
+                            className={`bg-white rounded-lg border border-zinc-200 shadow-sm transition-all ${
+                              !hasManualInput 
+                                ? 'w-full h-auto max-h-[250px] object-contain p-2' // NẾU CHỈ CÓ ẢNH -> BỰ RA
+                                : 'w-[72px] h-[72px] object-cover'                 // NẾU CÓ CẢ BẢNG -> NHỎ LẠI
+                            }`}
                           />
                         </div>
                       )}
