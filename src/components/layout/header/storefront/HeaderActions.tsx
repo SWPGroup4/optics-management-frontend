@@ -173,10 +173,10 @@ function GuestActions() {
     <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2">
       <div className="w-px h-6 bg-gray-200 mx-1 hidden sm:block"></div>
       <Link to="/auth/login">
-        <Button variant="ghost" size="sm" className="font-bold text-xs uppercase tracking-widest text-gray-500">Login</Button>
+        <Button variant="ghost" size="sm" className="font-bold text-xs uppercase tracking-widest text-gray-500">Đăng nhập</Button>
       </Link>
       <Link to="/auth/register">
-        <Button size="sm" className="rounded-full bg-zinc-900 text-white px-5 h-10 text-xs font-bold uppercase tracking-widest shadow-lg">Join</Button>
+        <Button size="sm" className="rounded-full bg-zinc-900 text-white px-5 h-10 text-xs font-bold uppercase tracking-widest shadow-lg">Tham gia</Button>
       </Link>
     </div>
   );
