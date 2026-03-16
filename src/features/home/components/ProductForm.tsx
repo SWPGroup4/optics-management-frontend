@@ -33,7 +33,7 @@ export default function ProductForm({ productId }: { productId: string }) {
   const currentPaginatedLenses = lenses?.slice(startIndex, startIndex + itemsPerPage) || [];
 
   // --- STORES ---
-  const { selectedLensId, setLensId, prescription, resetPrescription, orderType } = usePrescriptionStore();
+  const { selectedLensId, setLensId, prescription, resetPrescription } = usePrescriptionStore();
   const { addToCart } = useCartStore();
   
   const currentLens = lenses?.find((l: LensProduct) => l.id === selectedLensId);
@@ -79,6 +79,10 @@ export default function ProductForm({ productId }: { productId: string }) {
       isOdHasData || 
       isOsHasData
     );
+    const finalOrderType: 'buy-now' | 'pre-order' | 'custom' = 
+      selectedVariant.orderItemType === 'PRE_ORDER' 
+        ? 'pre-order' 
+        : (hasPrescriptionData ? 'custom' : 'buy-now');
 
     // --- ĐIỀU KIỆN CHẶN TỐI THƯỢNG ---
     // Thay vì check ID (dễ bị dính chuỗi 'null' ảo), ta check thẳng object currentLens. 
@@ -106,6 +110,7 @@ export default function ProductForm({ productId }: { productId: string }) {
       od: { ...prescription.od },
       os: { ...prescription.os }
     } : null;
+    
 
     const cartPayload = {
       productId: selectedVariant.id,
@@ -114,7 +119,7 @@ export default function ProductForm({ productId }: { productId: string }) {
       image: safeProductImage,
       quantity: 1,
       lensId: currentLens?.id, 
-      orderType: orderType,
+      orderType: finalOrderType,
       prescription: prescriptionToSave,
     };
 
