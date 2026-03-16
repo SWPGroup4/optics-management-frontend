@@ -9,14 +9,8 @@ interface CheckoutState {
   
   // State quản lý dữ liệu form
   shippingData: {
-    firstName: string;
-    lastName: string;
     address: string;
-    city: string;  // Bỏ dấu ? để đảm bảo luôn là string (tránh undefined)
-    state: string; // Bỏ dấu ?
-    zip: string;   // Bỏ dấu ?
     phone: string; // Thêm vào
-    email: string; // Thêm vào
   };
   paymentMethod: string;
   
@@ -70,14 +64,8 @@ setPaymentMethod: (method) => set({ paymentMethod: method }),
   resetCheckout: () => set({ 
     step: 1, 
     shippingData: { 
-      firstName: '', 
-      lastName: '', 
       address: '', 
-      city: '', 
-      state: '', 
-      zip: '', 
       phone: '', 
-      email: '' 
     } 
   }),
 }));
