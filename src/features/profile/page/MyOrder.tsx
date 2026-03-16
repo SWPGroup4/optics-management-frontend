@@ -2,94 +2,301 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { profileApi } from "../api/api";
 
-const formatPrice = (price: number) => {
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface Prescription {
+  id: string;
+  imageUrl: string | null;
+  odSphere: number;
+  odCylinder: number;
+  odAxis: number;
+  odAdd: number;
+  odPd: number;
+  osSphere: number;
+  osCylinder: number;
+  osAxis: number;
+  osAdd: number;
+  osPd: number;
+  note: string;
+}
+
+interface OrderItem {
+  orderItemId: string;
+  productVariantId: string | null;
+  orderItemType: "IN_STOCK" | "PRE_ORDER";
+  quantity: number;
+  unitPrice: number;
+  lensId: string | null;
+  lensName: string | null;
+  lensPrice: number | null;
+  lensPriceTotal: number;
+  totalPrice: number;
+  status: string | null;
+  prescription: Prescription | null;
+}
+
+interface Order {
+  customerId: string;
+  orderId: string;
+  deliveryAddress: string;
+  phoneNumber: string;
+  orderStatus: string;
+  totalAmount: number;
+  depositAmount: number | null;
+  items: OrderItem[];
+  comboId: string | null;
+  comboName: string | null;
+  comboDiscountAmount: number | null;
+  refundedAmount: number;
+  finalTotalAfterRefund: number;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const formatPrice = (price: number | null | undefined) => {
+  if (price == null) return "—";
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
+    maximumFractionDigits: 0,
   }).format(price);
 };
 
-const STATUS_CONFIG: Record<string, { color: string; label: string; dot: string; tab: string; icon: string }> = {
-  CONFIRMED: {
-    color: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    label: "Đã xác nhận",
-    dot: "bg-emerald-500",
-    tab: "text-emerald-600 border-emerald-500 bg-emerald-50",
-    icon: "✓",
-  },
-  PROCESSING: {
-    color: "bg-blue-50 text-blue-700 border-blue-200",
-    label: "Đang xử lý",
-    dot: "bg-blue-500",
-    tab: "text-blue-600 border-blue-500 bg-blue-50",
-    icon: "⟳",
-  },
-  PENDING: {
-    color: "bg-amber-50 text-amber-700 border-amber-200",
-    label: "Chờ xử lý",
-    dot: "bg-amber-500",
-    tab: "text-amber-600 border-amber-500 bg-amber-50",
-    icon: "○",
-  },
-  AWAITING_VERIFICATION: {
-    color: "bg-violet-50 text-violet-700 border-violet-200",
-    label: "Chờ xác minh",
-    dot: "bg-violet-500",
-    tab: "text-violet-600 border-violet-500 bg-violet-50",
-    icon: "?",
-  },
+const STATUS_CONFIG: Record<string, { color: string; label: string; dot: string; tab: string }> = {
+  PENDING:               { color: "bg-amber-50 text-amber-700 border-amber-200",     label: "Chờ xử lý",      dot: "bg-amber-500",   tab: "text-amber-600 border-amber-500 bg-amber-50"   },
+  ON_HOLD:               { color: "bg-gray-100 text-gray-600 border-gray-200",       label: "Tạm giữ",        dot: "bg-gray-400",    tab: "text-gray-600 border-gray-400 bg-gray-100"     },
+  CONFIRMED:             { color: "bg-emerald-50 text-emerald-700 border-emerald-200",label: "Đã xác nhận",   dot: "bg-emerald-500", tab: "text-emerald-600 border-emerald-500 bg-emerald-50"},
+  PROCESSING:            { color: "bg-blue-50 text-blue-700 border-blue-200",        label: "Đang xử lý",     dot: "bg-blue-500",    tab: "text-blue-600 border-blue-500 bg-blue-50"      },
+  PREPARING:             { color: "bg-violet-50 text-violet-700 border-violet-200",  label: "Đang chuẩn bị",  dot: "bg-violet-500",  tab: "text-violet-600 border-violet-500 bg-violet-50" },
+  PRODUCED:              { color: "bg-teal-50 text-teal-700 border-teal-200",        label: "Đã sản xuất",    dot: "bg-teal-500",    tab: "text-teal-600 border-teal-500 bg-teal-50"      },
+  DELIVERING:            { color: "bg-cyan-50 text-cyan-700 border-cyan-200",        label: "Đang giao hàng", dot: "bg-cyan-500",    tab: "text-cyan-600 border-cyan-500 bg-cyan-50"      },
+  SHIPPED:               { color: "bg-sky-50 text-sky-700 border-sky-200",           label: "Đã gửi hàng",    dot: "bg-sky-500",     tab: "text-sky-600 border-sky-500 bg-sky-50"         },
+  COMPLETED:             { color: "bg-emerald-50 text-emerald-700 border-emerald-200",label: "Hoàn thành",    dot: "bg-emerald-500", tab: "text-emerald-600 border-emerald-500 bg-emerald-50"},
+  CANCELLED:             { color: "bg-rose-50 text-rose-700 border-rose-200",        label: "Đã huỷ",         dot: "bg-rose-500",    tab: "text-rose-600 border-rose-500 bg-rose-50"      },
+  REFUNDED:              { color: "bg-orange-50 text-orange-700 border-orange-200",  label: "Đã hoàn tiền",   dot: "bg-orange-500",  tab: "text-orange-600 border-orange-500 bg-orange-50" },
+  AWAITING_VERIFICATION: { color: "bg-yellow-50 text-yellow-700 border-yellow-200",  label: "Chờ xác minh",   dot: "bg-yellow-500",  tab: "text-yellow-600 border-yellow-500 bg-yellow-50" },
 };
 
-const ALL_STATUSES = ["ALL", "CONFIRMED", "PROCESSING", "PENDING", "AWAITING_VERIFICATION"];
+const ITEM_STATUS: Record<string, string> = {
+  IN_PRODUCTION: "Đang sản xuất",
+  PRODUCED:      "Đã sản xuất",
+  PENDING:       "Chờ xử lý",
+  COMPLETED:     "Hoàn thành",
+};
 
-function OrderCard({ order }: { order: any }) {
+const ALL_STATUSES = Object.keys(STATUS_CONFIG);
+
+// ─── PrescriptionImage ────────────────────────────────────────────────────────
+
+function PrescriptionImage({ imageUrl }: { imageUrl: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="mt-2 flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 underline underline-offset-2"
+      >
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        Xem ảnh đơn kính
+      </button>
+
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={() => setOpen(false)}>
+          <div className="relative max-w-lg w-full" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setOpen(false)}
+              className="absolute -top-3 -right-3 w-7 h-7 bg-white rounded-full shadow flex items-center justify-center text-gray-500 hover:text-gray-800"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <img
+              src={imageUrl}
+              alt="Ảnh đơn kính"
+              className="w-full rounded-2xl shadow-2xl object-contain max-h-[80vh]"
+            />
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ─── OrderItem Card ───────────────────────────────────────────────────────────
+
+function OrderItemCard({ item, index, total }: { item: OrderItem; index: number; total: number }) {
+  // Tên sản phẩm: dùng lensName nếu có, hoặc hiển thị loại + số thứ tự
+  const productLabel = item.lensName
+    ? `Sản phẩm kèm tròng: ${item.lensName}`
+    : item.orderItemType === "PRE_ORDER"
+    ? "Sản phẩm đặt trước"
+    : "Sản phẩm có sẵn";
+
+  return (
+    <div className="bg-white border border-gray-100 rounded-xl p-4 space-y-3">
+      {/* Tên + loại + trạng thái */}
+      <div className="flex justify-between items-start gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+              item.orderItemType === "PRE_ORDER"
+                ? "bg-violet-100 text-violet-700"
+                : "bg-emerald-100 text-emerald-700"
+            }`}>
+              {item.orderItemType === "PRE_ORDER" ? "Đặt trước" : "Hàng có sẵn"}
+            </span>
+            {item.status && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-semibold">
+                {ITEM_STATUS[item.status] ?? item.status}
+              </span>
+            )}
+          </div>
+          {/* Tên sản phẩm */}
+          <p className="text-sm font-semibold text-gray-800">{productLabel}</p>
+          {/* Tròng kính riêng */}
+          {item.lensName && item.lensPrice != null && (
+            <p className="text-xs text-indigo-500 mt-0.5">
+              🔭 {item.lensName} &nbsp;+&nbsp; {formatPrice(item.lensPrice)}
+            </p>
+          )}
+          {/* Mã biến thể nếu có */}
+          {item.productVariantId && (
+            <p className="text-[11px] text-gray-400 font-mono mt-0.5 truncate">
+              Mã: {item.productVariantId.slice(0, 12)}...
+            </p>
+          )}
+        </div>
+        <p className="text-sm font-bold text-gray-800 shrink-0">{formatPrice(item.totalPrice)}</p>
+      </div>
+
+      {/* Số lượng / đơn giá */}
+      <div className="grid grid-cols-3 gap-2 text-sm">
+        <div className="bg-gray-50 rounded-lg p-2 text-center">
+          <p className="text-[10px] text-gray-400 mb-0.5">Số lượng</p>
+          <p className="font-semibold text-gray-700">{item.quantity}</p>
+        </div>
+        <div className="bg-gray-50 rounded-lg p-2 text-center">
+          <p className="text-[10px] text-gray-400 mb-0.5">Đơn giá</p>
+          <p className="font-semibold text-gray-700 text-xs">{formatPrice(item.unitPrice)}</p>
+        </div>
+        <div className="bg-indigo-50 rounded-lg p-2 text-center">
+          <p className="text-[10px] text-indigo-400 mb-0.5">Thành tiền</p>
+          <p className="font-bold text-indigo-700 text-xs">{formatPrice(item.totalPrice)}</p>
+        </div>
+      </div>
+
+      {/* Đơn kính */}
+      {item.prescription && (
+        <div className="pt-3 border-t border-dashed border-gray-100 space-y-2">
+          <p className="text-xs font-semibold text-gray-500">📋 Thông số đơn kính</p>
+
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="bg-blue-50 rounded-lg p-2.5">
+              <p className="text-blue-500 font-semibold mb-1.5">Mắt phải (OD)</p>
+              {[
+                ["Cầu (Sphere)",   item.prescription.odSphere],
+                ["Trụ (Cylinder)", item.prescription.odCylinder],
+                ["Trục (Axis)",    item.prescription.odAxis],
+                ["Cộng (Add)",     item.prescription.odAdd],
+                ["PD",             item.prescription.odPd],
+              ].map(([k, v]) => (
+                <div key={k as string} className="flex justify-between text-gray-600">
+                  <span className="text-gray-400">{k}:</span>
+                  <span className="font-medium">{v}</span>
+                </div>
+              ))}
+            </div>
+            <div className="bg-purple-50 rounded-lg p-2.5">
+              <p className="text-purple-500 font-semibold mb-1.5">Mắt trái (OS)</p>
+              {[
+                ["Cầu (Sphere)",   item.prescription.osSphere],
+                ["Trụ (Cylinder)", item.prescription.osCylinder],
+                ["Trục (Axis)",    item.prescription.osAxis],
+                ["Cộng (Add)",     item.prescription.osAdd],
+                ["PD",             item.prescription.osPd],
+              ].map(([k, v]) => (
+                <div key={k as string} className="flex justify-between text-gray-600">
+                  <span className="text-gray-400">{k}:</span>
+                  <span className="font-medium">{v}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Ghi chú */}
+          {item.prescription.note && (
+            <div className="bg-yellow-50 border border-yellow-100 rounded-lg px-3 py-2">
+              <p className="text-[10px] text-yellow-600 font-semibold mb-0.5">Ghi chú</p>
+              <p className="text-xs text-gray-600 italic">{item.prescription.note}</p>
+            </div>
+          )}
+
+          {/* Ảnh đơn kính */}
+          {item.prescription.imageUrl && (
+            <PrescriptionImage imageUrl={item.prescription.imageUrl} />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── OrderCard ────────────────────────────────────────────────────────────────
+
+function OrderCard({ order }: { order: Order }) {
   const [expanded, setExpanded] = useState(false);
-  const statusConfig = STATUS_CONFIG[order.orderStatus] ?? {
+  const statusCfg = STATUS_CONFIG[order.orderStatus] ?? {
     color: "bg-gray-50 text-gray-600 border-gray-200",
     label: order.orderStatus,
     dot: "bg-gray-400",
   };
-  const itemCount = order.items?.length ?? 0;
+  const itemCount = order.items.length;
+  const hasDiscount = !!order.comboName && !!order.comboDiscountAmount;
+  const hasRefund = order.refundedAmount > 0;
 
   return (
     <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
+      {/* Header row – click to expand */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full text-left px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors duration-150"
+        className="w-full text-left px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
       >
-        <div className="flex items-center gap-4 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0">
-            <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+            <svg className="w-4.5 h-4.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
           </div>
-
           <div className="min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <p className="font-semibold text-gray-800 text-sm">
-                Đơn #{order.orderId?.slice(0, 8).toUpperCase() ?? "N/A"}
+                Đơn #{order.orderId.slice(0, 8).toUpperCase()}
               </p>
-              {/* Badge số lượng item */}
-              <span className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-600 text-xs font-medium px-2 py-0.5 rounded-full">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
+              <span className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-600 text-[10px] font-semibold px-2 py-0.5 rounded-full">
                 {itemCount} sản phẩm
               </span>
+              {hasDiscount && (
+                <span className="inline-flex items-center gap-1 bg-violet-100 text-violet-600 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                  🎁 {order.comboName}
+                </span>
+              )}
             </div>
-            <p className="text-xs text-gray-400 truncate max-w-xs mt-0.5">
-              {order.deliveryAddress}
-            </p>
+            <p className="text-xs text-gray-400 truncate max-w-xs mt-0.5">{order.deliveryAddress}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 flex-shrink-0 ml-2">
-          <span className={`px-3 py-1 rounded-full text-xs font-medium border ${statusConfig.color} items-center gap-1.5 hidden sm:flex`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`}></span>
-            {statusConfig.label}
+        <div className="flex items-center gap-3 shrink-0 ml-2">
+          <span className={`px-3 py-1 rounded-full text-xs font-medium border hidden sm:flex items-center gap-1.5 ${statusCfg.color}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`} />
+            {statusCfg.label}
           </span>
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-gray-800 text-sm">{formatPrice(order.totalAmount)}</span>
+          <div className="flex items-center gap-1.5">
+            <span className="font-bold text-gray-800 text-sm">{formatPrice(order.finalTotalAfterRefund)}</span>
             <svg
               className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
               fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -100,86 +307,73 @@ function OrderCard({ order }: { order: any }) {
         </div>
       </button>
 
+      {/* Expanded detail */}
       {expanded && (
-        <div className="border-t border-gray-100 px-6 py-4 bg-gray-50/50">
-          {/* Thông tin giao hàng */}
-          <div className="mb-4 p-3 bg-white rounded-xl border border-gray-100 flex gap-3 items-start">
-            <svg className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+        <div className="border-t border-gray-100 px-5 py-4 bg-gray-50/40 space-y-4">
+
+          {/* Địa chỉ giao hàng */}
+          <div className="flex gap-3 items-start bg-white rounded-xl border border-gray-100 px-4 py-3">
+            <svg className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             <div>
-              <p className="text-xs text-gray-400 mb-0.5">Địa chỉ giao hàng</p>
+              <p className="text-[11px] text-gray-400 mb-0.5">Địa chỉ giao hàng</p>
               <p className="text-sm text-gray-700">{order.deliveryAddress}</p>
               <p className="text-xs text-gray-500 mt-0.5">{order.phoneNumber}</p>
             </div>
           </div>
 
-          {/* Danh sách sản phẩm */}
-          <div className="space-y-3">
-            {order.items.map((item: any, idx: number) => (
-              <div key={item.orderItemId} className="bg-white border border-gray-100 rounded-xl p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <p className="text-xs text-gray-400 mb-0.5">Sản phẩm {idx + 1} / {itemCount}</p>
-                    <p className="font-medium text-gray-700 text-sm">
-                      Mã SP: {item.productVariantId?.slice(0, 8).toUpperCase() ?? "N/A"}
-                    </p>
-                  </div>
-                  <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
-                    {item.orderItemType}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 text-sm mt-3">
-                  <div className="bg-gray-50 rounded-lg p-2 text-center">
-                    <p className="text-xs text-gray-400">Số lượng</p>
-                    <p className="font-semibold text-gray-700">{item.quantity}</p>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-2 text-center">
-                    <p className="text-xs text-gray-400">Đơn giá</p>
-                    <p className="font-semibold text-gray-700 text-xs">{formatPrice(item.unitPrice)}</p>
-                  </div>
-                  <div className="bg-indigo-50 rounded-lg p-2 text-center">
-                    <p className="text-xs text-indigo-400">Thành tiền</p>
-                    <p className="font-bold text-indigo-700 text-xs">{formatPrice(item.totalPrice)}</p>
-                  </div>
-                </div>
-
-                {item.prescription && (
-                  <div className="mt-3 pt-3 border-t border-dashed border-gray-100">
-                    <p className="text-xs text-gray-400 mb-2 font-medium">📋 Thông tin toa thuốc</p>
-                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-                      <div className="bg-blue-50 rounded-lg p-2">
-                        <p className="text-blue-400 font-medium mb-1">Mắt phải (OD)</p>
-                        <p>Cầu: {item.prescription.odSphere}</p>
-                        <p>Trụ: {item.prescription.odCylinder}</p>
-                        <p>Trục: {item.prescription.odAxis}</p>
-                      </div>
-                      <div className="bg-purple-50 rounded-lg p-2">
-                        <p className="text-purple-400 font-medium mb-1">Mắt trái (OS)</p>
-                        <p>Cầu: {item.prescription.osSphere}</p>
-                        <p>Trụ: {item.prescription.osCylinder}</p>
-                        <p>Trục: {item.prescription.osAxis}</p>
-                      </div>
-                    </div>
-                    {item.prescription.note && (
-                      <p className="mt-2 text-xs text-gray-500 italic bg-yellow-50 rounded-lg px-3 py-2">
-                        Ghi chú: {item.prescription.note}
-                      </p>
-                    )}
-                  </div>
-                )}
+          {/* Combo discount */}
+          {hasDiscount && (
+            <div className="flex items-center justify-between bg-gradient-to-r from-violet-50 to-indigo-50 border border-violet-100 rounded-xl px-4 py-3">
+              <div>
+                <p className="text-[11px] text-violet-400 font-semibold">🎁 Combo áp dụng</p>
+                <p className="text-sm font-semibold text-violet-800 mt-0.5">{order.comboName}</p>
               </div>
-            ))}
-          </div>
+              <p className="text-sm font-bold text-violet-700">-{formatPrice(order.comboDiscountAmount)}</p>
+            </div>
+          )}
 
-          {/* Tổng cộng */}
-          <div className="mt-4 flex justify-between items-center pt-3 border-t border-gray-200">
-            <span className="text-sm text-gray-500">{itemCount} sản phẩm</span>
-            <div className="text-right">
-              <p className="text-xs text-gray-400">Tổng thanh toán</p>
-              <p className="text-lg font-bold text-indigo-700">{formatPrice(order.totalAmount)}</p>
+          {/* Danh sách sản phẩm */}
+          {itemCount === 0 ? (
+            <p className="text-sm text-gray-400 italic text-center py-4">Không có sản phẩm</p>
+          ) : (
+            <div className="space-y-3">
+              {order.items.map((item, idx) => (
+                <OrderItemCard key={item.orderItemId} item={item} index={idx} total={itemCount} />
+              ))}
+            </div>
+          )}
+
+          {/* Tổng tiền */}
+          <div className="bg-white border border-gray-100 rounded-xl px-4 py-3 space-y-2">
+            <div className="flex justify-between text-sm text-gray-500">
+              <span>Tổng giá gốc</span>
+              <span>{formatPrice(order.totalAmount)}</span>
+            </div>
+            {order.depositAmount != null && order.depositAmount > 0 && (
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>Đã đặt cọc</span>
+                <span className="text-emerald-600">{formatPrice(order.depositAmount)}</span>
+              </div>
+            )}
+            {hasDiscount && (
+              <div className="flex justify-between text-sm text-violet-600">
+                <span>Giảm giá combo</span>
+                <span>-{formatPrice(order.comboDiscountAmount)}</span>
+              </div>
+            )}
+            {hasRefund && (
+              <div className="flex justify-between text-sm text-orange-600">
+                <span>Đã hoàn tiền</span>
+                <span>-{formatPrice(order.refundedAmount)}</span>
+              </div>
+            )}
+            <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+              <span className="text-sm font-semibold text-gray-700">Thực thanh toán</span>
+              <span className="text-lg font-bold text-indigo-700">{formatPrice(order.finalTotalAfterRefund)}</span>
             </div>
           </div>
         </div>
@@ -188,6 +382,8 @@ function OrderCard({ order }: { order: any }) {
   );
 }
 
+// ─── MyOrders ─────────────────────────────────────────────────────────────────
+
 export default function MyOrders() {
   const [activeTab, setActiveTab] = useState("ALL");
 
@@ -195,7 +391,7 @@ export default function MyOrders() {
     queryKey: ["my-orders"],
     queryFn: async () => {
       const response = await profileApi.getOrders();
-      return response.data.result;
+      return response.data.result as Order[];
     },
   });
 
@@ -213,9 +409,10 @@ export default function MyOrders() {
 
   if (isError) {
     return (
-      <div className="flex items-center justify-center p-12 text-red-400">
+      <div className="flex items-center justify-center p-12 text-rose-400">
         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         Không thể tải đơn hàng
       </div>
@@ -226,26 +423,21 @@ export default function MyOrders() {
     return (
       <div className="flex flex-col items-center justify-center p-12 text-gray-400">
         <svg className="w-12 h-12 mb-3 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
         </svg>
         <p className="text-sm">Bạn chưa có đơn hàng nào</p>
       </div>
     );
   }
 
-  // Đếm số đơn theo từng trạng thái
   const countByStatus = (status: string) =>
-    orders.filter((o: any) => o.orderStatus === status).length;
+    orders.filter((o) => o.orderStatus === status).length;
 
   const filteredOrders =
-    activeTab === "ALL"
-      ? orders
-      : orders.filter((o: any) => o.orderStatus === activeTab);
+    activeTab === "ALL" ? orders : orders.filter((o) => o.orderStatus === activeTab);
 
-  // Chỉ hiện tab nếu có đơn thuộc trạng thái đó
-  const visibleStatuses = ALL_STATUSES.filter(
-    (s) => s === "ALL" || countByStatus(s) > 0
-  );
+  const visibleStatuses = ["ALL", ...ALL_STATUSES.filter((s) => countByStatus(s) > 0)];
 
   return (
     <div className="max-w-3xl mx-auto p-6">
@@ -255,7 +447,7 @@ export default function MyOrders() {
         <p className="text-sm text-gray-400 mt-1">{orders.length} đơn hàng</p>
       </div>
 
-      {/* Tabs trạng thái */}
+      {/* Tabs */}
       <div className="flex gap-2 overflow-x-auto pb-1 mb-5 scrollbar-hide">
         {visibleStatuses.map((status) => {
           const cfg = STATUS_CONFIG[status];
@@ -275,14 +467,14 @@ export default function MyOrders() {
               }`}
             >
               {status === "ALL" ? (
-                <>Tất cả</>
+                <span>Tất cả</span>
               ) : (
                 <>
-                  <span className={`w-1.5 h-1.5 rounded-full ${isActive ? cfg?.dot : "bg-gray-300"}`}></span>
+                  <span className={`w-1.5 h-1.5 rounded-full ${isActive ? cfg?.dot : "bg-gray-300"}`} />
                   {cfg?.label}
                 </>
               )}
-              <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full font-semibold ${
+              <span className={`ml-0.5 text-xs px-1.5 py-0.5 rounded-full font-semibold ${
                 isActive
                   ? status === "ALL" ? "bg-white/20 text-white" : "bg-white/60"
                   : "bg-gray-100 text-gray-400"
@@ -294,17 +486,18 @@ export default function MyOrders() {
         })}
       </div>
 
-      {/* Danh sách đơn */}
+      {/* Danh sách */}
       {filteredOrders.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-gray-400">
           <svg className="w-10 h-10 mb-3 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
-          <p className="text-sm">Không có đơn hàng nào trong trạng thái này</p>
+          <p className="text-sm">Không có đơn hàng trong trạng thái này</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredOrders.map((order: any) => (
+          {filteredOrders.map((order) => (
             <OrderCard key={order.orderId} order={order} />
           ))}
         </div>
