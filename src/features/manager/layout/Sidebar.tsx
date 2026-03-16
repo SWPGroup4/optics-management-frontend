@@ -16,14 +16,14 @@ import { useSidebar } from "@/features/manager/hooks/useSidebar.ts";
 import Logo from "@/components/common/Logo";
 
 const navigation = [
-    { name: "Dashboard", href: "/manager", icon: LayoutDashboard },
-    { name: "Products", href: "/manager/products", icon: Package },
-    { name: "Orders", href: "/manager/orders", icon: ShoppingCart },
-    { name: "Pricing", href: "/manager/pricing", icon: Tag },
-    { name: "Staff", href: "/manager/staff", icon: Users },
-    { name: "Customers", href: "/manager/customers", icon: Users },
-    { name: "Lenses", href: "/manager/lenses", icon: Glasses },
-    // { name: "Settings", href: "/manager/settings", icon: Settings },
+    { name: "Bảng điều khiển", href: "/manager", icon: LayoutDashboard },
+    { name: "Sản phẩm", href: "/manager/products", icon: Package },
+    { name: "Đơn hàng", href: "/manager/orders", icon: ShoppingCart },
+    { name: "Giá bán", href: "/manager/pricing", icon: Tag },
+    { name: "Nhân viên", href: "/manager/staff", icon: Users },
+    { name: "Khách hàng", href: "/manager/customers", icon: Users },
+    { name: "Tròng kính", href: "/manager/lenses", icon: Glasses },
+    // { name: "Cài đặt", href: "/manager/settings", icon: Settings },
 ];
 
 export function Sidebar() {
