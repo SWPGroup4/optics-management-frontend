@@ -128,7 +128,7 @@ function PrescriptionImage({ imageUrl }: { imageUrl: string }) {
 
 // ─── OrderItem Card ───────────────────────────────────────────────────────────
 
-function OrderItemCard({ item, index, total }: { item: OrderItem; index: number; total: number }) {
+function OrderItemCard({ item }: { item: OrderItem; index: number; total: number }) {
   // Tên sản phẩm: dùng lensName nếu có, hoặc hiển thị loại + số thứ tự
   const productLabel = item.lensName
     ? `Sản phẩm kèm tròng: ${item.lensName}`
