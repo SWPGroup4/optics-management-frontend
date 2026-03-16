@@ -28,12 +28,35 @@ export default function PrescriptionWidget() {
     });
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  // Hàm chuyển đổi File người dùng upload thành Base64
+// Hàm chuyển đổi File người dùng upload thành Base64 (Đã thêm Type)
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string); // Trả về chuỗi Base64
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  // Xử lý khi người dùng chọn ảnh đơn thuốc
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Lấy file đầu tiên từ input
+    const file = event.target.files?.[0]; 
     if (file) {
-        // Lưu ý: Trong thực tế bạn nên upload lên server rồi lấy URL
-        const fakeUrl = URL.createObjectURL(file);
-        updatePrescription({ imageUrl: fakeUrl });
+      try {
+        const base64Image = await convertFileToBase64(file);
+        
+        // Cập nhật chuỗi Base64 vào Store đúng cách
+        updatePrescription({ imageUrl: base64Image }); 
+      } catch (error) {
+        console.error("Lỗi khi đọc file ảnh:", error);
+      }
+    }
+    
+    // Reset lại value của input để có thể chọn lại cùng 1 file nếu lỡ xóa
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 

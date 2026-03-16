@@ -35,9 +35,12 @@ export default function VirtualTryOn({
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const faceLandmarkerRef = useRef<FaceLandmarker | null>(null);
+
   const animFrameRef = useRef<number>(0);
   const streamRef = useRef<MediaStream | null>(null);
   const runningRef = useRef(false);
+
+  const lastDetectTimeRef = useRef(0);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isCamOn, setIsCamOn] = useState(true);
@@ -50,16 +53,7 @@ export default function VirtualTryOn({
     selectedIdxRef.current = selectedIdx;
   }, [selectedIdx]);
 
-  // Smoothing state
-  const smoothRef = useRef({
-    x: 0,
-    y: 0,
-    angle: 0,
-    width: 0,
-    yaw: 0,
-  });
-
-  // Preload glasses images
+  const smoothRef = useRef({ x: 0, y: 0, angle: 0, width: 0, yaw: 0 });
   const glassesImagesRef = useRef<HTMLImageElement[]>([]);
 
   const proxyImageUrl = useCallback((url: string) => {
@@ -73,8 +67,7 @@ export default function VirtualTryOn({
   useEffect(() => {
     glassesImagesRef.current = variantImages.map((v) => {
       const img = new Image();
-      // 👇 FIX 1: Cực kỳ quan trọng để tránh lỗi Tainted Canvas khi chụp ảnh
-      img.crossOrigin = "anonymous"; 
+      img.crossOrigin = "anonymous";
       img.src = proxyImageUrl(v.imageUrl);
       return img;
     });
@@ -120,30 +113,20 @@ export default function VirtualTryOn({
       s.angle = s.angle * 0.85 + angle * 0.15;
       s.width = s.width * 0.85 + width * 0.15;
 
-      const brightness = 1 + nose.z * 0.5;
-      ctx.filter = `brightness(${brightness})`;
-
       ctx.save();
       ctx.translate(s.x, s.y);
       ctx.rotate(s.angle);
 
-      if (s.yaw > 0) {
-        ctx.scale(0.95, 1);
-      } else {
-        ctx.scale(1.05, 1);
-      }
-
       const glasses = glassesImagesRef.current[selectedIdxRef.current];
-      if (glasses && glasses.complete && glasses.naturalWidth > 0) {
+      if (glasses && glasses.complete) {
         const anchorX = s.width * 0.5;
         const anchorY = s.width * 0.21;
         ctx.drawImage(glasses, -anchorX, -anchorY, s.width, s.width * 0.42);
       }
 
       ctx.restore();
-      ctx.filter = "none";
     },
-    [] // Giữ nguyên rỗng vì ref không thay đổi trigger
+    []
   );
 
   const detectLoop = useCallback(function detectLoop() {
@@ -151,20 +134,20 @@ export default function VirtualTryOn({
     const landmarker = faceLandmarkerRef.current;
     if (!video || !landmarker || !runningRef.current) return;
 
-    if (video.readyState >= 2) {
-      const result = landmarker.detectForVideo(video, performance.now());
-      if (result.faceLandmarks && result.faceLandmarks.length > 0) {
-        drawGlasses(result.faceLandmarks[0]);
-      } else {
-        const canvas = canvasRef.current;
-        if (canvas) {
-          const ctx = canvas.getContext("2d");
-          if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const now = performance.now();
+    if (now - lastDetectTimeRef.current > 33) {
+      if (video.readyState >= 2) {
+        const result = landmarker.detectForVideo(video, now);
+        if (result.faceLandmarks?.length) {
+          drawGlasses(result.faceLandmarks[0]);
+        } else {
+          const ctx = canvasRef.current?.getContext("2d");
+          ctx?.clearRect(0, 0, 640, 480);
         }
       }
+      lastDetectTimeRef.current = now;
     }
 
-    // Lúc này gọi detectLoop sẽ không bị lỗi nữa
     animFrameRef.current = requestAnimationFrame(detectLoop);
   }, [drawGlasses]);
 
@@ -174,158 +157,114 @@ export default function VirtualTryOn({
       setError(null);
 
       const vision = await FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
       );
 
       const landmarker = await FaceLandmarker.createFromOptions(vision, {
         baseOptions: {
-          modelAssetPath:
-            "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
-          delegate: "GPU",
+          modelAssetPath: "/face_landmarker.task",
+          delegate: "CPU",
         },
         runningMode: "VIDEO",
         numFaces: 1,
-        outputFaceBlendshapes: false,
-        outputFacialTransformationMatrixes: false,
       });
 
       faceLandmarkerRef.current = landmarker;
 
-      // Start camera
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: 640, height: 480 },
       });
+
       streamRef.current = stream;
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
+      const video = videoRef.current;
+      if (video) {
+        if (video.srcObject !== stream) {
+          video.srcObject = stream;
+        }
+        try {
+          await video.play();
+        } catch {
+          console.warn("video play interrupted");
+        }
       }
 
       runningRef.current = true;
-      setIsLoading(false);
       setIsCamOn(true);
-
-      // Start detection loop
+      setIsLoading(false);
       animFrameRef.current = requestAnimationFrame(detectLoop);
     } catch (err) {
-      console.error("VirtualTryOn init error:", err);
-      setError("Failed to initialize camera or face detection.");
+      console.error(err);
+      setError("Failed to initialize camera.");
       setIsLoading(false);
     }
   }, [detectLoop]);
 
-  useEffect(() => {
-    if (open) {
-      initFaceLandmarker();
-    }
-
-    return () => {
-      runningRef.current = false;
-
-      if (animFrameRef.current) {
-        cancelAnimationFrame(animFrameRef.current);
-        animFrameRef.current = 0;
-      }
-
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((t) => t.stop());
-        streamRef.current = null;
-      }
-
-      if (faceLandmarkerRef.current) {
-        faceLandmarkerRef.current.close();
-        faceLandmarkerRef.current = null;
-      }
-    };
-  }, [open, initFaceLandmarker]);
-
-  const handleCapture = () => {
+  // ✅ FIX 1: Thêm hàm handleCapture
+  const handleCapture = useCallback(() => {
     const video = videoRef.current;
-    const overlay = canvasRef.current;
-    if (!video || !overlay) return;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
 
-    // Pause detection so overlay canvas stays intact
+    // Tạo canvas tổng hợp video + glasses overlay
+    const composite = document.createElement("canvas");
+    composite.width = 640;
+    composite.height = 480;
+    const ctx = composite.getContext("2d");
+    if (!ctx) return;
+
+    // Lật ngang để khớp với giao diện (scaleX(-1))
+    ctx.save();
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, -640, 0, 640, 480);
+    ctx.restore();
+
+    // Vẽ glasses overlay lên trên
+    ctx.drawImage(canvas, 0, 0);
+
+    setCapturedImage(composite.toDataURL("image/png"));
     runningRef.current = false;
-    if (animFrameRef.current) {
-      cancelAnimationFrame(animFrameRef.current);
-      animFrameRef.current = 0;
-    }
+    cancelAnimationFrame(animFrameRef.current);
+  }, []);
 
-    const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = overlay.width;
-    tempCanvas.height = overlay.height;
-    const tempCtx = tempCanvas.getContext("2d");
-    if (!tempCtx) return;
-
-    // Draw mirrored video
-    tempCtx.save();
-    tempCtx.translate(tempCanvas.width, 0);
-    tempCtx.scale(-1, 1);
-    tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
-    tempCtx.restore();
-
-    // Redraw glasses directly
-    const s = smoothRef.current;
-    const glasses = glassesImagesRef.current[selectedIdxRef.current];
-    if (glasses && glasses.complete && glasses.naturalWidth > 0 && s.width > 0) {
-      const brightness = 1;
-      tempCtx.filter = `brightness(${brightness})`;
-      tempCtx.save();
-      // Mirror the glasses x position to match mirrored video
-      tempCtx.translate(tempCanvas.width - s.x, s.y);
-      tempCtx.rotate(-s.angle);
-      if (s.yaw > 0) {
-        tempCtx.scale(0.95, 1);
-      } else {
-        tempCtx.scale(1.05, 1);
-      }
-      const anchorX = s.width * 0.5;
-      const anchorY = s.width * 0.21;
-      tempCtx.drawImage(glasses, -anchorX, -anchorY, s.width, s.width * 0.42);
-      tempCtx.restore();
-      tempCtx.filter = "none";
-    }
-
-    try {
-      const dataUrl = tempCanvas.toDataURL("image/png");
-      setCapturedImage(dataUrl);
-    } catch (e) {
-      console.error("Capture failed:", e);
-      setError("Failed to capture photo. Vui lòng kiểm tra lại CORS proxy.");
-    }
-  };
-
-  const handleDownload = () => {
+  // ✅ FIX 2: Thêm hàm handleDownload
+  const handleDownload = useCallback(() => {
     if (!capturedImage) return;
     const link = document.createElement("a");
     link.href = capturedImage;
-    link.download = `tryon-${productName?.replace(/\s+/g, "-") || "glasses"}-${Date.now()}.png`;
+    link.download = `virtual-tryon-${Date.now()}.png`;
     link.click();
-  };
+  }, [capturedImage]);
 
-  const toggleCamera = () => {
+  // ✅ FIX 3: Thêm hàm toggleCamera
+  const toggleCamera = useCallback(() => {
     if (isCamOn) {
+      // Tắt camera: dừng loop
       runningRef.current = false;
-      if (animFrameRef.current) {
-        cancelAnimationFrame(animFrameRef.current);
-        animFrameRef.current = 0;
-      }
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((t) => t.enabled = false);
-      }
+      cancelAnimationFrame(animFrameRef.current);
+      const ctx = canvasRef.current?.getContext("2d");
+      ctx?.clearRect(0, 0, 640, 480);
       setIsCamOn(false);
     } else {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((t) => t.enabled = true);
-      }
+      // Bật lại camera: resume loop
       runningRef.current = true;
       animFrameRef.current = requestAnimationFrame(detectLoop);
       setIsCamOn(true);
     }
-  };
+  }, [isCamOn, detectLoop]);
 
-  if (!open) return null;
+  useEffect(() => {
+    if (open) initFaceLandmarker();
+
+    return () => {
+      runningRef.current = false;
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+      faceLandmarkerRef.current?.close();
+      faceLandmarkerRef.current = null;
+    };
+  }, [open, initFaceLandmarker]);
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/85 backdrop-blur-lg animate-in fade-in duration-300">
@@ -359,11 +298,7 @@ export default function VirtualTryOn({
         <div className="flex-1 relative">
           {capturedImage ? (
             <div className="rounded-2xl overflow-hidden shadow-2xl relative">
-              <img
-                src={capturedImage}
-                alt="Captured"
-                className="w-full block"
-              />
+              <img src={capturedImage} alt="Captured" className="w-full block" />
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3">
                 <button
                   onClick={handleDownload}
@@ -416,9 +351,7 @@ export default function VirtualTryOn({
 
               {error && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 gap-3 px-6">
-                  <p className="text-red-400 text-sm font-bold text-center">
-                    {error}
-                  </p>
+                  <p className="text-red-400 text-sm font-bold text-center">{error}</p>
                   <button
                     onClick={initFaceLandmarker}
                     className="px-4 py-2 border border-white/40 text-white rounded-lg text-sm font-bold hover:bg-white/10 transition-colors"
@@ -428,7 +361,6 @@ export default function VirtualTryOn({
                 </div>
               )}
 
-              {/* Bottom controls */}
               {!isLoading && !error && (
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-4 items-center">
                   <button
@@ -436,11 +368,7 @@ export default function VirtualTryOn({
                     title={isCamOn ? "Pause camera" : "Resume camera"}
                     className="w-11 h-11 rounded-full bg-white/15 backdrop-blur-md hover:bg-white/25 flex items-center justify-center text-white transition-colors"
                   >
-                    {isCamOn ? (
-                      <Video className="w-5 h-5" />
-                    ) : (
-                      <VideoOff className="w-5 h-5" />
-                    )}
+                    {isCamOn ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
                   </button>
 
                   <button
@@ -464,7 +392,6 @@ export default function VirtualTryOn({
             <p className="text-white font-black text-xs uppercase tracking-widest mb-4">
               Select Glasses
             </p>
-
             <div className="flex flex-col gap-3">
               {variantImages.map((v, idx) => (
                 <div
