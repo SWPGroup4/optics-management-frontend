@@ -3,16 +3,8 @@ import { Camera, Tag, Box, Glasses, Layout, User, Target, Wrench, Scale } from '
 import { useProduct } from '../hooks/useProducts';
 import { api } from '@/lib/axios';
 
-// ProductGallery.tsx
-
-const VirtualTryOn = lazy(() => 
-  import("@/components/common/VirtualTryOn")
-    .then((module) => ({ default: module.default }))
-    .catch((err) => {
-      console.error("Lỗi tải module Virtual Try-On:", err);
-      // Trả về một component rỗng hoặc thông báo lỗi nếu module bị hỏng
-      return { default: () => <div className="hidden">AI Module Load Error</div> };
-    })
+const VirtualTryOn = lazy(
+  () => import("@/components/common/VirtualTryOn")
 );
 // Interface cho state của VirtualTryOn
 interface VariantForTryOn {
