@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingBag, Bell, LogOut, User, FileText, History, Search } from "lucide-react";
+import { ShoppingBag, Bell, LogOut, User, FileText, History, Search, X } from "lucide-react"; // 🌟 Thêm icon X
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -13,20 +13,20 @@ import { Input } from "@/components/ui/input";
 // STORES & HOOKS
 import { useAuthStore } from "@/features/auth/stores/useAuthStore";
 import { useCartStore } from "@/features/cart/store/useCartStore"; 
-// 👇 Thay đổi import tại đây
 import { useProfileQuery } from "@/features/profile/hooks/useProfileQuery"; 
 
 export default function HeaderActions() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   
+  // 🌟 Thêm State để quản lý việc ẩn/hiện search bar trên mobile
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
+  
   // --- SELECTORS ---
   const { user, logout } = useAuthStore();
   const { openCart, closeCart, isOpen, items } = useCartStore();
 
-  // --- QUERY (Thay thế store cũ) ---
-  // React Query sẽ tự động chạy nếu user đã đăng nhập (nhờ logic enabled ở file hook)
-  // Đổi tên 'data' thành 'profile' để khớp với code bên dưới
+  // --- QUERY ---
   const { data: profile, isLoading } = useProfileQuery();
 
   // --- DERIVED STATE ---
@@ -37,7 +37,9 @@ export default function HeaderActions() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
+      navigate(`/shop?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery(""); // Xoá chữ sau khi tìm
+      setShowMobileSearch(false); // 🌟 Tự động đóng form search trên mobile sau khi Enter
     }
   };
 
@@ -46,7 +48,7 @@ export default function HeaderActions() {
     navigate("/"); 
   };
 
-  // Logic hiển thị Avatar: Ưu tiên Server Profile -> Auth User (JWT Decode) -> Fallback
+  // Logic hiển thị Avatar
   const displayName = profile?.firstName ? `${profile.firstName} ${profile.lastName}` : user?.name;
   const displayEmail = profile?.email || user?.email;
   const displayAvatar = profile?.imageUrl || user?.avatar;
@@ -55,7 +57,36 @@ export default function HeaderActions() {
   return (
     <div className="flex items-center gap-3 md:gap-4">
       
-      {/* SEARCH BAR */}
+      {/* 🌟 1. NÚT KÍNH LÚP CHO MOBILE (Chỉ hiện khi thu nhỏ) */}
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className="lg:hidden text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+        onClick={() => setShowMobileSearch(!showMobileSearch)}
+      >
+        {/* Đổi icon thành dấu X nếu đang mở thanh search */}
+        {showMobileSearch ? <X className="w-5 h-5" /> : <Search className="w-5 h-5" />}
+      </Button>
+
+      {/* 🌟 2. DROPDOWN SEARCH CHO MOBILE */}
+      {showMobileSearch && (
+        <div className="absolute top-full left-0 w-full bg-white border-b border-gray-100 p-4 shadow-lg lg:hidden animate-in fade-in slide-in-from-top-2 z-50">
+          <form onSubmit={handleSearch} className="relative flex items-center max-w-md mx-auto">
+            <Search className="absolute left-4 w-5 h-5 text-gray-400" />
+            <Input
+              autoFocus // Tự động focus vào ô nhấp nháy trên điện thoại
+              type="text"
+              placeholder="Tìm kính, thương hiệu..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-12 w-full pl-12 pr-4 bg-gray-50 border-gray-200 rounded-xl focus-visible:ring-2 focus-visible:ring-gray-300 text-base"
+            />
+            <button type="submit" className="hidden">Search</button>
+          </form>
+        </div>
+      )}
+
+      {/* 🌟 3. THANH SEARCH CHO DESKTOP (Ẩn khi thu nhỏ) */}
       <form onSubmit={handleSearch} className="relative hidden lg:flex items-center group w-48 xl:w-64 transition-all duration-300 focus-within:w-72">
         <Search className="absolute left-3 w-4 h-4 text-gray-400 group-focus-within:text-black transition-colors" />
         <Input
@@ -65,6 +96,7 @@ export default function HeaderActions() {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="h-10 pl-9 pr-4 bg-gray-50 border-none rounded-full focus-visible:ring-1 focus-visible:ring-gray-200 transition-all text-sm"
         />
+        <button type="submit" className="hidden">Search</button>
       </form>
 
       {/* SHOPPING CART */}
@@ -92,7 +124,6 @@ export default function HeaderActions() {
              <DropdownMenuTrigger asChild>
                <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 ring-offset-2 hover:ring-2 ring-gray-200 transition-all">
                  <Avatar className="h-9 w-9 border border-gray-100 shadow-sm">
-                   {/* Dùng biến đã tính toán ở trên */}
                    <AvatarImage src={displayAvatar} alt={displayName || ""} className="object-cover" />
                    <AvatarFallback className="bg-stone-100 text-stone-600 font-bold text-xs">
                       {displayInitials}
@@ -105,7 +136,6 @@ export default function HeaderActions() {
                <DropdownMenuLabel className="font-normal px-3 py-4">
                  <div className="flex flex-col space-y-1">
                    <p className="text-sm font-semibold text-gray-900">
-                     {/* Hiển thị Loading nhẹ nếu đang fetch lần đầu */}
                      {isLoading ? "Đang tải..." : displayName}
                    </p>
                    <p className="text-xs text-gray-400 italic">{displayEmail}</p>

@@ -110,7 +110,7 @@ export const OrderSummary = ({ step, onContinue, onBack }: OrderSummaryProps) =>
             <div className="flex justify-between items-center text-amber-700 bg-amber-50 p-2 rounded-lg text-[12px] border border-amber-100">
               <span className="flex items-center gap-1">
                 <Info className="w-3 h-3" /> 
-                Yêu cầu cọc ({Math.round(result.depositPercentage)}%)
+                Yêu cầu cọc 
               </span>
               <span className="font-bold">{result.requiredAmount.toLocaleString()}₫</span>
             </div>
