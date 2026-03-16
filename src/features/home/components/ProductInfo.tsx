@@ -31,9 +31,6 @@ export default function ProductInfo({ productId }: { productId: string }) {
       {/* Badges & Title */}
       <div>
         <div className="flex gap-2 mb-3">
-          <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-md px-2.5 uppercase">
-            {product.status || "CÒN HÀNG"}
-          </Badge>
           <Badge variant="secondary" className="bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-md px-2.5 uppercase">
             {product.category}
           </Badge>

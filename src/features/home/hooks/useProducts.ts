@@ -1,27 +1,26 @@
 // src/features/products/hooks/useProducts.ts
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query'; // 👈 Import thêm keepPreviousData ở đây
 import { productApi } from '../api/product-api';
+import type { FilterParams } from '../types/product-type';
 
-// Định nghĩa Key cho Query để quản lý Cache
 export const productKeys = {
   all: ['products'] as const,
+  list: (filters: FilterParams) => ['products', 'list', filters] as const,
   detail: (id: string) => ['products', id] as const,
 };
 
 // --- HOOK 1: Lấy danh sách sản phẩm ---
-export const useProducts = () => {
+export const useProducts = (filters: FilterParams = {}) => {
   return useQuery({
-    queryKey: productKeys.all,
+    queryKey: productKeys.list(filters),
     queryFn: async () => {
-      // productApi.getAllProducts() của bạn đã trả về { code, result }
-      // Chúng ta chỉ cần lấy mảng result để trả về cho UI
-      const data = await productApi.getAllProducts();
-      return data.result; 
+      const data = await productApi.getFilteredProducts(filters);
+      return data.result; // trả full pagination
     },
-    staleTime: 1000 * 60 * 5, // Dữ liệu được coi là "tươi" trong 5 phút (không gọi lại API)
+    staleTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData,
   });
 };
-
 // --- HOOK 2: Lấy chi tiết sản phẩm ---
 export const useProduct = (id: string) => {
   return useQuery({
@@ -30,6 +29,6 @@ export const useProduct = (id: string) => {
       const data = await productApi.getProductById(id);
       return data.result;
     },
-    enabled: !!id, // Chỉ chạy khi có id
+    enabled: !!id,
   });
 };

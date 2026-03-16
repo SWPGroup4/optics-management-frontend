@@ -45,12 +45,15 @@ export const OrderSummary = ({ step, onContinue, onBack }: OrderSummaryProps) =>
 
             return (
               <div key={item.id} className="flex gap-4 group">
-                <div className="relative w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
-  
-  {/* Ribbon PRE */}
-  <span className="absolute top-2 right-[-32px] rotate-45 bg-orange-500 text-white text-[10px] font-bold px-8 py-1 shadow">
-    PRE
-  </span>
+                <div className="relative w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+  {/* Kiểm tra điều kiện: Chỉ hiện Ribbon khi orderType là pre-order */}
+  {item.orderType === 'pre-order' && (
+    <div className="absolute top-0 right-0 z-10">
+      <div className="absolute top-[6px] right-[-24px] rotate-45 bg-orange-500 text-white text-[9px] font-bold px-7 py-0.5 shadow-sm">
+        PRE
+      </div>
+    </div>
+  )}
 
   <img
     src={item.image}
@@ -110,7 +113,7 @@ export const OrderSummary = ({ step, onContinue, onBack }: OrderSummaryProps) =>
             <div className="flex justify-between items-center text-amber-700 bg-amber-50 p-2 rounded-lg text-[12px] border border-amber-100">
               <span className="flex items-center gap-1">
                 <Info className="w-3 h-3" /> 
-                Yêu cầu cọc ({Math.round(result.depositPercentage)}%)
+                Yêu cầu cọc 
               </span>
               <span className="font-bold">{result.requiredAmount.toLocaleString()}₫</span>
             </div>
