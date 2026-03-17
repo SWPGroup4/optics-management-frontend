@@ -34,7 +34,6 @@ import OrderDetailPage from "@/features/seller/page/order/OrderDetailPage"
 import { OpsStaffDashboardLayout } from "@/features/operation-staff/layout/OpsStaffDashboardLayout"
 import OpsStaffDashboardPage from "@/features/operation-staff/page/dashboard/OpsStaffDashboardPage"
 import { RequireRole } from "./protected-route"
-import ShippingPage from "@/features/operation-staff/page/shipping/ShippingPage";
 import {ShipperDashboardLayout} from "@/features/shipper/layout/ShipperDashboardLayout";
 import ShipperDashboardPage from "@/features/shipper/page/dashboard/ShipperDashboardPage";
 
@@ -135,7 +134,7 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <OpsStaffDashboardPage /> },
-      { path: "shipping", element: <ShippingPage /> }
+      // { path: "shipping", element: <ShippingPage /> }
     ],
   },
 

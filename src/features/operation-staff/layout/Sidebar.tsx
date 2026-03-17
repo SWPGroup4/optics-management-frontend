@@ -4,7 +4,7 @@ import {
     LogOut,
     ChevronLeft,
     ChevronRight,
-    Truck
+    // Truck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/features/operation-staff/hooks/useSidebar.ts";
@@ -12,7 +12,7 @@ import Logo from "@/features/operation-staff/components/common/Logo";
 
 const navigation = [
     { name: "Tổng quan", href: "/ops-staff", icon: LayoutDashboard },
-    { name: "Đóng gói", href: "/ops-staff/shipping", icon: Truck },
+    // { name: "Đóng gói", href: "/ops-staff/shipping", icon: Truck },
     // { name: "Orders", href: "/manager/orders", icon: ShoppingCart },
     // { name: "Pricing", href: "/manager/pricing", icon: Tag },
     // { name: "Staff", href: "/manager/staff", icon: Users },
