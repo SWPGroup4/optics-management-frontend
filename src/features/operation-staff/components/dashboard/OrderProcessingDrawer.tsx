@@ -51,7 +51,7 @@ const OrderProcessingDrawer: React.FC = () => {
             {selectedOrder && (
                 <>
                     <DrawerHeader order={selectedOrder} onClose={closeDrawer} />
-                    <DrawerContent order={selectedOrder} isOpen={isOpen} />
+                    <DrawerContent orderId={selectedOrder.orderId} isOpen={isOpen} />
                     <DrawerFooter
                         onCompleteProcessing={handleCompleteProcessing}
                         // isProcessing={selectedOrder.processingStatus === 'in_progress'}
