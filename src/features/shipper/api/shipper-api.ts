@@ -3,7 +3,7 @@ import type { BEOrder } from "@/features/operation-staff/types/types";
 
 export const shipperApi = {
     getReadyToShipOrders: async (): Promise<BEOrder[]> => {
-        const response = await api.get('/management/orders?status=READY_TO_SHIP');
+        const response = await api.get('/management/orders?status=PRODUCED');
         return response.data.result;
     },
 

@@ -25,14 +25,12 @@ const ShipperDashboardPage: React.FC = () => {
     const clearError = useShipperStore(state => state.clearError);
 
     useEffect(() => {
-        fetchReadyToShipOrders();
-    }, [fetchReadyToShipOrders]);
-
-    useEffect(() => {
         if (screen === "list") {
             fetchAcceptedOrders();
+        } else if (screen === "select") {
+            fetchReadyToShipOrders();
         }
-    }, [screen, fetchAcceptedOrders]);
+    }, [screen, fetchAcceptedOrders, fetchReadyToShipOrders]);
 
     const toggleOrder = useCallback((id: string) => {
         setSelectedIds((prev) => {

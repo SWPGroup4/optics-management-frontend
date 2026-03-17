@@ -49,9 +49,9 @@ export const useShipperStore = create<ShipperStore>()(
                 try {
                     await shipperApi.acceptOrders(orderIds);
 
-                    const acceptedOrdersResponse = await shipperApi.getMyAcceptedOrders();
+                    // const acceptedOrdersResponse = await shipperApi.getMyAcceptedOrders();
                     set({
-                        acceptedOrders: acceptedOrdersResponse,
+                        // acceptedOrders: acceptedOrdersResponse,
                         loading: false
                     });
                 } catch (error) {
