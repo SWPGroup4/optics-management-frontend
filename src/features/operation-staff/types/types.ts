@@ -125,6 +125,8 @@ export interface BEOrderItem {
     totalPrice: number;
     status: BEOrderItemStatus;
     prescription: BEPrescription;
+    productName: string;
+    productImage: string;
 }
 
 export interface BEOrder {

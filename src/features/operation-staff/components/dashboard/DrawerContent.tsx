@@ -1,7 +1,6 @@
 import React from 'react';
 import PickingListSection from './PickingListSection';
 import { useProductionStore } from "@/features/operation-staff/store/productionStore.ts";
-import PaymentInfoSection from "@/features/operation-staff/components/dashboard/PaymentInfoSection";
 
 interface DrawerContentProps {
     orderId: string;
@@ -21,7 +20,7 @@ const DrawerContent: React.FC<DrawerContentProps> = ({ orderId, isOpen }) => {
             isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
         }`}>
             <PickingListSection items={order.items} />
-            <PaymentInfoSection order={order} />
+            {/*<PaymentInfoSection order={order} />*/}
             {/*<PrescriptionSection prescription={order.items?.[0]?.prescription} />*/}
             {/*<SalesNotesSection notes={order.salesNotes} />*/}
         </div>

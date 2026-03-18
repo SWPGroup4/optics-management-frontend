@@ -1,5 +1,4 @@
 import React from 'react';
-import {Eye} from 'lucide-react';
 import type {BEPrescription} from '@/features/operation-staff/types/types';
 
 interface PrescriptionSectionProps {
@@ -10,9 +9,8 @@ const PrescriptionSection: React.FC<PrescriptionSectionProps> = ({prescription})
     return (
         <section>
             <div className="flex items-center gap-2 mb-4">
-                <Eye className="w-5 h-5 text-slate-400"/>
-                <h3 className="text-slate-900 dark:text-white text-lg font-bold uppercase tracking-wide">
-                    Thông số kỹ thuật
+                <h3 className="text-sm text-slate-600 dark:text-slate-400">
+                    Thông số kỹ thuật:
                 </h3>
             </div>
 
@@ -23,16 +21,17 @@ const PrescriptionSection: React.FC<PrescriptionSectionProps> = ({prescription})
                         <thead>
                         <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
                             <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-widest w-[10%]">Mắt</th>
-                            <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-widest w-[22.5%]">SPH
+                            <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-widest w-[18%]">SPH
                                 (Cầu)
                             </th>
-                            <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-widest w-[22.5%]">CYL
+                            <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-widest w-[18%]">CYL
                                 (Loạn)
                             </th>
-                            <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-widest w-[22.5%]">AXIS
+                            <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-widest w-[18%]">AXIS
                                 (Trục)
                             </th>
-                            <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-widest w-[22.5%]">PD
+                            <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-widest w-[18%]">ADD</th>
+                            <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-widest w-[18%]">PD
                                 (KC)
                             </th>
                         </tr>
@@ -65,6 +64,12 @@ const PrescriptionSection: React.FC<PrescriptionSectionProps> = ({prescription})
                                 {prescription?.odAxis || 0}
                               </span>
                             </td>
+                            <td className="py-6 px-4">
+                              <span
+                                  className="font-mono text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white tracking-tighter text-green-600 dark:text-green-400">
+                                {prescription?.odAdd >= 0 ? '+' : ''}{prescription?.odAdd?.toFixed(2) || 0}
+                              </span>
+                            </td>
                             <td className="py-6 px-4 bg-slate-50/50 dark:bg-slate-800/20">
                               <span
                                   className="font-mono text-4xl lg:text-5xl font-bold text-slate-700 dark:text-slate-300 tracking-tighter">
@@ -89,7 +94,7 @@ const PrescriptionSection: React.FC<PrescriptionSectionProps> = ({prescription})
                             </td>
                             <td className="py-6 px-4">
                                <span
-                                  className="font-mono text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white tracking-tighter">
+                                   className="font-mono text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white tracking-tighter">
                                   {prescription?.osCylinder >= 0 ? '+' : ''}{prescription?.osCylinder?.toFixed(2) || 0}
                                </span>
                             </td>
@@ -97,6 +102,12 @@ const PrescriptionSection: React.FC<PrescriptionSectionProps> = ({prescription})
                                 <span
                                     className="font-mono text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white tracking-tighter">
                                     {prescription?.osAxis || 0}
+                                </span>
+                            </td>
+                            <td className="py-6 px-4">
+                                <span
+                                    className="font-mono text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white tracking-tighter text-green-600 dark:text-green-400">
+                                    {prescription?.osAdd >= 0 ? '+' : ''}{prescription?.osAdd?.toFixed(2) || 0}
                                 </span>
                             </td>
                             <td className="py-6 px-4 bg-slate-50/50 dark:bg-slate-800/20">

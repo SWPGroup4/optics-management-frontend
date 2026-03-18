@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Package2, ChevronDown, ChevronUp, DollarSign } from 'lucide-react';
 import type { BEOrderItem, BEOrderItemStatus } from '@/features/operation-staff/types/types';
 import { useProductionStore } from "@/features/operation-staff/store/productionStore";
+import PrescriptionSection from "@/features/operation-staff/components/dashboard/PrescriptionSection.tsx";
 
 interface PickingListSectionProps {
     items: BEOrderItem[];
@@ -70,22 +71,25 @@ const PickingListSection: React.FC<PickingListSectionProps> = ({ items }) => {
                         {/* Main item content */}
                         <div className="flex flex-col md:flex-row">
                             <div className="w-full md:w-32 h-32 md:h-auto bg-slate-100 relative shrink-0">
-                                <div
-                                    className="absolute inset-0 bg-cover bg-center"
-                                    style={{ backgroundImage: `url(https://lh3.googleusercontent.com/aida-public/AB6AXuA5DKaYtinaxneCfbfJ4nTl44qyrd1mylVFsGtLRRM2iZl11ABhQaHiQ0dVrMROnfy-4ilYN2hidwHRmIsmcP37qVGUl-cIFDG_wVcS2GoLRBO2ciOPZzRHK9ZFH1aScYnrRGCwA5k2THqi9wmZHWmYyU426Rh6Fsw84P7d5qEDMsxxa2Vpkn6lrJhdbO49B625jTZJrc3e30_8hez6Hb9IZW2j4cDvSncHN-ea-DX79rN-Tub42VjPvO78nvleh4io6lWUg2X4BTU)` }}
-                                />
+                                {item?.productImage ? (
+                                    <div
+                                        className="absolute inset-0 bg-cover bg-center"
+                                        style={{ backgroundImage: `url(${item.productImage})` }}
+                                    />
+                                ) : (
+                                    <div className="absolute inset-0 bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                                        <Package2 className="w-8 h-8 text-slate-400" />
+                                    </div>
+                                )}
                             </div>
 
                             <div className="flex-1 p-5 flex flex-col justify-center">
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                                        Tròng kính
+                                        Tên sản phẩm
                                     </span>
                                 </div>
-                                <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{item.lensName}</h4>
-                                <p className="text-slate-500 dark:text-slate-400 text-sm">
-                                    Số lượng: {item.quantity}
-                                </p>
+                                <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{item.productName}</h4>
                             </div>
 
                             <div className="w-48 p-3 flex items-center relative">
@@ -111,7 +115,7 @@ const PickingListSection: React.FC<PickingListSectionProps> = ({ items }) => {
                                 onClick={() => toggleExpanded(item.orderItemId)}
                                 className="w-full px-5 py-3 flex items-center justify-between text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                             >
-                                <span className="font-medium">Chi tiết giá</span>
+                                <span className="font-medium">Chi tiết</span>
                                 {expandedItems.has(item.orderItemId) ? (
                                     <ChevronUp className="w-4 h-4" />
                                 ) : (
@@ -123,15 +127,35 @@ const PickingListSection: React.FC<PickingListSectionProps> = ({ items }) => {
                         {/* Expanded content */}
                         {expandedItems.has(item.orderItemId) && (
                             <div className="border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-5">
+                                {/* Lens name section */}
                                 <div className="flex items-center gap-2 mb-4">
-                                    <DollarSign className="w-4 h-4 text-slate-400" />
-                                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
-                                        Chi tiết giá cả
+                                    <Package2 className="w-5 h-5 text-slate-400" />
+                                    <h4 className="text-slate-900 dark:text-white text-sm font-bold uppercase tracking-wide">
+                                        Thông tin tròng kính
                                     </h4>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex justify-between mb-4">
+                                    <span className="text-sm text-slate-600 dark:text-slate-400">Tên tròng:</span>
+                                    <span className="text-sm font-medium text-slate-900 dark:text-white">
+                                        {item.lensName || 'N/A'}
+                                    </span>
+                                </div>
+
+                                {/* Prescription section inside lens info */}
+                                <div className="mb-6">
+                                    <PrescriptionSection prescription={item.prescription} />
+                                </div>
+
+                                {/* Price details section */}
+                                <div className="flex items-center gap-2 mb-4">
+                                    <DollarSign className="w-5 h-5 text-slate-400" />
+                                    <h4 className="text-slate-900 dark:text-white text-sm font-bold uppercase tracking-wide">
+                                        Chi tiết giá
+                                    </h4>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div className="flex justify-between">
-                                        <span className="text-sm text-slate-600 dark:text-slate-400">Đơn giá:</span>
+                                        <span className="text-sm text-slate-600 dark:text-slate-400">Giá gọng kính:</span>
                                         <span className="text-sm font-medium text-slate-900 dark:text-white">
                                             {displayValue(item.unitPrice)}
                                         </span>
