@@ -1,6 +1,6 @@
 // src/features/users/hooks/useUsers.ts
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { userApi, type UserRole } from "../api/user-api";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { userApi, type UserRole } from '../api/user-api';
 
 export const useUsers = (role: UserRole) => {
   return useQuery({

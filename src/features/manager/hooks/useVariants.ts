@@ -1,9 +1,9 @@
 // src/features/products/hooks/useVariants.ts
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { variantApi } from "../api/variant-api";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { variantApi } from '../api/variant-api';
 
 const QUERY_KEYS = {
-  list: (productId: string) => ["variants", productId] as const,
+  list: (productId: string) => ['variants', productId] as const,
 };
 
 export const useVariants = (productId: string) => {
@@ -11,7 +11,7 @@ export const useVariants = (productId: string) => {
     queryKey: QUERY_KEYS.list(productId),
     queryFn: async () => {
       const data = await variantApi.getAll(productId);
-      console.log("useVariants raw response:", data);
+      console.log('useVariants raw response:', data);
       return (data.result || []) as any[];
     },
     enabled: !!productId,
@@ -26,7 +26,7 @@ export const useCreateVariant = (productId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.list(productId) });
     },
-    onError: (error) => console.error("Failed to create variant:", error),
+    onError: (error) => console.error('Failed to create variant:', error),
   });
 };
 
@@ -38,7 +38,7 @@ export const useUpdateVariant = (productId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.list(productId) });
     },
-    onError: (error) => console.error("Failed to update variant:", error),
+    onError: (error) => console.error('Failed to update variant:', error),
   });
 };
 
@@ -49,6 +49,6 @@ export const useDeleteVariant = (productId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.list(productId) });
     },
-    onError: (error) => console.error("Failed to delete variant:", error),
+    onError: (error) => console.error('Failed to delete variant:', error),
   });
 };

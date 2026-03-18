@@ -14,6 +14,10 @@ export interface PrescriptionData {
 }
 
 // Giá trị mặc định rỗng (helper)
-export const INITIAL_EYE_SPECS: EyeSpecs = { 
-  sphere: '', cylinder: '', axis: '', add: '', pd: '' 
+export const INITIAL_EYE_SPECS: EyeSpecs = {
+  sphere: '',
+  cylinder: '',
+  axis: '',
+  add: '',
+  pd: '',
 };

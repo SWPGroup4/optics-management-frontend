@@ -8,7 +8,7 @@ import { useProduct } from '../hooks/useProducts';
 import { useLenses } from '@/features/manager/hooks/useLense';
 import type { LensProduct } from '@/features/manager/types/lens';
 // Import hook lấy danh sách variant
-import { useProductVariants } from '../hooks/useProductVariants'; 
+import { useProductVariants } from '../hooks/useProductVariants';
 import type { ProductImage, ProductVariant } from '../types/product-type';
 import { toast } from 'sonner';
 
@@ -16,7 +16,7 @@ export default function ProductForm({ productId }: { productId: string }) {
   // --- STATE GIAO DIỆN ---
   const [isLensSelectionOpen, setIsLensSelectionOpen] = useState(true);
   const [expandedLensId, setExpandedLensId] = useState<string | null>(null);
-  
+
   // Phân trang tròng kính
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 3;
@@ -25,7 +25,7 @@ export default function ProductForm({ productId }: { productId: string }) {
   const { data: product, isLoading: isProductLoading } = useProduct(productId);
   const { lenses, isLoading: isLensesLoading } = useLenses();
   const { data: variants = [], isLoading: isVariantsLoading } = useProductVariants(productId);
-  
+
   // --- LOGIC PHÂN TRANG LENS ---
   const totalLenses = lenses?.length || 0;
   const totalPages = Math.ceil(totalLenses / itemsPerPage);
@@ -35,7 +35,7 @@ export default function ProductForm({ productId }: { productId: string }) {
   // --- STORES ---
   const { selectedLensId, setLensId, prescription, resetPrescription } = usePrescriptionStore();
   const { addToCart } = useCartStore();
-  
+
   const currentLens = lenses?.find((l: LensProduct) => l.id === selectedLensId);
 
   // --- LOGIC CHỌN VARIANT (DERIVED STATE) ---
@@ -43,8 +43,8 @@ export default function ProductForm({ productId }: { productId: string }) {
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
 
   // Suy luận variant object dựa trên ID hoặc lấy cái đầu tiên
-  const selectedVariant = selectedVariantId 
-    ? variants.find(v => v.id === selectedVariantId) || variants[0]
+  const selectedVariant = selectedVariantId
+    ? variants.find((v) => v.id === selectedVariantId) || variants[0]
     : variants[0] || null;
 
   // --- TÍNH TỔNG TIỀN ---
@@ -70,22 +70,28 @@ export default function ProductForm({ productId }: { productId: string }) {
       return ['', '0', '0.00', '+0.00', '-0.00', '0.0', 'plan', 'none'].includes(strVal);
     };
 
-    const isOdHasData = Boolean(prescription?.od && Object.values(prescription.od).some(val => !isValueEmpty(val)));
-    const isOsHasData = Boolean(prescription?.os && Object.values(prescription.os).some(val => !isValueEmpty(val)));
-    
-    const hasPrescriptionData = Boolean(
-      prescription?.imageUrl || 
-      (prescription?.notes && String(prescription.notes).trim() !== '') || 
-      isOdHasData || 
-      isOsHasData
+    const isOdHasData = Boolean(
+      prescription?.od && Object.values(prescription.od).some((val) => !isValueEmpty(val)),
     );
-    const finalOrderType: 'buy-now' | 'pre-order' | 'custom' = 
-      selectedVariant.orderItemType === 'PRE_ORDER' 
-        ? 'pre-order' 
-        : (hasPrescriptionData ? 'custom' : 'buy-now');
+    const isOsHasData = Boolean(
+      prescription?.os && Object.values(prescription.os).some((val) => !isValueEmpty(val)),
+    );
+
+    const hasPrescriptionData = Boolean(
+      prescription?.imageUrl ||
+      (prescription?.notes && String(prescription.notes).trim() !== '') ||
+      isOdHasData ||
+      isOsHasData,
+    );
+    const finalOrderType: 'buy-now' | 'pre-order' | 'custom' =
+      selectedVariant.orderItemType === 'PRE_ORDER'
+        ? 'pre-order'
+        : hasPrescriptionData
+          ? 'custom'
+          : 'buy-now';
 
     // --- ĐIỀU KIỆN CHẶN TỐI THƯỢNG ---
-    // Thay vì check ID (dễ bị dính chuỗi 'null' ảo), ta check thẳng object currentLens. 
+    // Thay vì check ID (dễ bị dính chuỗi 'null' ảo), ta check thẳng object currentLens.
     // Nếu currentLens không tồn tại -> Chắc chắn chưa chọn tròng kính hợp lệ!
     const isLensNotSelected = !currentLens;
 
@@ -93,24 +99,30 @@ export default function ProductForm({ productId }: { productId: string }) {
     if (hasPrescriptionData && isLensNotSelected) {
       toast.error('Bạn đã nhập thông số mắt hoặc đơn thuốc. Vui lòng chọn Tròng kính phù hợp!');
       setIsLensSelectionOpen(true); // Mở lại tab chọn tròng
-      
+
       // Cuộn màn hình xuống khu vực chọn tròng kính
       window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-      
+
       return; // CHẶN LẠI NGAY LẬP TỨC
     }
 
     // --- TIẾN HÀNH THÊM VÀO GIỎ HÀNG ---
-    const images = Array.isArray(product.imageUrl) ? product.imageUrl.map((imgObj: ProductImage) => imgObj.imageUrl) : [];
-    const safeProductImage = images.length > 0 ? images[0] : 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?auto=format&fit=crop&q=80&w=800';
+    const images = Array.isArray(product.imageUrl)
+      ? product.imageUrl.map((imgObj: ProductImage) => imgObj.imageUrl)
+      : [];
+    const safeProductImage =
+      images.length > 0
+        ? images[0]
+        : 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?auto=format&fit=crop&q=80&w=800';
 
-    const prescriptionToSave = hasPrescriptionData ? {
-      imageUrl: prescription.imageUrl || null,
-      notes: prescription.notes || "",
-      od: { ...prescription.od },
-      os: { ...prescription.os }
-    } : null;
-    
+    const prescriptionToSave = hasPrescriptionData
+      ? {
+          imageUrl: prescription.imageUrl || null,
+          notes: prescription.notes || '',
+          od: { ...prescription.od },
+          os: { ...prescription.os },
+        }
+      : null;
 
     const cartPayload = {
       productId: selectedVariant.id,
@@ -118,25 +130,29 @@ export default function ProductForm({ productId }: { productId: string }) {
       price: totalPrice,
       image: safeProductImage,
       quantity: 1,
-      lensId: currentLens?.id, 
+      lensId: currentLens?.id,
       orderType: finalOrderType,
       prescription: prescriptionToSave,
     };
 
     addToCart(cartPayload);
-    
+
     setTimeout(() => {
       resetPrescription();
       setIsLensSelectionOpen(true);
     }, 200);
-    
+
     toast.success('Đã thêm sản phẩm vào giỏ hàng!');
   };
-  if (isProductLoading) return <div className="p-10 text-center animate-pulse text-gray-400">Đang tải thông tin sản phẩm...</div>;
+  if (isProductLoading)
+    return (
+      <div className="p-10 text-center animate-pulse text-gray-400">
+        Đang tải thông tin sản phẩm...
+      </div>
+    );
 
   return (
     <div className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100 space-y-8 mt-8">
-
       {/* 1. CHỌN PHIÊN BẢN (GẮN LUÔN Ở ĐÂY) */}
       <div className="space-y-3">
         <div className="flex justify-between items-end mb-2">
@@ -151,9 +167,9 @@ export default function ProductForm({ productId }: { productId: string }) {
           <p className="text-sm text-gray-500 italic">Sản phẩm hiện chưa có phân loại.</p>
         ) : (
           <div className="flex flex-col gap-3">
-           {variants.map((variant: ProductVariant) => {
+            {variants.map((variant: ProductVariant) => {
               const isSelected = selectedVariant?.id === variant.id;
-              
+
               // Xác định trạng thái để hiển thị màu sắc cho phù hợp
               const isPreOrder = variant.orderItemType === 'PRE_ORDER';
 
@@ -163,7 +179,7 @@ export default function ProductForm({ productId }: { productId: string }) {
                   onClick={() => setSelectedVariantId(variant.id)}
                   className={`relative flex items-start gap-4 p-4 w-full text-left rounded-xl border-2 transition-all duration-200 ${
                     isSelected
-                      ? 'border-[#4A8795] bg-teal-50/20 shadow-sm' 
+                      ? 'border-[#4A8795] bg-teal-50/20 shadow-sm'
                       : 'border-gray-200 bg-white hover:border-gray-300'
                   }`}
                 >
@@ -232,16 +248,18 @@ export default function ProductForm({ productId }: { productId: string }) {
           <h3 className="text-sm font-bold text-[#4A8795] uppercase">3. Lựa chọn thấu kính</h3>
           {isLensSelectionOpen && totalPages > 1 && (
             <div className="flex items-center gap-2">
-              <button 
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
                 className="p-1 rounded bg-white border border-gray-200 disabled:opacity-30"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="text-xs font-medium text-gray-500">{currentPage}/{totalPages}</span>
-              <button 
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              <span className="text-xs font-medium text-gray-500">
+                {currentPage}/{totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
                 className="p-1 rounded bg-white border border-gray-200 disabled:opacity-30"
               >
@@ -262,12 +280,14 @@ export default function ProductForm({ productId }: { productId: string }) {
                   <div>
                     <p className="text-gray-900 font-bold">{currentLens.name}</p>
                     <p className="text-[#4A8795] text-sm font-medium">
-                      {currentLens.price === 0 ? 'Miễn phí' : `+ ${currentLens.price.toLocaleString('vi-VN')} ₫`}
+                      {currentLens.price === 0
+                        ? 'Miễn phí'
+                        : `+ ${currentLens.price.toLocaleString('vi-VN')} ₫`}
                     </p>
                   </div>
                 </div>
-                <button 
-                  onClick={() => setIsLensSelectionOpen(true)} 
+                <button
+                  onClick={() => setIsLensSelectionOpen(true)}
                   className="text-sm font-medium text-gray-500 hover:text-[#4A8795] transition-colors"
                 >
                   Thay đổi
@@ -278,32 +298,55 @@ export default function ProductForm({ productId }: { productId: string }) {
             {isLensSelectionOpen && (
               <div className="flex flex-col gap-3 animate-in fade-in duration-300">
                 {currentPaginatedLenses.map((lens: LensProduct) => (
-                  <div 
-                    key={lens.id} 
+                  <div
+                    key={lens.id}
                     className={`border rounded-xl bg-white cursor-pointer transition-all ${selectedLensId === lens.id ? 'border-[#4A8795] shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}
                   >
-                    <div className="p-4 flex items-start gap-3" onClick={() => { setLensId(lens.id); setIsLensSelectionOpen(false); }}>
-                      <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${selectedLensId === lens.id ? 'border-[#4A8795]' : 'border-gray-300'}`}>
-                        {selectedLensId === lens.id && <div className="w-2.5 h-2.5 bg-[#4A8795] rounded-full" />}
+                    <div
+                      className="p-4 flex items-start gap-3"
+                      onClick={() => {
+                        setLensId(lens.id);
+                        setIsLensSelectionOpen(false);
+                      }}
+                    >
+                      <div
+                        className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${selectedLensId === lens.id ? 'border-[#4A8795]' : 'border-gray-300'}`}
+                      >
+                        {selectedLensId === lens.id && (
+                          <div className="w-2.5 h-2.5 bg-[#4A8795] rounded-full" />
+                        )}
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-start">
-                          <h4 className={`font-bold ${selectedLensId === lens.id ? 'text-[#4A8795]' : 'text-gray-900'}`}>{lens.name}</h4>
+                          <h4
+                            className={`font-bold ${selectedLensId === lens.id ? 'text-[#4A8795]' : 'text-gray-900'}`}
+                          >
+                            {lens.name}
+                          </h4>
                           <span className="font-bold text-gray-900 whitespace-nowrap ml-2">
-                            {lens.price === 0 ? 'Included' : `+${lens.price.toLocaleString('vi-VN')}đ`}
+                            {lens.price === 0
+                              ? 'Included'
+                              : `+${lens.price.toLocaleString('vi-VN')}đ`}
                           </span>
                         </div>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); setExpandedLensId(expandedLensId === lens.id ? null : lens.id); }}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedLensId(expandedLensId === lens.id ? null : lens.id);
+                          }}
                           className="mt-2 text-xs font-medium text-gray-500 flex items-center gap-1 bg-gray-50 px-2 py-1 rounded-md"
                         >
-                          <Info className="w-3.5 h-3.5" /> {expandedLensId === lens.id ? 'Đóng' : 'Thông số'}
+                          <Info className="w-3.5 h-3.5" />{' '}
+                          {expandedLensId === lens.id ? 'Đóng' : 'Thông số'}
                         </button>
                       </div>
                     </div>
                     {expandedLensId === lens.id && (
                       <div className="p-4 bg-gray-50 border-t text-sm text-gray-600 ml-8 animate-in slide-in-from-top-1">
-                        <p className="mb-1"><span className="font-semibold text-gray-900">Chất liệu:</span> {lens.material || 'Tiêu chuẩn'}</p>
+                        <p className="mb-1">
+                          <span className="font-semibold text-gray-900">Chất liệu:</span>{' '}
+                          {lens.material || 'Tiêu chuẩn'}
+                        </p>
                         <p>{lens.description || 'Không có mô tả chi tiết.'}</p>
                       </div>
                     )}
@@ -322,7 +365,8 @@ export default function ProductForm({ productId }: { productId: string }) {
             <p className="text-sm text-gray-500 font-medium">Tổng thanh toán</p>
             {selectedVariant && (
               <p className="text-xs text-gray-400 mt-0.5">
-                Gọng: {basePrice.toLocaleString()}đ {currentLens ? `+ Tròng: ${lensPrice.toLocaleString()}đ` : ''}
+                Gọng: {basePrice.toLocaleString()}đ{' '}
+                {currentLens ? `+ Tròng: ${lensPrice.toLocaleString()}đ` : ''}
               </p>
             )}
           </div>
@@ -331,15 +375,14 @@ export default function ProductForm({ productId }: { productId: string }) {
           </p>
         </div>
 
-        <Button 
-          onClick={handleAddToCart} 
+        <Button
+          onClick={handleAddToCart}
           className="w-full h-14 text-lg font-bold bg-[#1e2575] hover:bg-[#151b54] shadow-lg transition-all active:scale-[0.98]"
         >
-          <ShoppingBag className="w-5 h-5 mr-2" /> 
+          <ShoppingBag className="w-5 h-5 mr-2" />
           Thêm vào giỏ hàng
         </Button>
       </div>
-
     </div>
   );
 }

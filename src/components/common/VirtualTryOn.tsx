@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Camera as CameraIcon,
   Video,
@@ -9,8 +9,8 @@ import {
   RotateCcw,
   RefreshCw,
   Loader2,
-} from "lucide-react";
-import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
+} from 'lucide-react';
+import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 
 interface VariantImage {
   id: string;
@@ -57,9 +57,9 @@ export default function VirtualTryOn({
   const glassesImagesRef = useRef<HTMLImageElement[]>([]);
 
   const proxyImageUrl = useCallback((url: string) => {
-    const s3Host = "https://optics-management-storage.s3.amazonaws.com";
+    const s3Host = 'https://optics-management-storage.s3.amazonaws.com';
     if (url.startsWith(s3Host)) {
-      return url.replace(s3Host, "/s3-proxy");
+      return url.replace(s3Host, '/s3-proxy');
     }
     return url;
   }, []);
@@ -67,89 +67,89 @@ export default function VirtualTryOn({
   useEffect(() => {
     glassesImagesRef.current = variantImages.map((v) => {
       const img = new Image();
-      img.crossOrigin = "anonymous";
+      img.crossOrigin = 'anonymous';
       img.src = proxyImageUrl(v.imageUrl);
       return img;
     });
   }, [variantImages, proxyImageUrl]);
 
-  const drawGlasses = useCallback(
-    (landmarks: { x: number; y: number; z: number }[]) => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
+  const drawGlasses = useCallback((landmarks: { x: number; y: number; z: number }[]) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      const leftEye = landmarks[33];
-      const rightEye = landmarks[263];
-      const nose = landmarks[1];
-      const leftEar = landmarks[234];
-      const rightEar = landmarks[454];
+    const leftEye = landmarks[33];
+    const rightEye = landmarks[263];
+    const nose = landmarks[1];
+    const leftEar = landmarks[234];
+    const rightEar = landmarks[454];
 
-      const x1 = leftEye.x * canvas.width;
-      const y1 = leftEye.y * canvas.height;
-      const x2 = rightEye.x * canvas.width;
-      const y2 = rightEye.y * canvas.height;
+    const x1 = leftEye.x * canvas.width;
+    const y1 = leftEye.y * canvas.height;
+    const x2 = rightEye.x * canvas.width;
+    const y2 = rightEye.y * canvas.height;
 
-      const dx = x2 - x1;
-      const dy = y2 - y1;
-      const angle = Math.atan2(dy, dx);
-      const eyeDistance = Math.sqrt(dx * dx + dy * dy);
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const angle = Math.atan2(dy, dx);
+    const eyeDistance = Math.sqrt(dx * dx + dy * dy);
 
-      let width = eyeDistance * 2.2;
-      const depthScale = 1 + nose.z * -0.6;
-      width *= depthScale;
+    let width = eyeDistance * 2.2;
+    const depthScale = 1 + nose.z * -0.6;
+    width *= depthScale;
 
-      const centerX = (x1 + x2) / 2;
-      const centerY = (y1 + y2) / 2;
-      const yaw = leftEar.x - rightEar.x;
+    const centerX = (x1 + x2) / 2;
+    const centerY = (y1 + y2) / 2;
+    const yaw = leftEar.x - rightEar.x;
 
-      const s = smoothRef.current;
-      s.yaw = s.yaw * 0.8 + yaw * 0.2;
-      s.x = s.x * 0.85 + centerX * 0.15;
-      s.y = s.y * 0.85 + centerY * 0.15;
-      s.angle = s.angle * 0.85 + angle * 0.15;
-      s.width = s.width * 0.85 + width * 0.15;
+    const s = smoothRef.current;
+    s.yaw = s.yaw * 0.8 + yaw * 0.2;
+    s.x = s.x * 0.85 + centerX * 0.15;
+    s.y = s.y * 0.85 + centerY * 0.15;
+    s.angle = s.angle * 0.85 + angle * 0.15;
+    s.width = s.width * 0.85 + width * 0.15;
 
-      ctx.save();
-      ctx.translate(s.x, s.y);
-      ctx.rotate(s.angle);
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    ctx.rotate(s.angle);
 
-      const glasses = glassesImagesRef.current[selectedIdxRef.current];
-      if (glasses && glasses.complete) {
-        const anchorX = s.width * 0.5;
-        const anchorY = s.width * 0.21;
-        ctx.drawImage(glasses, -anchorX, -anchorY, s.width, s.width * 0.42);
-      }
-
-      ctx.restore();
-    },
-    []
-  );
-
-  const detectLoop = useCallback(function detectLoop() {
-    const video = videoRef.current;
-    const landmarker = faceLandmarkerRef.current;
-    if (!video || !landmarker || !runningRef.current) return;
-
-    const now = performance.now();
-    if (now - lastDetectTimeRef.current > 33) {
-      if (video.readyState >= 2) {
-        const result = landmarker.detectForVideo(video, now);
-        if (result.faceLandmarks?.length) {
-          drawGlasses(result.faceLandmarks[0]);
-        } else {
-          const ctx = canvasRef.current?.getContext("2d");
-          ctx?.clearRect(0, 0, 640, 480);
-        }
-      }
-      lastDetectTimeRef.current = now;
+    const glasses = glassesImagesRef.current[selectedIdxRef.current];
+    if (glasses && glasses.complete) {
+      const anchorX = s.width * 0.5;
+      const anchorY = s.width * 0.21;
+      ctx.drawImage(glasses, -anchorX, -anchorY, s.width, s.width * 0.42);
     }
 
-    animFrameRef.current = requestAnimationFrame(detectLoop);
-  }, [drawGlasses]);
+    ctx.restore();
+  }, []);
+
+  const detectLoop = useCallback(
+    function detectLoop() {
+      const video = videoRef.current;
+      const landmarker = faceLandmarkerRef.current;
+      if (!video || !landmarker || !runningRef.current) return;
+
+      const now = performance.now();
+      if (now - lastDetectTimeRef.current > 33) {
+        if (video.readyState >= 2) {
+          const result = landmarker.detectForVideo(video, now);
+          if (result.faceLandmarks?.length) {
+            drawGlasses(result.faceLandmarks[0]);
+          } else {
+            const ctx = canvasRef.current?.getContext('2d');
+            ctx?.clearRect(0, 0, 640, 480);
+          }
+        }
+        lastDetectTimeRef.current = now;
+      }
+
+      animFrameRef.current = requestAnimationFrame(detectLoop);
+    },
+    [drawGlasses],
+  );
 
   const initFaceLandmarker = useCallback(async () => {
     try {
@@ -157,15 +157,15 @@ export default function VirtualTryOn({
       setError(null);
 
       const vision = await FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
+        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm',
       );
 
       const landmarker = await FaceLandmarker.createFromOptions(vision, {
         baseOptions: {
-          modelAssetPath: "/face_landmarker.task",
-          delegate: "CPU",
+          modelAssetPath: '/face_landmarker.task',
+          delegate: 'CPU',
         },
-        runningMode: "VIDEO",
+        runningMode: 'VIDEO',
         numFaces: 1,
       });
 
@@ -185,7 +185,7 @@ export default function VirtualTryOn({
         try {
           await video.play();
         } catch {
-          console.warn("video play interrupted");
+          console.warn('video play interrupted');
         }
       }
 
@@ -195,7 +195,7 @@ export default function VirtualTryOn({
       animFrameRef.current = requestAnimationFrame(detectLoop);
     } catch (err) {
       console.error(err);
-      setError("Failed to initialize camera.");
+      setError('Failed to initialize camera.');
       setIsLoading(false);
     }
   }, [detectLoop]);
@@ -207,10 +207,10 @@ export default function VirtualTryOn({
     if (!video || !canvas) return;
 
     // Tạo canvas tổng hợp video + glasses overlay
-    const composite = document.createElement("canvas");
+    const composite = document.createElement('canvas');
     composite.width = 640;
     composite.height = 480;
-    const ctx = composite.getContext("2d");
+    const ctx = composite.getContext('2d');
     if (!ctx) return;
 
     // Lật ngang để khớp với giao diện (scaleX(-1))
@@ -222,7 +222,7 @@ export default function VirtualTryOn({
     // Vẽ glasses overlay lên trên
     ctx.drawImage(canvas, 0, 0);
 
-    setCapturedImage(composite.toDataURL("image/png"));
+    setCapturedImage(composite.toDataURL('image/png'));
     runningRef.current = false;
     cancelAnimationFrame(animFrameRef.current);
   }, []);
@@ -230,7 +230,7 @@ export default function VirtualTryOn({
   // ✅ FIX 2: Thêm hàm handleDownload
   const handleDownload = useCallback(() => {
     if (!capturedImage) return;
-    const link = document.createElement("a");
+    const link = document.createElement('a');
     link.href = capturedImage;
     link.download = `virtual-tryon-${Date.now()}.png`;
     link.click();
@@ -242,7 +242,7 @@ export default function VirtualTryOn({
       // Tắt camera: dừng loop
       runningRef.current = false;
       cancelAnimationFrame(animFrameRef.current);
-      const ctx = canvasRef.current?.getContext("2d");
+      const ctx = canvasRef.current?.getContext('2d');
       ctx?.clearRect(0, 0, 640, 480);
       setIsCamOn(false);
     } else {
@@ -275,12 +275,8 @@ export default function VirtualTryOn({
             <RotateCcw className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="text-white font-black text-base tracking-tight">
-              Virtual Try-On
-            </h2>
-            {productName && (
-              <p className="text-white/60 text-xs">{productName}</p>
-            )}
+            <h2 className="text-white font-black text-base tracking-tight">Virtual Try-On</h2>
+            {productName && <p className="text-white/60 text-xs">{productName}</p>}
           </div>
         </div>
 
@@ -330,14 +326,14 @@ export default function VirtualTryOn({
                 playsInline
                 muted
                 className="block w-full"
-                style={{ transform: "scaleX(-1)" }}
+                style={{ transform: 'scaleX(-1)' }}
               />
               <canvas
                 ref={canvasRef}
                 width={640}
                 height={480}
                 className="absolute top-0 left-0 w-full h-full pointer-events-none"
-                style={{ transform: "scaleX(-1)" }}
+                style={{ transform: 'scaleX(-1)' }}
               />
 
               {isLoading && (
@@ -365,7 +361,7 @@ export default function VirtualTryOn({
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-4 items-center">
                   <button
                     onClick={toggleCamera}
-                    title={isCamOn ? "Pause camera" : "Resume camera"}
+                    title={isCamOn ? 'Pause camera' : 'Resume camera'}
                     className="w-11 h-11 rounded-full bg-white/15 backdrop-blur-md hover:bg-white/25 flex items-center justify-center text-white transition-colors"
                   >
                     {isCamOn ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
@@ -402,13 +398,13 @@ export default function VirtualTryOn({
                   }}
                   className={`p-3 rounded-xl cursor-pointer transition-all duration-200 ${
                     idx === selectedIdx
-                      ? "border-2 border-white bg-white/12"
-                      : "border border-white/15 bg-transparent hover:bg-white/8 hover:border-white/40"
+                      ? 'border-2 border-white bg-white/12'
+                      : 'border border-white/15 bg-transparent hover:bg-white/8 hover:border-white/40'
                   }`}
                 >
                   <img
                     src={v.imageUrl}
-                    alt={v.variantName || "Glasses"}
+                    alt={v.variantName || 'Glasses'}
                     className="w-full h-[70px] object-contain rounded"
                   />
                   {(v.variantName || v.color) && (
@@ -431,6 +427,6 @@ export default function VirtualTryOn({
         )}
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

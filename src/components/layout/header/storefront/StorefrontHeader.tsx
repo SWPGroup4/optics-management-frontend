@@ -1,12 +1,11 @@
-import { Link } from "react-router-dom";
-import HeaderActions from "./HeaderActions";
-import Logo from "@/components/common/Logo";
+import { Link } from 'react-router-dom';
+import HeaderActions from './HeaderActions';
+import Logo from '@/components/common/Logo';
 
 export default function StorefrontHeader() {
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
       <div className="container mx-auto px-4 h-16 md:h-20 flex items-center justify-between gap-8">
-        
         {/* LOGO - Cố định bên trái */}
         <Logo />
 
@@ -20,7 +19,7 @@ export default function StorefrontHeader() {
 
         {/* SEARCH & ACTIONS - Gom toàn bộ vào HeaderActions */}
         <div className="flex items-center justify-end flex-grow">
-           <HeaderActions />
+          <HeaderActions />
         </div>
       </div>
     </header>

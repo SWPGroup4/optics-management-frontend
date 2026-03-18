@@ -18,11 +18,11 @@ export interface UserProfile {
   username: string;
   firstName: string;
   lastName: string;
-  dob: string;      
+  dob: string;
   imageUrl: string | null; // Có thể null
   email: string;
   phone: string;
-  roles: Role[];    
+  roles: Role[];
 }
 
 // 3. Định nghĩa cấu trúc phản hồi chung từ Server
