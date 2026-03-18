@@ -2,8 +2,8 @@ import { useCartStore } from '@/features/cart/store/useCartStore';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useCheckoutStore } from './useCheckoutStore';
-import { paymentApi } from '../api/paymentApi'; // Đổi đường dẫn theo project của bạn
 import type { OrderDetailsData } from '../type/type'; // Đổi đường dẫn type
+import { paymentApi } from '../api/checkout-api';
 
 export const useOrderSuccess = () => {
   const [searchParams] = useSearchParams();

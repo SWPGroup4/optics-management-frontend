@@ -1,11 +1,10 @@
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input'; // Thêm import Input
+import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useCheckoutStore } from '../store/useCheckoutStore';
-import { CheckCircle2, CreditCard, Truck, Landmark } from 'lucide-react'; // Thêm icon Landmark
+import { CheckCircle2, CreditCard, Truck, Landmark } from 'lucide-react';
 
 export const PaymentForm = () => {
-  // Lấy state và action từ Zustand Store (Bạn nhớ thêm bankInfo và updateBankInfo vào store nhé)
   const { paymentMethod, setPaymentMethod, bankInfo, updateBankInfo } = useCheckoutStore();
 
   return (
@@ -15,7 +14,6 @@ export const PaymentForm = () => {
           Phương thức thanh toán
         </h2>
 
-        {/* Kết nối giá trị với Zustand */}
         <RadioGroup
           value={paymentMethod}
           onValueChange={setPaymentMethod}
@@ -91,8 +89,9 @@ export const PaymentForm = () => {
             <Landmark className="w-5 h-5 text-[#4A8795]" />
           </div>
           Thông tin ngân hàng
-          <span className="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded-full ml-2">
-            Tuỳ chọn
+          {/* Đổi nhãn thành Bắt buộc với màu đỏ để thu hút sự chú ý */}
+          <span className="text-xs font-medium text-red-600 bg-red-50 border border-red-100 px-2 py-1 rounded-full ml-2">
+            Bắt buộc
           </span>
         </h3>
 
@@ -100,7 +99,7 @@ export const PaymentForm = () => {
           {/* Tên ngân hàng */}
           <div className="space-y-2">
             <Label htmlFor="bankName" className="text-sm font-semibold text-gray-700">
-              Tên ngân hàng
+              Tên ngân hàng <span className="text-red-500">*</span>
             </Label>
             <Input
               id="bankName"
@@ -108,13 +107,14 @@ export const PaymentForm = () => {
               className="h-11 bg-gray-50/50 border-gray-200 focus:border-[#4A8795] focus:ring-[#4A8795]/20 focus:bg-white rounded-xl"
               value={bankInfo?.bankName || ''}
               onChange={(e) => updateBankInfo({ ...bankInfo, bankName: e.target.value })}
+              required
             />
           </div>
 
           {/* Số tài khoản */}
           <div className="space-y-2">
             <Label htmlFor="bankAccountNumber" className="text-sm font-semibold text-gray-700">
-              Số tài khoản
+              Số tài khoản <span className="text-red-500">*</span>
             </Label>
             <Input
               id="bankAccountNumber"
@@ -122,13 +122,14 @@ export const PaymentForm = () => {
               className="h-11 bg-gray-50/50 border-gray-200 focus:border-[#4A8795] focus:ring-[#4A8795]/20 focus:bg-white rounded-xl"
               value={bankInfo?.bankAccountNumber || ''}
               onChange={(e) => updateBankInfo({ ...bankInfo, bankAccountNumber: e.target.value })}
+              required
             />
           </div>
 
           {/* Tên chủ tài khoản */}
           <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="accountHolderName" className="text-sm font-semibold text-gray-700">
-              Tên chủ tài khoản
+              Tên chủ tài khoản <span className="text-red-500">*</span>
             </Label>
             <Input
               id="accountHolderName"
@@ -138,6 +139,7 @@ export const PaymentForm = () => {
               onChange={(e) =>
                 updateBankInfo({ ...bankInfo, accountHolderName: e.target.value.toUpperCase() })
               }
+              required
             />
           </div>
         </div>

@@ -1,5 +1,5 @@
-import { api } from '@/lib/axios';
-import type { CheckoutRequest, CheckoutResponse } from '../type/type';
+import { api } from "@/lib/axios";
+import type { CheckoutRequest, CheckoutResponse, OrderDetailsResponse } from "../type/type";
 
 export const paymentApi = {
   getPaymentRequirement: async (payload: CheckoutRequest) =>
@@ -23,4 +23,6 @@ export const paymentApi = {
         params: { orderId: orderId },
       })
       .then((res) => res.data),
+  getOrderDetails: async (orderId: string) =>
+    await api.get<OrderDetailsResponse>(`/orders/${orderId}`).then((res) => res.data),
 };

@@ -1,29 +1,19 @@
 import { NavLink } from 'react-router-dom';
-import { User, Package, FileText, MapPin } from 'lucide-react';
+import { User, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const sidebarItems = [
   {
-    title: 'Personal Info',
+    title: 'Thông tin cá nhân',
     href: '/profile',
     icon: User,
     end: true, // Exact match for the root profile path
   },
   {
-    title: 'My Orders',
+    title: 'Đơn hàng của tôi',
     href: '/profile/orders',
     icon: Package,
-  },
-  {
-    title: 'My Prescriptions',
-    href: '/profile/prescriptions',
-    icon: FileText,
-  },
-  {
-    title: 'Addresses',
-    href: '/profile/addresses',
-    icon: MapPin,
-  },
+  }
 ];
 
 export function ProfileSidebar() {

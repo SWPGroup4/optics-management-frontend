@@ -62,3 +62,15 @@ export interface CheckoutState {
   updateShippingData: (data: Partial<CheckoutState['shippingData']>) => void;
   resetCheckout: () => void;
 }
+// Chỉ khai báo những gì màn hình Success cần dùng
+export interface OrderDetailsData {
+  orderId: string;
+  recipientName: string; // Lấy tên để hiển thị "Cảm ơn [Tên]..."
+  totalAmount: number;   // Lấy tổng tiền để show biên lai (nếu cần)
+}
+
+export interface OrderDetailsResponse {
+  code: number;
+  message: string;
+  result: OrderDetailsData;
+}
