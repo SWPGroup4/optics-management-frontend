@@ -1,4 +1,4 @@
-import { api } from "@/lib/axios";
+import { api } from '@/lib/axios';
 
 /* ====== TYPE ====== */
 export interface Order {
@@ -6,7 +6,7 @@ export interface Order {
   customerId: string;
   phoneNumber: string;
   deliveryAddress: string;
-  orderStatus: "AWAITING_VERIFICATION";
+  orderStatus: 'AWAITING_VERIFICATION';
   totalAmount: number;
   depositAmount: number;
   items: OrderItem[];
@@ -37,13 +37,9 @@ export interface OrderItem {
 }
 
 export const orderApi = {
- 
   getAwaitingVerificationOrders: async (): Promise<Order[]> => {
-    const response = await api.get(
-      "management/orders?status=AWAITING_VERIFICATION"
-    );
+    const response = await api.get('management/orders?status=AWAITING_VERIFICATION');
 
-    
     return response.data.result;
   },
   getOrderDetail: async (orderId: string): Promise<Order> => {

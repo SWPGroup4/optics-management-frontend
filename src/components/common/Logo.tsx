@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import { Glasses } from "lucide-react";
+import { Link } from 'react-router-dom';
+import { Glasses } from 'lucide-react';
 
 interface LogoProps {
   className?: string;
@@ -7,7 +7,7 @@ interface LogoProps {
   textSize?: string;
 }
 
-export default function Logo({ className = "", iconSize = 5, textSize = "text-lg" }: LogoProps) {
+export default function Logo({ className = '', iconSize = 5, textSize = 'text-lg' }: LogoProps) {
   return (
     <Link to="/" className={`flex items-center gap-2 group ${className}`}>
       <div className="bg-black text-white p-1 rounded group-hover:bg-emerald-600 transition-colors">

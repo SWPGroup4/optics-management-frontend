@@ -1,6 +1,12 @@
-import { api } from "@/lib/axios";
-import type { ApiResponse } from "@/features/auth/types";
-import type { FilterParams, GetFilteredProductsResponse, GetVariantsResponse, Product, ProductVariant } from "../types/product-type";
+import { api } from '@/lib/axios';
+import type { ApiResponse } from '@/features/auth/types';
+import type {
+  FilterParams,
+  GetFilteredProductsResponse,
+  GetVariantsResponse,
+  Product,
+  ProductVariant,
+} from '../types/product-type';
 
 export const productApi = {
   getAllProducts: async () => {
