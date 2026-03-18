@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { orderApi, type Order } from "@/features/seller/api/order-api";
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { orderApi, type Order } from '@/features/seller/api/order-api';
 
 export default function OrderPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -13,7 +13,7 @@ export default function OrderPage() {
         const data = await orderApi.getAwaitingVerificationOrders();
         setOrders(data);
       } catch (error) {
-        console.error("Lỗi tải đơn hàng:", error);
+        console.error('Lỗi tải đơn hàng:', error);
       } finally {
         setLoading(false);
       }
@@ -45,17 +45,11 @@ export default function OrderPage() {
           <tbody className="divide-y">
             {orders.map((order) => (
               <tr key={order.orderId} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-medium">
-                  {order.orderId}
-                </td>
+                <td className="px-4 py-3 font-medium">{order.orderId}</td>
 
-                <td className="px-4 py-3">
-                  {order.phoneNumber}
-                </td>
+                <td className="px-4 py-3">{order.phoneNumber}</td>
 
-                <td className="px-4 py-3 font-medium">
-                  {order.totalAmount.toLocaleString()}đ
-                </td>
+                <td className="px-4 py-3 font-medium">{order.totalAmount.toLocaleString()}đ</td>
 
                 <td className="px-4 py-3">
                   <span className="px-3 py-1 rounded-full text-xs bg-orange-100 text-orange-700">
@@ -65,9 +59,7 @@ export default function OrderPage() {
 
                 <td className="px-4 py-3 text-right">
                   <button
-                    onClick={() =>
-                      navigate(`/seller/orders/${order.orderId}`)
-                    }
+                    onClick={() => navigate(`/seller/orders/${order.orderId}`)}
                     className="px-3 py-1 border rounded-full text-xs hover:bg-gray-100"
                   >
                     Xử lý
@@ -79,9 +71,7 @@ export default function OrderPage() {
         </table>
 
         {orders.length === 0 && (
-          <div className="p-6 text-center text-gray-500">
-            Không có đơn nào chờ xác minh
-          </div>
+          <div className="p-6 text-center text-gray-500">Không có đơn nào chờ xác minh</div>
         )}
       </div>
     </div>

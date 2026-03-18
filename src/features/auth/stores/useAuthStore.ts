@@ -1,15 +1,15 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { jwtDecode } from "jwt-decode";
+import { jwtDecode } from 'jwt-decode';
 import axios, { AxiosError } from 'axios';
 import { authApi } from '../api/auth-api';
 
-import { 
-  JwtPayloadSchema, 
-  type AuthStore, 
-  type UserState, 
-  type ApiResponse, 
-  type RegisterInput 
+import {
+  JwtPayloadSchema,
+  type AuthStore,
+  type UserState,
+  type ApiResponse,
+  type RegisterInput,
 } from '../types';
 import { PROFILE_QUERY_KEY } from '@/features/profile/hooks/useProfileQuery';
 import { queryClient } from '@/lib/react-query';

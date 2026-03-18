@@ -1,38 +1,67 @@
 import { useCartStore } from '@/features/cart/store/useCartStore';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useCheckoutStore } from './useCheckoutStore';
-
+import { paymentApi } from '../api/paymentApi'; // Đổi đường dẫn theo project của bạn
+import type { OrderDetailsData } from '../type/type'; // Đổi đường dẫn type
 
 export const useOrderSuccess = () => {
   const [searchParams] = useSearchParams();
   const clearCart = useCartStore((state) => state.clearCart);
   const resetCheckout = useCheckoutStore((state) => state.resetCheckout);
 
-  // 1. Logic Cleanup: Chạy 1 lần khi hook được gọi (Component mount)
-  useEffect(() => {
-    clearCart();
-    resetCheckout();
-  }, [clearCart, resetCheckout]);
+  // Thêm state để quản lý loading và data
+  const [isLoading, setIsLoading] = useState(true);
+  const [orderData, setOrderData] = useState<OrderDetailsData | null>(null);
 
-  // 2. Logic lấy dữ liệu hiển thị
+  // Lấy dữ liệu từ URL
   const orderId = searchParams.get('orderId') || '#UNKNOWN';
   const email = searchParams.get('email') || 'customer@example.com';
 
-  // 3. Logic tính toán ngày giao hàng (Pure logic)
+  useEffect(() => {
+    const fetchOrderDetails = async () => {
+      try {
+        setIsLoading(true);
+        // Gọi API lấy thông tin đơn hàng
+        const data = await paymentApi.getOrderDetails(orderId);
+        if (data?.result) {
+          setOrderData(data.result);
+        }
+      } catch (error) {
+        console.error('Lỗi khi lấy thông tin đơn hàng:', error);
+      } finally {
+        setIsLoading(false);
+        // Cleanup cart sau khi đã lấy xong data để tránh mất dữ liệu quá sớm
+        clearCart();
+        resetCheckout();
+      }
+    };
+
+    if (orderId !== '#UNKNOWN') {
+      fetchOrderDetails();
+    } else {
+      setIsLoading(false);
+      clearCart();
+      resetCheckout();
+    }
+  }, [orderId, clearCart, resetCheckout]);
+
+  // Logic tính ngày giao hàng (Dịch sang tiếng Việt cho đồng bộ UI)
   const deliveryDate = useMemo(() => {
     const date = new Date();
-    date.setDate(date.getDate() + 3); // Cộng thêm 3 ngày
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'short', 
-      month: 'short', 
-      day: 'numeric' 
+    date.setDate(date.getDate() + 3);
+    return date.toLocaleDateString('vi-VN', {
+      weekday: 'short',
+      month: 'numeric',
+      day: 'numeric',
     });
   }, []);
 
   return {
     orderId,
     email,
-    deliveryDate
+    deliveryDate,
+    isLoading,
+    orderData, // Trả orderData ra cho component dùng
   };
 };

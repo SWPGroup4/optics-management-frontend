@@ -9,9 +9,9 @@ export const useLenses = () => {
   const query = useQuery({
     queryKey: ['lenses'],
     queryFn: lensApi.getAll,
-    select: (data) => data.result, 
-    staleTime: 1000 * 60 * 5, 
-    retry: 2, 
+    select: (data) => data.result,
+    staleTime: 1000 * 60 * 5,
+    retry: 2,
   });
 
   // 2. CREATE - Thêm mới sản phẩm

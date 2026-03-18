@@ -6,21 +6,15 @@ import {
   type LucideIcon,
   Loader2,
   Lock,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { useProfileQuery } from "../hooks/useProfileQuery";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { useProfileQuery } from '../hooks/useProfileQuery';
 
 // Component tiêu đề nhỏ
-const SectionTitle = ({
-  icon: Icon,
-  title,
-}: {
-  icon: LucideIcon;
-  title: string;
-}) => (
+const SectionTitle = ({ icon: Icon, title }: { icon: LucideIcon; title: string }) => (
   <div className="flex items-center gap-2 text-gray-500 text-xs font-bold uppercase tracking-wider mb-6">
     <Icon className="w-4 h-4" />
     <span>{title}</span>
@@ -55,7 +49,6 @@ export default function ProfilePage() {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-in fade-in duration-500">
       <div className="p-8 space-y-10">
-        
         {/* --- 1. HEADER & AVATAR --- */}
         <div className="flex flex-col md:flex-row gap-8 items-start justify-between">
           <div className="flex gap-6 items-center">
@@ -93,16 +86,12 @@ export default function ProfilePage() {
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-emerald-900 text-sm">
-                Account Verified
-              </h3>
+              <h3 className="font-bold text-emerald-900 text-sm">Account Verified</h3>
               <p className="text-xs text-emerald-700 mt-1 leading-relaxed">
-                Identity secured. Current roles:{" "}
+                Identity secured. Current roles:{' '}
                 <span className="font-semibold">
                   {/* 👇 FIX: Dùng safeRoles thay vì profile.roles */}
-                  {safeRoles.length > 0 
-                    ? safeRoles.map((r) => r.name).join(", ") 
-                    : "MEMBER"}
+                  {safeRoles.length > 0 ? safeRoles.map((r) => r.name).join(', ') : 'MEMBER'}
                 </span>
               </p>
             </div>
@@ -118,7 +107,7 @@ export default function ProfilePage() {
             <div className="space-y-2">
               <Label className="text-xs font-semibold text-gray-500 ml-1">First Name</Label>
               <Input
-                value={profile.firstName || ""}
+                value={profile.firstName || ''}
                 className="h-11 bg-gray-50/50 border-gray-200 text-gray-700 font-medium"
                 readOnly
               />
@@ -126,7 +115,7 @@ export default function ProfilePage() {
             <div className="space-y-2">
               <Label className="text-xs font-semibold text-gray-500 ml-1">Last Name</Label>
               <Input
-                value={profile.lastName || ""}
+                value={profile.lastName || ''}
                 className="h-11 bg-gray-50/50 border-gray-200 text-gray-700 font-medium"
                 readOnly
               />
@@ -137,7 +126,7 @@ export default function ProfilePage() {
               <Input
                 type="date"
                 // Backend trả về "2026-01-28", input type date nhận format này chuẩn
-                value={profile.dob || ""}
+                value={profile.dob || ''}
                 className="h-11 bg-gray-50/50 border-gray-200 text-gray-700 font-medium"
                 readOnly
               />
@@ -153,7 +142,7 @@ export default function ProfilePage() {
               <Label className="text-xs font-semibold text-gray-500 ml-1">Email Address</Label>
               <div className="relative group">
                 <Input
-                  value={profile.email || ""}
+                  value={profile.email || ''}
                   className="h-11 bg-gray-50/50 pr-24 border-gray-200 text-gray-700 font-medium"
                   readOnly
                 />
@@ -166,7 +155,7 @@ export default function ProfilePage() {
             <div className="space-y-2">
               <Label className="text-xs font-semibold text-gray-500 ml-1">Phone Number</Label>
               <Input
-                value={profile.phone || "Not provided"}
+                value={profile.phone || 'Not provided'}
                 className="h-11 bg-gray-50/50 border-gray-200 text-gray-700 font-medium"
                 readOnly
               />
@@ -181,25 +170,25 @@ export default function ProfilePage() {
                 Active Roles & Permissions
               </h4>
             </div>
-            
+
             <div className="flex flex-wrap gap-2">
               {/* 👇 FIX: Dùng safeRoles để map an toàn */}
               {safeRoles.length > 0 ? (
                 safeRoles.map((role, index) => (
-                  <div 
-                    key={index} 
+                  <div
+                    key={index}
                     className="group relative bg-white border border-gray-200 pl-3 pr-3 py-1.5 rounded-lg shadow-sm hover:border-zinc-300 transition-colors cursor-default"
                   >
                     <div className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                       <span className="text-xs font-bold text-gray-700">{role.name}</span>
                     </div>
-                    
+
                     {/* Tooltip hiển thị description (nếu có) */}
                     {role.description && (
-                       <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[200px] px-2 py-1 text-[10px] text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                         {role.description}
-                       </span>
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[200px] px-2 py-1 text-[10px] text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                        {role.description}
+                      </span>
                     )}
                   </div>
                 ))
@@ -208,7 +197,6 @@ export default function ProfilePage() {
               )}
             </div>
           </div>
-
         </div>
       </div>
     </div>

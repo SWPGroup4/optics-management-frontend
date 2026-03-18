@@ -1,5 +1,5 @@
-import Logo from "@/components/common/Logo";
-import React from "react";
+import Logo from '@/components/common/Logo';
+import React from 'react';
 
 const Footer: React.FC = () => {
   return (
@@ -10,9 +10,8 @@ const Footer: React.FC = () => {
           <Logo className="" iconSize={6} textSize="text-xl" />
 
           <p style={styles.description}>
-            Đổi mới ngành kính mắt từ năm 2012. Chúng tôi kết hợp tay nghề thủ công
-            tinh xảo với công nghệ số hiện đại để mang đến trải nghiệm quang học
-            tốt nhất cho bạn.
+            Đổi mới ngành kính mắt từ năm 2012. Chúng tôi kết hợp tay nghề thủ công tinh xảo với
+            công nghệ số hiện đại để mang đến trải nghiệm quang học tốt nhất cho bạn.
           </p>
 
           <div style={styles.social}>
@@ -59,68 +58,68 @@ const Footer: React.FC = () => {
 
 const styles: { [key: string]: React.CSSProperties } = {
   footer: {
-    backgroundColor: "#ffffff",
-    borderTop: "1px solid #e5e7eb",
-    padding: "40px 80px",
-    fontFamily: "Arial, sans-serif",
-    color: "#374151",
+    backgroundColor: '#ffffff',
+    borderTop: '1px solid #e5e7eb',
+    padding: '40px 80px',
+    fontFamily: 'Arial, sans-serif',
+    color: '#374151',
   },
   container: {
-    display: "grid",
-    gridTemplateColumns: "2fr 1fr 1fr 1fr",
-    gap: "40px",
+    display: 'grid',
+    gridTemplateColumns: '2fr 1fr 1fr 1fr',
+    gap: '40px',
   },
   column: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
   },
   logo: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
     fontWeight: 600,
-    fontSize: "18px",
+    fontSize: '18px',
   },
   logoIcon: {
-    color: "#2563eb",
+    color: '#2563eb',
   },
   logoText: {
-    color: "#111827",
+    color: '#111827',
   },
   description: {
-    fontSize: "14px",
-    lineHeight: "1.6",
-    color: "#6b7280",
-    maxWidth: "300px",
+    fontSize: '14px',
+    lineHeight: '1.6',
+    color: '#6b7280',
+    maxWidth: '300px',
   },
   social: {
-    display: "flex",
-    gap: "12px",
-    marginTop: "8px",
+    display: 'flex',
+    gap: '12px',
+    marginTop: '8px',
   },
   iconBtn: {
-    width: "36px",
-    height: "36px",
-    borderRadius: "50%",
-    border: "1px solid #d1d5db",
-    background: "#ffffff",
-    cursor: "pointer",
+    width: '36px',
+    height: '36px',
+    borderRadius: '50%',
+    border: '1px solid #d1d5db',
+    background: '#ffffff',
+    cursor: 'pointer',
   },
   title: {
-    fontSize: "14px",
+    fontSize: '14px',
     fontWeight: 600,
-    color: "#111827",
+    color: '#111827',
   },
   list: {
-    listStyle: "none",
+    listStyle: 'none',
     padding: 0,
     margin: 0,
-    fontSize: "14px",
-    color: "#6b7280",
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
+    fontSize: '14px',
+    color: '#6b7280',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
   },
 };
 
