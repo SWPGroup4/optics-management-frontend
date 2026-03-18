@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { profileApi } from "../api/api";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -23,6 +23,9 @@ interface Prescription {
 interface OrderItem {
   orderItemId: string;
   productVariantId: string | null;
+  itemName: string | null;
+  productName: string | null;
+  variantName: string | null;
   orderItemType: "IN_STOCK" | "PRE_ORDER";
   quantity: number;
   unitPrice: number;
@@ -38,6 +41,7 @@ interface OrderItem {
 interface Order {
   customerId: string;
   orderId: string;
+  orderName: string | null;
   deliveryAddress: string;
   phoneNumber: string;
   orderStatus: string;
@@ -128,13 +132,11 @@ function PrescriptionImage({ imageUrl }: { imageUrl: string }) {
 
 // ─── OrderItem Card ───────────────────────────────────────────────────────────
 
-function OrderItemCard({ item }: { item: OrderItem; index: number; total: number }) {
-  // Tên sản phẩm: dùng lensName nếu có, hoặc hiển thị loại + số thứ tự
-  const productLabel = item.lensName
-    ? `Sản phẩm kèm tròng: ${item.lensName}`
-    : item.orderItemType === "PRE_ORDER"
-    ? "Sản phẩm đặt trước"
-    : "Sản phẩm có sẵn";
+function OrderItemCard({ item, orderName }: { item: OrderItem; index: number; total: number; orderName?: string | null }) {
+  // DEBUG: log để kiểm tra dữ liệu thực tế từ API
+  console.log("[OrderItemCard]", { itemName: item.itemName, productName: item.productName, variantName: item.variantName, orderName });
+
+  const productLabel = item.productName || item.itemName || orderName || (item.orderItemType === "PRE_ORDER" ? "Sản phẩm đặt trước" : "Sản phẩm có sẵn");
 
   return (
     <div className="bg-white border border-gray-100 rounded-xl p-4 space-y-3">
@@ -157,6 +159,18 @@ function OrderItemCard({ item }: { item: OrderItem; index: number; total: number
           </div>
           {/* Tên sản phẩm */}
           <p className="text-sm font-semibold text-gray-800">{productLabel}</p>
+          {/* Variant name */}
+          {item.variantName && (
+            <p className="text-xs text-gray-500 mt-0.5">
+              🏷️ {item.variantName}
+            </p>
+          )}
+          {/* Tên đầy đủ (itemName) nếu khác productLabel — tránh trùng */}
+          {item.itemName && item.itemName !== productLabel && (
+            <p className="text-xs text-gray-400 mt-0.5 truncate" title={item.itemName}>
+              {item.itemName}
+            </p>
+          )}
           {/* Tròng kính riêng */}
           {item.lensName && item.lensPrice != null && (
             <p className="text-xs text-indigo-500 mt-0.5">
@@ -275,7 +289,11 @@ function OrderCard({ order }: { order: Order }) {
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <p className="font-semibold text-gray-800 text-sm">
-                Đơn #{order.orderId.slice(0, 8).toUpperCase()}
+                {order.orderName
+                  ? order.orderName.length > 40
+                    ? order.orderName.slice(0, 40) + "…"
+                    : order.orderName
+                  : `Đơn #${order.orderId.slice(0, 8).toUpperCase()}`}
               </p>
               <span className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-600 text-[10px] font-semibold px-2 py-0.5 rounded-full">
                 {itemCount} sản phẩm
@@ -342,7 +360,7 @@ function OrderCard({ order }: { order: Order }) {
           ) : (
             <div className="space-y-3">
               {order.items.map((item, idx) => (
-                <OrderItemCard key={item.orderItemId} item={item} index={idx} total={itemCount} />
+                <OrderItemCard key={item.orderItemId} item={item} index={idx} total={itemCount} orderName={order.orderName} />
               ))}
             </div>
           )}
@@ -387,12 +405,20 @@ function OrderCard({ order }: { order: Order }) {
 export default function MyOrders() {
   const [activeTab, setActiveTab] = useState("ALL");
 
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+  }, []);
+
   const { data: orders, isLoading, isError } = useQuery({
     queryKey: ["my-orders"],
     queryFn: async () => {
       const response = await profileApi.getOrders();
       return response.data.result as Order[];
     },
+    staleTime: 0,
+    gcTime: 0,
   });
 
   if (isLoading) {
