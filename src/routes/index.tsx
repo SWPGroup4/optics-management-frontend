@@ -34,6 +34,7 @@ import OrderDetailPage from "@/features/seller/page/order/OrderDetailPage"
 import { OpsStaffDashboardLayout } from "@/features/operation-staff/layout/OpsStaffDashboardLayout"
 import OpsStaffDashboardPage from "@/features/operation-staff/page/dashboard/OpsStaffDashboardPage"
 import { RequireRole } from "./protected-route"
+import RefundManagePage from "@/features/manager/page/Refund/ManageRefundPage"
 
 export const router = createBrowserRouter([
   {
@@ -102,7 +103,8 @@ export const router = createBrowserRouter([
           { path: "customers", element: <ManageCustomerPage /> },
           { path: "products/:productId/variants", element: <ProductVariantManagePage /> },
           { path: "staff", element: <StaffCustomerPage /> },
-          { path: "lenses", element: <LensesManagerPage /> }
+          { path: "lenses", element: <LensesManagerPage /> },
+          { path: "refunds", element: <RefundManagePage /> }
         ],
       },
 

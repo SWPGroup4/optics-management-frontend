@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   Search, Plus, MoreHorizontal, Trash2, Edit,
   ArrowLeft, ImageIcon, Package, Tag,
-  Loader2, AlertCircle,
+  Loader2, AlertCircle, Copy, Check,
 } from 'lucide-react';
 import { useVariants, useCreateVariant, useUpdateVariant, useDeleteVariant } from '../../hooks/useVariants';
 import VariantModal from '../../page/products/VariantModal';
@@ -12,17 +12,16 @@ const ProductVariantManagePage = () => {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
 
-  // --- DỮ LIỆU ---
   const { data: variants = [], isLoading, isError } = useVariants(productId!);
   const createMutation = useCreateVariant(productId!);
   const updateMutation = useUpdateVariant(productId!);
   const deleteMutation = useDeleteVariant(productId!);
 
-  // --- TRẠNG THÁI UI ---
   const [searchTerm, setSearchTerm] = useState('');
   const [openActionId, setOpenActionId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingVariant, setEditingVariant] = useState<any>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     const handleClickGlobal = () => setOpenActionId(null);
@@ -30,39 +29,30 @@ const ProductVariantManagePage = () => {
     return () => window.removeEventListener('click', handleClickGlobal);
   }, []);
 
-  // --- BỘ LỌC ---
   const filteredVariants = useMemo(() => {
     const term = searchTerm.toLowerCase();
     return variants.filter((v: any) =>
       (v.colorName ?? '').toLowerCase().includes(term) ||
       (v.frameFinish ?? '').toLowerCase().includes(term) ||
-      (v.sizeLabel ?? '').toLowerCase().includes(term),
+      (v.sizeLabel ?? '').toLowerCase().includes(term) ||
+      (v.id ?? '').toLowerCase().includes(term),
     );
   }, [variants, searchTerm]);
 
-  // --- XỬ LÝ SỰ KIỆN ---
-  const handleOpenAdd = () => {
-    setEditingVariant(null);
-    setIsModalOpen(true);
+  const handleCopyId = (id: string) => {
+    navigator.clipboard.writeText(id).then(() => {
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    });
   };
 
-  const handleOpenEdit = (variant: any) => {
-    setEditingVariant(variant);
-    setIsModalOpen(true);
-    setOpenActionId(null);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingVariant(null);
-  };
+  const handleOpenAdd = () => { setEditingVariant(null); setIsModalOpen(true); };
+  const handleOpenEdit = (variant: any) => { setEditingVariant(variant); setIsModalOpen(true); setOpenActionId(null); };
+  const handleCloseModal = () => { setIsModalOpen(false); setEditingVariant(null); };
 
   const handleSubmit = (form: any) => {
     if (editingVariant) {
-      updateMutation.mutate(
-        { variantId: editingVariant.id, payload: form },
-        { onSuccess: handleCloseModal }
-      );
+      updateMutation.mutate({ variantId: editingVariant.id, payload: form }, { onSuccess: handleCloseModal });
     } else {
       createMutation.mutate(form, { onSuccess: handleCloseModal });
     }
@@ -89,7 +79,7 @@ const ProductVariantManagePage = () => {
   return (
     <div className="min-h-screen bg-slate-50/50 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-indigo-50/50 via-white to-white p-8 font-sans text-slate-800 animate-in fade-in duration-700">
 
-      {/* TIÊU ĐỀ (HEADER) */}
+      {/* HEADER */}
       <div className="flex flex-col gap-6 mb-8">
         <button onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors w-fit font-medium text-sm group">
@@ -114,16 +104,16 @@ const ProductVariantManagePage = () => {
         </div>
       </div>
 
-      {/* THẺ CHÍNH (MAIN CARD) */}
+      {/* MAIN CARD */}
       <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xl shadow-slate-200/40 overflow-hidden flex flex-col min-h-[600px]">
 
-        {/* THANH CÔNG CỤ (TOOLBAR) */}
+        {/* TOOLBAR */}
         <div className="px-8 py-5 border-b border-slate-100 bg-white/50 backdrop-blur-xl sticky top-0 z-10 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="relative w-full sm:w-96 group">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
             </div>
-            <input type="text" placeholder="Tìm theo màu sắc, chất liệu, kích thước..."
+            <input type="text" placeholder="Tìm theo màu sắc, chất liệu, kích thước, ID..."
               value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
               className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-xl leading-5 bg-slate-50/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm shadow-sm"
             />
@@ -133,7 +123,7 @@ const ProductVariantManagePage = () => {
           </div>
         </div>
 
-        {/* NỘI DUNG (CONTENT) */}
+        {/* CONTENT */}
         <div className="flex-1 overflow-x-auto">
           {isError && (
             <div className="flex flex-col items-center justify-center h-80">
@@ -152,6 +142,7 @@ const ProductVariantManagePage = () => {
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/50">
                   <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Màu sắc & Hoàn thiện</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Variant ID</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Kích thước (mm)</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Giá bán</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Loại kho</th>
@@ -190,6 +181,25 @@ const ProductVariantManagePage = () => {
                               )}
                             </div>
                           </div>
+                        </div>
+                      </td>
+
+                      {/* VARIANT ID */}
+                      <td className="px-6 py-5 align-middle">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs text-slate-500 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg">
+                            {(variant.id ?? '').slice(0, 8)}...
+                          </span>
+                          <button
+                            onClick={() => handleCopyId(variant.id)}
+                            title="Sao chép ID đầy đủ"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                          >
+                            {copiedId === variant.id
+                              ? <Check className="w-3.5 h-3.5 text-emerald-500" />
+                              : <Copy className="w-3.5 h-3.5" />
+                            }
+                          </button>
                         </div>
                       </td>
 
@@ -268,7 +278,7 @@ const ProductVariantManagePage = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-6 py-24 text-center">
+                    <td colSpan={7} className="px-6 py-24 text-center">
                       <div className="flex flex-col items-center justify-center max-w-sm mx-auto">
                         <div className="w-20 h-20 bg-slate-50 rounded-2xl flex items-center justify-center mb-5 shadow-inner">
                           <Package className="w-10 h-10 text-slate-300" />
@@ -285,7 +295,6 @@ const ProductVariantManagePage = () => {
         </div>
       </div>
 
-      {/* MODAL (HỘI THOẠI) */}
       <VariantModal
         open={isModalOpen}
         onClose={handleCloseModal}
