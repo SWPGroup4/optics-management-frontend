@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, ShieldCheck, Sparkles, Gem } from "lucide-react";
+import { ArrowUpRight, ShieldCheck, Sparkles, Gem, ChevronLeft, ChevronRight } from "lucide-react";
 // 👇 Import hook gọi API của bạn vào đây
 import { useProducts } from "../hooks/useProducts";
 
@@ -13,6 +14,148 @@ export default function HomePage() {
   });
 
   const newArrivals = data?.items || [];
+
+  // 🎠 Slideshow Banner Data
+  const bannerSlides = [
+    {
+      tag: "Cam Kết Kiệt Tác",
+      headline: "Định hình phong cách.",
+      subline: "Tôn vinh khí chất.",
+      desc: "Mỗi thiết kế gọng kính đều là sự giao thoa hoàn mỹ giữa nghệ thuật chế tác thủ công và công nghệ vật liệu tiên tiến bậc nhất.",
+      badges: [
+        { icon: "shield", label: "Bảo hành chính hãng" },
+        { icon: "gem", label: "Titanium siêu nhẹ" },
+      ],
+      accent: "from-zinc-950 via-zinc-900 to-zinc-950",
+      glowColor: "bg-white/5",
+    },
+    {
+      tag: "Bộ Sưu Tập Mới",
+      headline: "Sang trọng từng đường nét.",
+      subline: "Tinh tế vượt thời gian.",
+      desc: "Những thiết kế lấy cảm hứng từ kiến trúc hiện đại, mang lại vẻ thanh lịch và cá tính riêng cho người đeo.",
+      badges: [
+        { icon: "shield", label: "Chất liệu cao cấp" },
+        { icon: "gem", label: "Thủ công tỉ mỉ" },
+      ],
+      accent: "from-[#0a0a0a] via-[#1a1209] to-[#0a0a0a]",
+      glowColor: "bg-amber-500/10",
+    },
+    {
+      tag: "Phong Cách Tối Giản",
+      headline: "Ít hơn, đẹp hơn.",
+      subline: "Minimalism đỉnh cao.",
+      desc: "Triết lý thiết kế Less is More — mỗi chi tiết đều có lý do tồn tại, mỗi đường cong đều kể một câu chuyện.",
+      badges: [
+        { icon: "shield", label: "Thiết kế thuần khiết" },
+        { icon: "gem", label: "Trọng lượng siêu nhẹ" },
+      ],
+      accent: "from-[#080810] via-[#10101a] to-[#080810]",
+      glowColor: "bg-indigo-500/10",
+    },
+    {
+      tag: "Dòng Titan Premium",
+      headline: "Bền bỉ như thời gian.",
+      subline: "Mạnh mẽ, nhẹ nhàng.",
+      desc: "Hợp kim titan y tế cấp độ cao — bền bỉ gấp 3 lần thép thường, nhẹ hơn 45% so với acetate truyền thống.",
+      badges: [
+        { icon: "shield", label: "Titan y tế Grade 5" },
+        { icon: "gem", label: "Chống ăn mòn tuyệt đối" },
+      ],
+      accent: "from-[#090909] via-[#111518] to-[#090909]",
+      glowColor: "bg-cyan-500/8",
+    },
+    {
+      tag: "Thiết Kế Độc Quyền",
+      headline: "Mang cả thế giới.",
+      subline: "Trên gọng kính bạn.",
+      desc: "Lấy cảm hứng từ nghệ thuật Nhật Bản, kiến trúc Bắc Âu và thời trang Ý — tạo nên ngôn ngữ thị giác đặc trưng.",
+      badges: [
+        { icon: "shield", label: "Limited edition" },
+        { icon: "gem", label: "Số lượng có hạn" },
+      ],
+      accent: "from-[#0c0808] via-[#180c0c] to-[#0c0808]",
+      glowColor: "bg-rose-500/8",
+    },
+    {
+      tag: "Tròng Kính Thế Hệ Mới",
+      headline: "Nhìn rõ hơn.",
+      subline: "Sống đẹp hơn.",
+      desc: "Tròng kính công nghệ HD Vision với lớp phủ chống phản chiếu, kháng trầy, chống tia UV400 toàn diện.",
+      badges: [
+        { icon: "shield", label: "Chống UV400" },
+        { icon: "gem", label: "HD Vision technology" },
+      ],
+      accent: "from-[#080c08] via-[#0e1510] to-[#080c08]",
+      glowColor: "bg-emerald-500/8",
+    },
+    {
+      tag: "Phong Cách Retro",
+      headline: "Hoài niệm thanh lịch.",
+      subline: "Hiện đại trong từng chi tiết.",
+      desc: "Những hình dáng kinh điển từ thập niên 70s được tái sinh với vật liệu hiện đại và kỹ thuật chế tác tiên tiến.",
+      badges: [
+        { icon: "shield", label: "Cảm hứng vintage" },
+        { icon: "gem", label: "Hiện đại hóa hoàn toàn" },
+      ],
+      accent: "from-[#0d0c08] via-[#1a1710] to-[#0d0c08]",
+      glowColor: "bg-yellow-500/8",
+    },
+    {
+      tag: "Unisex Collection",
+      headline: "Không giới hạn.",
+      subline: "Phong cách cho mọi người.",
+      desc: "Dòng sản phẩm unisex thiết kế thông minh, phù hợp với mọi khuôn mặt, mọi phong cách và mọi dịp.",
+      badges: [
+        { icon: "shield", label: "Phù hợp mọi khuôn mặt" },
+        { icon: "gem", label: "Đa năng & linh hoạt" },
+      ],
+      accent: "from-[#08080d] via-[#10101a] to-[#08080d]",
+      glowColor: "bg-purple-500/8",
+    },
+    {
+      tag: "Chính Sách Ưu Việt",
+      headline: "Mua sắm tự tin.",
+      subline: "Bảo hành trọn đời.",
+      desc: "Chính sách đổi trả 30 ngày không điều kiện, bảo hành chính hãng 2 năm và dịch vụ chăm sóc khách hàng 24/7.",
+      badges: [
+        { icon: "shield", label: "Đổi trả 30 ngày" },
+        { icon: "gem", label: "Bảo hành 2 năm" },
+      ],
+      accent: "from-[#080d08] via-[#0f1a12] to-[#080d08]",
+      glowColor: "bg-teal-500/8",
+    },
+    {
+      tag: "Flagship Store",
+      headline: "Trải nghiệm tại cửa hàng.",
+      subline: "Không gian kính mắt đẳng cấp.",
+      desc: "Đến trực tiếp để được tư vấn chuyên nghiệp, thử hàng trăm mẫu kính và đo kính miễn phí bởi chuyên gia.",
+      badges: [
+        { icon: "shield", label: "Tư vấn miễn phí" },
+        { icon: "gem", label: "Đo kính chuyên nghiệp" },
+      ],
+      accent: "from-[#0d0809] via-[#1a0f10] to-[#0d0809]",
+      glowColor: "bg-pink-500/8",
+    },
+  ];
+
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      goToSlide((prev: number) => (prev + 1) % bannerSlides.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const goToSlide = (indexOrUpdater: number | ((prev: number) => number)) => {
+    setIsAnimating(true);
+    setTimeout(() => {
+      setCurrentSlide(typeof indexOrUpdater === "function" ? indexOrUpdater(currentSlide) : indexOrUpdater);
+      setIsAnimating(false);
+    }, 300);
+  };
 
   // 🌟 Hàm lấy màu sắc và nhãn đồng bộ từ trang Search
   const getGenderBadge = (gender: string) => {
@@ -162,39 +305,111 @@ export default function HomePage() {
             )}
           </section>
 
-          {/* --- 4. BRANDING / SLOGAN SECTION --- */}
-          {/* 🌟 Đã thu nhỏ py-10 trên mobile, giảm kích thước text */}
-          <section className="relative rounded-[15px] md:rounded-[20px] bg-zinc-950 text-white overflow-hidden px-4 py-10 md:px-16 md:py-24 text-center group">
-             {/* Hiệu ứng ánh sáng */}
-             <div className="absolute top-[-50%] left-[50%] -translate-x-1/2 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-white/5 rounded-full blur-[80px] md:blur-[100px] pointer-events-none group-hover:bg-white/10 transition-colors duration-1000"></div>
-             
-             <div className="relative z-10 max-w-3xl mx-auto space-y-4 md:space-y-6">
+          {/* --- 4. BANNER SLIDESHOW (10 slides, auto 3s) --- */}
+          <section className="relative rounded-[15px] md:rounded-[20px] overflow-hidden">
+            {/* Slides */}
+            {bannerSlides.map((slide, idx) => (
+              <div
+                key={idx}
+                className={`absolute inset-0 bg-gradient-to-br ${slide.accent} text-white transition-all duration-500 ease-in-out ${
+                  idx === currentSlide
+                    ? "opacity-100 z-10"
+                    : "opacity-0 z-0"
+                }`}
+              >
+                {/* Glow effect */}
+                <div className={`absolute top-[-50%] left-[50%] -translate-x-1/2 w-[300px] md:w-[600px] h-[300px] md:h-[600px] ${slide.glowColor} rounded-full blur-[80px] md:blur-[120px] pointer-events-none`}></div>
+              </div>
+            ))}
+
+            {/* Content */}
+            <div className="relative z-20 px-4 py-10 md:px-16 md:py-24 text-center">
+              <div
+                className={`max-w-3xl mx-auto space-y-4 md:space-y-6 transition-all duration-300 ${
+                  isAnimating ? "opacity-0 translate-y-4" : "opacity-100 translate-y-0"
+                }`}
+              >
                 <div className="flex justify-center items-center gap-2 mb-2 md:mb-4">
                   <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />
-                  <span className="text-[9px] md:text-[10px] font-bold tracking-[0.3em] text-gray-400 uppercase block">Cam Kết Kiệt Tác</span>
+                  <span className="text-[9px] md:text-[10px] font-bold tracking-[0.3em] text-gray-400 uppercase block">
+                    {bannerSlides[currentSlide].tag}
+                  </span>
                   <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />
                 </div>
-                
-                <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-serif leading-tight">
-                   Định hình phong cách. <br className="hidden sm:block"/> 
-                   <span className="text-gray-400 italic font-light sm:ml-2">Tôn vinh khí chất.</span>
+
+                <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-serif leading-tight text-white">
+                  {bannerSlides[currentSlide].headline}
+                  <br className="hidden sm:block" />
+                  <span className="text-gray-400 italic font-light sm:ml-2">
+                    {bannerSlides[currentSlide].subline}
+                  </span>
                 </h2>
-                
+
                 <p className="text-gray-400 text-xs md:text-base font-light leading-relaxed max-w-2xl mx-auto pt-2 md:pt-4 px-2">
-                   Mỗi thiết kế gọng kính đều là sự giao thoa hoàn mỹ giữa nghệ thuật chế tác thủ công và công nghệ vật liệu tiên tiến bậc nhất.
+                  {bannerSlides[currentSlide].desc}
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 max-w-lg mx-auto pt-4 md:pt-8">
-                  <div className="flex items-center justify-center gap-2 md:gap-3 bg-white/5 rounded-[12px] md:rounded-[15px] p-3 md:p-4 border border-white/10">
-                    <ShieldCheck className="w-4 h-4 md:w-5 md:h-5 text-gray-300" />
-                    <span className="text-[10px] md:text-xs font-medium tracking-wide uppercase text-gray-300">Bảo hành chính hãng</span>
-                  </div>
-                  <div className="flex items-center justify-center gap-2 md:gap-3 bg-white/5 rounded-[12px] md:rounded-[15px] p-3 md:p-4 border border-white/10">
-                    <Gem className="w-4 h-4 md:w-5 md:h-5 text-gray-300" />
-                    <span className="text-[10px] md:text-xs font-medium tracking-wide uppercase text-gray-300">Titanium siêu nhẹ</span>
-                  </div>
+                  {bannerSlides[currentSlide].badges.map((badge, bIdx) => (
+                    <div key={bIdx} className="flex items-center justify-center gap-2 md:gap-3 bg-white/5 rounded-[12px] md:rounded-[15px] p-3 md:p-4 border border-white/10">
+                      {badge.icon === "shield"
+                        ? <ShieldCheck className="w-4 h-4 md:w-5 md:h-5 text-gray-300" />
+                        : <Gem className="w-4 h-4 md:w-5 md:h-5 text-gray-300" />
+                      }
+                      <span className="text-[10px] md:text-xs font-medium tracking-wide uppercase text-gray-300">{badge.label}</span>
+                    </div>
+                  ))}
                 </div>
-             </div>
+              </div>
+
+              {/* Navigation arrows */}
+              <button
+                onClick={() => goToSlide((currentSlide - 1 + bannerSlides.length) % bannerSlides.length)}
+                className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 z-30 w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center transition-all duration-200 backdrop-blur-sm"
+              >
+                <ChevronLeft className="w-4 h-4 text-white" />
+              </button>
+              <button
+                onClick={() => goToSlide((currentSlide + 1) % bannerSlides.length)}
+                className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 z-30 w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center transition-all duration-200 backdrop-blur-sm"
+              >
+                <ChevronRight className="w-4 h-4 text-white" />
+              </button>
+
+              {/* Dot indicators */}
+              <div className="flex justify-center gap-1.5 mt-8 md:mt-10 relative z-30">
+                {bannerSlides.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => goToSlide(idx)}
+                    className={`transition-all duration-300 rounded-full ${
+                      idx === currentSlide
+                        ? "w-6 md:w-8 h-1.5 bg-white"
+                        : "w-1.5 h-1.5 bg-white/30 hover:bg-white/50"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* Progress bar */}
+              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/10 z-30">
+                <div
+                  key={currentSlide}
+                  className="h-full bg-white/40 animate-[progress_3s_linear_forwards]"
+                  style={{
+                    animation: "slideProgress 3s linear forwards",
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Inline keyframe style */}
+            <style>{`
+              @keyframes slideProgress {
+                from { width: 0%; }
+                to { width: 100%; }
+              }
+            `}</style>
           </section>
 
         </div>
