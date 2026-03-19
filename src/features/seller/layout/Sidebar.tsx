@@ -1,5 +1,5 @@
-import { NavLink } from "react-router-dom";
-import { ClipboardList } from "lucide-react";
+import { NavLink } from 'react-router-dom';
+import { ClipboardList } from 'lucide-react';
 
 export default function Sidebar() {
   return (
@@ -11,7 +11,7 @@ export default function Sidebar() {
         end
         className={({ isActive }) =>
           `flex items-center gap-2 px-4 py-2 rounded-lg text-sm
-          ${isActive ? "bg-purple-600 text-white" : "text-gray-700 hover:bg-gray-100"}`
+          ${isActive ? 'bg-purple-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`
         }
       >
         <ClipboardList className="w-4 h-4" />

@@ -1,14 +1,14 @@
-import { api } from "@/lib/axios";
-import type { ApiResponse, UserProfile } from "../types";
+import { api } from '@/lib/axios';
+import type { ApiResponse, UserProfile } from '../types';
 export const profileApi = {
   // 1. Lấy thông tin cá nhân
   getProfile: async (): Promise<UserProfile> => {
     // Gọi API (endpoint này tuỳ backend bạn, thường là /users/my-info hoặc /users/profile)
-    const response = await api.get<ApiResponse<UserProfile>>('/users/me'); 
-    
+    const response = await api.get<ApiResponse<UserProfile>>('/users/me');
+
     // 🔥 QUAN TRỌNG: Trả về .result để Hook nhận đúng data UserProfile
     // Nếu không có .result, UI sẽ nhận cả cục { code: 0, result: ... } và bị lỗi
-    return response.data.result; 
+    return response.data.result;
   },
 
   // 2. Cập nhật thông tin cá nhân
@@ -34,5 +34,4 @@ export const profileApi = {
   getAddresses: () => {
     return api.get('/profile/addresses');
   },
-
-};      
+};

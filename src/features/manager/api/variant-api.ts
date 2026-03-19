@@ -1,5 +1,5 @@
 // src/features/products/api/variant-api.ts
-import { api } from "@/lib/axios";
+import { api } from '@/lib/axios';
 
 export const variantApi = {
   // Cập nhật endpoint đúng: /products/{productId}/variants
@@ -9,12 +9,12 @@ export const variantApi = {
         page: 0,
         size: 100, // Lấy số lượng lớn để hiển thị đủ ở trang quản lý
         sortBy: 'id',
-        sortDir: 'asc'
-      }
+        sortDir: 'asc',
+      },
     });
-    
-    console.log("variantApi.getAll full response:", response.data);
-    
+
+    console.log('variantApi.getAll full response:', response.data);
+
     // Dựa trên Swagger thông thường, dữ liệu nằm trong result.content hoặc result.items
     // Bạn hãy kiểm tra log, nếu là phân trang thì thường là .content
     const items = response.data?.result?.content ?? response.data?.result?.items ?? [];

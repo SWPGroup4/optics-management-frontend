@@ -1,5 +1,5 @@
-import { useAuthStore } from "@/features/auth/stores/useAuthStore";
-import { Navigate } from "react-router-dom";
+import { useAuthStore } from '@/features/auth/stores/useAuthStore';
+import { Navigate } from 'react-router-dom';
 
 // components/ProtectedRoute.tsx
 type AllowedRoles = 'admin' | 'manager' | 'operations' | 'sales' | 'shipper' | 'customer';
