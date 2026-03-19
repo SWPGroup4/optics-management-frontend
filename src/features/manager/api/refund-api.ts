@@ -6,6 +6,49 @@ export interface RefundItem {
     order: Order;
 }
 
+const toOrder = (raw: unknown): Order | null => {
+    if (!raw || typeof raw !== "object") return null;
+
+    const candidate = raw as Record<string, unknown>;
+    const nestedOrder = candidate.order;
+    const source = (nestedOrder && typeof nestedOrder === "object"
+        ? nestedOrder
+        : candidate) as Record<string, unknown>;
+
+    const orderId = source.orderId;
+    if (typeof orderId !== "string" || !orderId.trim()) return null;
+
+    return source as unknown as Order;
+};
+
+const toOrders = (raw: unknown): Order[] => {
+    if (!Array.isArray(raw)) return [];
+
+    return raw
+        .map(toOrder)
+        .filter((order): order is Order => order !== null);
+};
+
+const toRefundItem = (raw: unknown): RefundItem | null => {
+    if (!raw || typeof raw !== "object") return null;
+
+    const candidate = raw as Record<string, unknown>;
+    const refundId = candidate.refundId;
+    const order = toOrder(candidate.order);
+
+    if (typeof refundId !== "string" || !refundId.trim() || !order) return null;
+
+    return { refundId, order };
+};
+
+const toRefundItems = (raw: unknown): RefundItem[] => {
+    if (!Array.isArray(raw)) return [];
+
+    return raw
+        .map(toRefundItem)
+        .filter((refund): refund is RefundItem => refund !== null);
+};
+
 export const refundApi = {
     // Bước 1: Vô hiệu hóa variant (NSX hủy)
     inActivateVariant: async (variantId: string): Promise<void> => {
@@ -14,19 +57,27 @@ export const refundApi = {
 
     // Bước 2: Lấy danh sách đơn bị ảnh hưởng
     getAffectedOrders: async (variantId: string): Promise<Order[]> => {
-        const res = await api.get(`/refund/affected-orders/${variantId}`);
-        return res.data.result ?? [];
+        const res = await api.get(`/refund/affected-orders/${encodeURIComponent(variantId)}`);
+        const data = res.data;
+
+        if (Array.isArray(data)) return toOrders(data);
+        if (Array.isArray(data?.result)) return toOrders(data.result);
+        if (Array.isArray(data?.data)) return toOrders(data.data);
+        if (Array.isArray(data?.items)) return toOrders(data.items);
+
+        return [];
     },
 
     // Bước 3: Tạo batch hoàn tiền
-    createBatch: async (variantId: string): Promise<void> => {
-        await api.post(`/refund/create-batch`, { variantId });
+    createBatch: async (orderIds: string[]): Promise<RefundItem[]> => {
+        const res = await api.post(`/refund/create-batch`, { orderIds });
+        return toRefundItems(res.data?.result);
     },
 
     // Bước 4: Lấy danh sách refund sẵn sàng xử lý
     getReadyRefunds: async (): Promise<RefundItem[]> => {
         const res = await api.get(`/refund/ready`);
-        return res.data.result ?? [];
+        return toRefundItems(res.data?.result);
     },
 
     // Bước 5: Xác nhận hoàn tiền → trả về paymentUrl VNPay
