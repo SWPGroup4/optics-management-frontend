@@ -397,10 +397,18 @@ function OrderCard({ order }: { order: Order }) {
               </div>
             )}
 
-            {/* Thực thanh toán */}
+            {/* Còn phải trả */}
             <div className="flex justify-between items-center pt-2.5 mt-1 border-t border-gray-200">
-              <span className="text-sm font-semibold text-gray-700">Thực thanh toán</span>
-              <span className="text-lg font-bold text-indigo-700">{formatPrice(order.finalTotalAfterRefund)}</span>
+              <span className="text-sm font-semibold text-gray-700">Còn phải trả</span>
+            {order.remainingAmount !== null && order.remainingAmount <= 0 ? (
+  <span className="text-sm font-bold text-emerald-600">
+    Đã thanh toán đủ ✓
+  </span>
+) : (
+  <span className="text-lg font-bold text-rose-600">
+    {formatPrice(order.remainingAmount)}
+  </span>
+)}
             </div>
           </div>
         </div>
@@ -413,6 +421,8 @@ function OrderCard({ order }: { order: Order }) {
 
 export default function MyOrders() {
   const [activeTab, setActiveTab] = useState('ALL');
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -433,16 +443,27 @@ export default function MyOrders() {
   if (!orders || orders.length === 0) return <div className="p-12 text-center text-gray-400">Bạn chưa có đơn hàng nào</div>;
 
   const countByStatus = (status: string) => orders.filter((o) => o.orderStatus === status).length;
+
   const filteredOrders = activeTab === "ALL" ? orders : orders.filter((o) => o.orderStatus === activeTab);
+
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / PAGE_SIZE));
+  const paginated  = filteredOrders.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
   const visibleStatuses = ["ALL", ...ALL_STATUSES.filter((s) => countByStatus(s) > 0)];
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setCurrentPage(1); // reset về trang 1 khi đổi tab
+  };
 
   return (
     <div className="max-w-3xl mx-auto p-6">
       <div className="mb-5">
         <h1 className="text-2xl font-bold text-gray-800">Đơn hàng của tôi</h1>
-        <p className="text-sm text-gray-400 mt-1">{orders.length} đơn hàng</p>
+        <p className="text-sm text-gray-400 mt-1">{filteredOrders.length} đơn hàng</p>
       </div>
 
+      {/* Tabs trạng thái */}
       <div className="flex gap-2 overflow-x-auto pb-1 mb-5 scrollbar-hide">
         {visibleStatuses.map((status) => {
           const cfg = STATUS_CONFIG[status];
@@ -452,9 +473,9 @@ export default function MyOrders() {
           return (
             <button
               key={status}
-              onClick={() => setActiveTab(status)}
+              onClick={() => handleTabChange(status)}
               className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-all ${
-                isActive 
+                isActive
                   ? status === 'ALL' ? 'bg-indigo-600 text-white border-indigo-600' : `${cfg?.tab} border-current`
                   : 'bg-white text-gray-500 border-gray-200'
               }`}
@@ -466,11 +487,53 @@ export default function MyOrders() {
         })}
       </div>
 
+      {/* Danh sách đơn hàng */}
       <div className="space-y-4">
-        {filteredOrders.map((order) => (
+        {paginated.map((order) => (
           <OrderCard key={order.orderId} order={order} />
         ))}
       </div>
+
+      {/* Phân trang */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+          <p className="text-xs text-gray-400">
+            Hiển thị {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filteredOrders.length)} / {filteredOrders.length} đơn
+          </p>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              ←
+            </button>
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const page = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
+              return (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 text-xs font-medium rounded-lg transition-colors ${
+                    page === currentPage
+                      ? "bg-indigo-600 text-white"
+                      : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  {page}
+                </button>
+              );
+            })}
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              →
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
