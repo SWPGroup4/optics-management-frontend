@@ -2,6 +2,7 @@ import React from 'react';
 import type { BEOrder } from '@/features/operation-staff/types/types';
 import { useOrderDrawerStore } from '@/features/operation-staff/store/orderDrawerStore.ts';
 import { useProductionStore } from "@/features/operation-staff/store/productionStore.ts";
+import CopyButton from "@/features/operation-staff/components/common/CopyButton.tsx";
 
 interface OrderRowProps {
     order: BEOrder;
@@ -14,13 +15,19 @@ const OrderRow: React.FC<OrderRowProps> = ({ order, isSelected, onSelectionChang
     const { startOrder } = useProductionStore();
 
     const handleProcessOrder = async () => {
-        if (order) {
+        if (order && order.orderStatus !== 'PRODUCED') {
             try {
                 await startOrder(order.orderId);
                 openDrawer(order);
             } catch (error) {
                 console.error('Failed to start order:', error);
             }
+        }
+    };
+
+    const handleViewDetails = () => {
+        if (order) {
+            openDrawer(order);
         }
     };
 
@@ -82,8 +89,23 @@ const OrderRow: React.FC<OrderRowProps> = ({ order, isSelected, onSelectionChang
 
             <td className="px-6 py-4 align-middle">
                 <div className="flex flex-col">
-                    <span className="font-bold text-slate-900 dark:text-white">{order.orderId}</span>
-                    <span className="text-xs text-slate-500">Khách: {order.customerId}</span>
+                    <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900 dark:text-white">{order.orderId}</span>
+                        <CopyButton text={order.orderId} size="sm" />
+                    </div>
+                </div>
+            </td>
+
+            <td className="px-6 py-4 align-middle">
+                <div className="mb-1 text-xs text-slate-500">{order?.orderName || "N/A"}</div>
+            </td>
+
+            <td className="px-6 py-4 align-middle">
+                <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-500">{order?.phoneNumber || "N/A"}</span>
+                    {order?.phoneNumber && (
+                        <CopyButton text={order.phoneNumber} size="sm" />
+                    )}
                 </div>
             </td>
 
@@ -94,12 +116,21 @@ const OrderRow: React.FC<OrderRowProps> = ({ order, isSelected, onSelectionChang
             </td>
 
             <td className="px-6 py-4 align-middle text-right">
-                <button
-                    onClick={handleProcessOrder}
-                    className={`inline-flex items-center justify-center px-4 py-2 text-xs font-bold rounded-lg transition-colors shadow-sm`}
-                >
-                    Xử lý ngay
-                </button>
+                {order.orderStatus === 'PRODUCED' ? (
+                    <button
+                        onClick={handleViewDetails}
+                        className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold rounded-lg transition-colors shadow-sm bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-300"
+                    >
+                        Xem chi tiết
+                    </button>
+                ) : (
+                    <button
+                        onClick={handleProcessOrder}
+                        className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold rounded-lg transition-colors shadow-sm bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                        Xử lý ngay
+                    </button>
+                )}
             </td>
         </tr>
     );

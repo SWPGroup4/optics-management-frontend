@@ -3,40 +3,55 @@ import OrdersToolbar from '@/features/operation-staff/components/dashboard/Order
 import OrdersTable from '@/features/operation-staff/components/dashboard/OrdersTable';
 import Pagination from '@/features/operation-staff/components/dashboard/Pagination';
 import OrderProcessingDrawer from "@/features/operation-staff/components/dashboard/OrderProcessingDrawer.tsx";
-import type { TabItem, PaginationInfo } from '@/features/operation-staff/types/types';
+import type { TabItem, PaginationInfo, BEOrder } from '@/features/operation-staff/types/types';
 import { useProductionStore } from "@/features/operation-staff/store/productionStore.ts";
 
 const ITEMS_PER_PAGE = 10;
 
-const OrdersSection: React.FC = () => {
+interface OrdersSectionProps {
+    orders?: BEOrder[];
+    isSearchResult?: boolean;
+}
+
+const OrdersSection: React.FC<OrdersSectionProps> = ({
+                                                         orders: propOrders,
+                                                         isSearchResult = false
+                                                     }) => {
     const [activeTab, setActiveTab] = useState<string>('all');
     const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
     const [currentPage, setCurrentPage] = useState(1);
 
-    // Use production store directly
-    const processingOrders = useProductionStore(state => state.processingOrders);
+    // Use production store directly when no props provided
+    const storeProcessingOrders = useProductionStore(state => state.processingOrders);
     const loading = useProductionStore(state => state.loading);
     const error = useProductionStore(state => state.error);
     const fetchProcessingOrders = useProductionStore(state => state.fetchProcessingOrders);
     const clearError = useProductionStore(state => state.clearError);
 
-    useEffect(() => {
-        fetchProcessingOrders();
-    }, [fetchProcessingOrders]);
+    // Use prop orders if provided, otherwise use store orders
+    const orders = propOrders || storeProcessingOrders;
 
-    const tabs: TabItem[] = [
-        { id: 'all', label: 'Tất cả', isActive: activeTab === 'all' },
-        // { id: 'PENDING', label: 'Chờ xử lý', isActive: activeTab === 'PENDING' },
-        // { id: 'PROCESSING', label: 'Đang xử lý', isActive: activeTab === 'PROCESSING' },
-        // { id: 'PRODUCED', label: 'Đã sản xuất', isActive: activeTab === 'PRODUCED' },
-        // { id: 'READY_TO_SHIP', label: 'Sẵn sàng giao', isActive: activeTab === 'READY_TO_SHIP' },
-        // { id: 'COMPLETED', label: 'Hoàn thành', isActive: activeTab === 'COMPLETED' }
-    ];
+    useEffect(() => {
+        if (!propOrders) {
+            fetchProcessingOrders();
+        }
+    }, [propOrders, fetchProcessingOrders]);
+
+    const tabs: TabItem[] = isSearchResult
+        ? [
+            { id: 'all', label: 'Kết quả tìm kiếm', isActive: activeTab === 'all' },
+        ]
+        : [
+            { id: 'all', label: 'Tất cả', isActive: activeTab === 'all' },
+            { id: 'PROCESSING', label: 'Chờ xử lý', isActive: activeTab === 'PROCESSING' },
+            { id: 'PRODUCED', label: 'Đã xử lý', isActive: activeTab === 'PRODUCED' },
+        ];
 
     const filteredOrders = useMemo(() => {
-        if (activeTab === 'all') return processingOrders;
-        return processingOrders.filter(order => order.orderStatus === activeTab);
-    }, [processingOrders, activeTab]);
+        if (isSearchResult) return orders; // Don't filter search results
+        if (activeTab === 'all') return orders;
+        return orders.filter(order => order.orderStatus === activeTab);
+    }, [orders, activeTab, isSearchResult]);
 
     const pagination: PaginationInfo = useMemo(() => {
         const totalItems = filteredOrders?.length || 0;
@@ -84,16 +99,13 @@ const OrdersSection: React.FC = () => {
         console.log('Filter clicked');
     };
 
-    const handleExportClick = () => {
-        console.log('Export clicked');
-    };
-
     const handleRetry = () => {
         clearError();
         fetchProcessingOrders();
     };
 
-    if (loading && processingOrders?.length === 0) {
+    // Show loading state
+    if (loading && orders?.length === 0) {
         return (
             <section className="bg-white dark:bg-[#1a262d] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex-1 flex items-center justify-center py-6">
                 <div className="text-center">
@@ -110,7 +122,8 @@ const OrdersSection: React.FC = () => {
         );
     }
 
-    if (error && processingOrders?.length === 0) {
+    // Show error state
+    if (error && orders?.length === 0) {
         return (
             <section className="bg-white dark:bg-[#1a262d] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex-1 flex items-center justify-center py-6">
                 <div className="text-center max-w-md mx-auto px-6">
@@ -135,13 +148,29 @@ const OrdersSection: React.FC = () => {
         );
     }
 
+    // Show empty state for search results
+    if (isSearchResult && orders?.length === 0) {
+        return (
+            <section className="bg-white dark:bg-[#1a262d] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex-1 flex items-center justify-center py-6">
+                <div className="text-center max-w-md mx-auto px-6">
+                    <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Không tìm thấy kết quả</h3>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">Không có đơn hàng nào khớp với từ khóa tìm kiếm của bạn.</p>
+                </div>
+            </section>
+        );
+    }
+
     return (
         <section className="bg-white dark:bg-[#1a262d] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex-1 flex flex-col">
             <OrdersToolbar
                 tabs={tabs}
                 onTabChange={handleTabChange}
                 onFilterClick={handleFilterClick}
-                onExportClick={handleExportClick}
             />
 
             <OrdersTable

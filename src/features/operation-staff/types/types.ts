@@ -142,4 +142,5 @@ export interface BEOrder {
     comboName?: string;
     comboDiscountAmount?: number;
     comboSnapshot?: string;
+    orderName: string;
 }

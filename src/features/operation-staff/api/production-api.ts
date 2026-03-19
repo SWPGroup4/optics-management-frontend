@@ -3,8 +3,15 @@ import type { BEOrder, BEOrderItem } from "@/features/operation-staff/types/type
 
 export const productionApi = {
     getProcessingOrders: async (): Promise<BEOrder[]> => {
-        const response = await api.get('/management/orders?status=PROCESSING');
-        return response.data.result;
+        const response = await api.get('/management/orders');
+        const allOrders = response.data.result;
+
+        // Filter orders with status PROCESSING or PRODUCED
+        const filteredOrders = allOrders?.filter((order: BEOrder) =>
+            order.orderStatus === 'PROCESSING' || order.orderStatus === 'PRODUCED'
+        );
+
+        return filteredOrders;
     },
 
     startOrder: async (orderId: string): Promise<BEOrder> => {

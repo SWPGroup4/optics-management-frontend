@@ -6,11 +6,14 @@ import PrescriptionSection from "@/features/operation-staff/components/dashboard
 
 interface PickingListSectionProps {
     items: BEOrderItem[];
+    orderStatus?: string;
 }
 
-const PickingListSection: React.FC<PickingListSectionProps> = ({ items }) => {
+const PickingListSection: React.FC<PickingListSectionProps> = ({ items, orderStatus  }) => {
     const { updateItemStatus, loading } = useProductionStore();
     const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+
+    const isProduced = orderStatus === 'PRODUCED';
 
     const getStatusText = (status: BEOrderItemStatus) => {
         switch (status) {
@@ -26,7 +29,9 @@ const PickingListSection: React.FC<PickingListSectionProps> = ({ items }) => {
     const availableStatuses: BEOrderItemStatus[] = ['IN_PRODUCTION', 'PRODUCED'];
 
     const handleStatusChange = async (orderItemId: string, newStatus: BEOrderItemStatus) => {
-        await updateItemStatus(orderItemId, newStatus);
+        if (!isProduced) {
+            await updateItemStatus(orderItemId, newStatus);
+        }
     };
 
     const toggleExpanded = (orderItemId: string) => {
@@ -96,7 +101,7 @@ const PickingListSection: React.FC<PickingListSectionProps> = ({ items }) => {
                                 <select
                                     value={item.status}
                                     onChange={(e) => handleStatusChange(item.orderItemId, e.target.value as BEOrderItemStatus)}
-                                    disabled={loading}
+                                    disabled={loading || isProduced}
                                     className="w-full px-3 py-2 pr-10 text-sm font-medium bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer appearance-none"
                                 >
                                     {availableStatuses.map((status) => (

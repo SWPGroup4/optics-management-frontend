@@ -36,6 +36,8 @@ const OrdersTable: React.FC<OrdersTableProps> = ({ orders, selectedOrders, onSel
                         />
                     </th>
                     <th className="px-6 py-4">Mã đơn hàng</th>
+                    <th className="px-6 py-4">Tên đơn hàng</th>
+                    <th className="px-6 py-4">SĐT Khách</th>
                     <th className="px-6 py-4">Trạng thái</th>
                     <th className="px-6 py-4 text-right">Hành động</th>
                 </tr>
