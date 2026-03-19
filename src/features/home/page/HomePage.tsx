@@ -138,19 +138,7 @@ export default function HomePage() {
             glowColor: "bg-pink-500/8",
         },
     ];
-
-    const [currentSlide, setCurrentSlide] = useState(0);
-    const [isAnimating, setIsAnimating] = useState(false);
-
-    // Auto chuyển slide
-    useEffect(() => {
-        const timer = setInterval(() => {
-            handleNextSlide();
-        }, 3000);
-        return () => clearInterval(timer);
-    }, [currentSlide]);
-
-   const goToSlide = (index: number) => {
+    const goToSlide = (index: number) => {
         if (isAnimating || index === currentSlide) return;
         setIsAnimating(true);
         setTimeout(() => {
@@ -166,6 +154,21 @@ export default function HomePage() {
     const handlePrevSlide = () => {
         goToSlide((currentSlide - 1 + bannerSlides.length) % bannerSlides.length);
     };
+
+    const [currentSlide, setCurrentSlide] = useState(0);
+    const [isAnimating, setIsAnimating] = useState(false);
+
+    // Auto chuyển slide
+    useEffect(() => {
+        const timer = setInterval(() => {
+            handleNextSlide();
+        }, 3000);
+        return () => clearInterval(timer);
+    });
+
+   
+
+    
 
     // 3. Helper hiển thị Badge Giới tính
 const getGenderBadge = (gender: string) => {

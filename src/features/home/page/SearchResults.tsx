@@ -54,7 +54,7 @@ export const SearchResults = () => {
     gender: appliedGender || undefined,
     sortBy: sortConfig.sortBy,
     sortDir: sortConfig.sortDir,
-    page,
+    page : page - 1,
     size,
     minPrice: appliedPrice.min,
     maxPrice: appliedPrice.max,
