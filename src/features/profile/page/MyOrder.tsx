@@ -47,6 +47,8 @@ interface Order {
   orderStatus: string;
   totalAmount: number;
   depositAmount: number | null;
+  remainingAmount: number | null;
+  paidAmount: number;
   items: OrderItem[];
   comboId: string | null;
   comboName: string | null;
@@ -366,6 +368,21 @@ function OrderCard({ order }: { order: Order }) {
                   </span>
                 </span>
                 <span className="font-semibold">{formatPrice(order.depositAmount)}</span>
+              </div>
+            )}
+
+            {/* Đã thanh toán 100% */}
+            {order.paidAmount >= order.finalTotalAfterRefund && order.finalTotalAfterRefund > 0 && (
+              <div className="mt-1 flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
+                <span className="flex items-center gap-2 text-sm font-semibold text-emerald-700">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Đã thanh toán đủ 100%
+                </span>
+                <span className="text-[11px] font-bold bg-emerald-500 text-white px-2 py-0.5 rounded-full">
+                  Hoàn tất
+                </span>
               </div>
             )}
 
