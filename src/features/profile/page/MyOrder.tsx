@@ -300,30 +300,88 @@ function OrderCard({ order }: { order: Order }) {
             ))}
           </div>
 
-          <div className="bg-white border border-gray-100 rounded-xl px-4 py-3 space-y-2">
+          <div className="bg-white border border-gray-100 rounded-xl px-4 py-3 space-y-1.5">
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Chi tiết thanh toán</p>
+
+            {/* Tổng giá sản phẩm */}
             <div className="flex justify-between text-sm text-gray-500">
-              <span>Tổng giá gốc</span>
-              <span>{formatPrice(order.totalAmount)}</span>
+              <span>Tổng giá sản phẩm</span>
+              <span className="font-medium text-gray-700">{formatPrice(order.totalAmount)}</span>
             </div>
-            {order.depositAmount != null && order.depositAmount > 0 && (
-              <div className="flex justify-between text-sm text-gray-500">
-                <span>Đã đặt cọc</span>
-                <span className="text-emerald-600">{formatPrice(order.depositAmount)}</span>
-              </div>
-            )}
+
+            {/* Tổng tiền tròng kính */}
+            {(() => {
+              const totalLens = order.items.reduce((s, i) => s + (i.lensPriceTotal ?? 0), 0);
+              return totalLens > 0 ? (
+                <div className="flex justify-between text-sm text-indigo-500">
+                  <span>Tổng tròng kính</span>
+                  <span className="font-medium">+{formatPrice(totalLens)}</span>
+                </div>
+              ) : null;
+            })()}
+
+            {/* Giảm giá combo */}
             {hasDiscount && (
               <div className="flex justify-between text-sm text-violet-600">
-                <span>Giảm giá ({order.comboName})</span>
-                <span>-{formatPrice(order.comboDiscountAmount)}</span>
+                <span className="flex items-center gap-1.5">
+                  <span>🎁</span>
+                  <span>
+                    Giảm combo
+                    {order.totalAmount > 0 && order.comboDiscountAmount != null && (
+                      <span className="ml-1.5 text-[11px] bg-violet-100 text-violet-600 font-bold px-1.5 py-0.5 rounded-full">
+                        -{Math.round((order.comboDiscountAmount / order.totalAmount) * 100)}%
+                      </span>
+                    )}
+                  </span>
+                </span>
+                <span className="font-semibold">-{formatPrice(order.comboDiscountAmount)}</span>
               </div>
             )}
+
+            {/* Đã hoàn tiền */}
             {hasRefund && (
-              <div className="flex justify-between text-sm text-orange-600">
-                <span>Đã hoàn tiền</span>
-                <span>-{formatPrice(order.refundedAmount)}</span>
+              <div className="flex justify-between text-sm text-orange-500">
+                <span className="flex items-center gap-1.5">
+                  <span>↩</span>
+                  <span>Đã hoàn tiền</span>
+                </span>
+                <span className="font-semibold">-{formatPrice(order.refundedAmount)}</span>
               </div>
             )}
-            <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+
+            <div className="border-t border-dashed border-gray-100 my-1" />
+
+            {/* Đã đặt cọc */}
+            {order.depositAmount != null && order.depositAmount > 0 && (
+              <div className="flex justify-between text-sm text-emerald-600">
+                <span className="flex items-center gap-1.5">
+                  <span>✓</span>
+                  <span>
+                    Đã đặt cọc
+                    {order.totalAmount > 0 && (
+                      <span className="ml-1.5 text-[11px] bg-emerald-100 text-emerald-600 font-bold px-1.5 py-0.5 rounded-full">
+                        {Math.round((order.depositAmount / order.totalAmount) * 100)}%
+                      </span>
+                    )}
+                  </span>
+                </span>
+                <span className="font-semibold">{formatPrice(order.depositAmount)}</span>
+              </div>
+            )}
+
+            {/* Còn lại phải trả */}
+            {order.depositAmount != null && order.depositAmount > 0 && order.depositAmount < order.finalTotalAfterRefund && (
+              <div className="flex justify-between text-sm text-gray-400">
+                <span className="flex items-center gap-1.5">
+                  <span>⏳</span>
+                  <span>Còn lại phải trả</span>
+                </span>
+                <span className="font-medium">{formatPrice(order.finalTotalAfterRefund - order.depositAmount)}</span>
+              </div>
+            )}
+
+            {/* Thực thanh toán */}
+            <div className="flex justify-between items-center pt-2.5 mt-1 border-t border-gray-200">
               <span className="text-sm font-semibold text-gray-700">Thực thanh toán</span>
               <span className="text-lg font-bold text-indigo-700">{formatPrice(order.finalTotalAfterRefund)}</span>
             </div>
