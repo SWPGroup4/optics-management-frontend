@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { RefundItem } from "@/features/manager/api/refund-api";
+import { refundApi } from "@/features/manager/api/refund-api";
 import type { Order } from "@/features/manager/api/order-api";
-
 
 import {
     useReadyRefunds,
@@ -11,8 +11,6 @@ import {
     useCreateRefundBatch,
     useCheckoutRefund,
 } from "@/features/manager/hooks/useRefunds";
-import { productApi } from "../products/ProductModal";
-import { variantApi } from "../../api/variant-api";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -52,21 +50,9 @@ function CreateBatchModal({ onClose, onSuccess }: {
     onClose: () => void;
     onSuccess: (refunds: RefundItem[]) => void;
 }) {
-    const [step, setStep] = useState<1 | 2>(1);
-    const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
-
-    // ── Search state ──────────────────────────────────────────────────────────
-    const [productSearch, setProductSearch]   = useState("");
-    const [products, setProducts]             = useState<any[]>([]);
-    const [loadingProducts, setLoadingProducts] = useState(false);
-    const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
-
-    const [variants, setVariants]             = useState<any[]>([]);
-    const [loadingVariants, setLoadingVariants] = useState(false);
-    const [variantSearch, setVariantSearch]   = useState("");
-    const [selectedVariant, setSelectedVariant] = useState<any | null>(null);
-
-    const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [step, setStep]             = useState<1 | 2>(1);
+    const [variantInput, setVariantInput] = useState("");
+    const [toast, setToast]           = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
     const inActivate  = useInActivateVariant();
     const createBatch = useCreateRefundBatch();
@@ -76,58 +62,14 @@ function CreateBatchModal({ onClose, onSuccess }: {
         setTimeout(() => setToast(null), 3000);
     };
 
-    // Tìm sản phẩm khi gõ
-    useEffect(() => {
-        if (!productSearch.trim()) { setProducts([]); return; }
-        if (searchTimer.current) clearTimeout(searchTimer.current);
-        searchTimer.current = setTimeout(async () => {
-            setLoadingProducts(true);
-            try {
-                const data = await productApi.getAll();
-                const all: any[] = data.result ?? [];
-                const q = productSearch.toLowerCase();
-                setProducts(all.filter(p =>
-                    (p.name ?? "").toLowerCase().includes(q) ||
-                    (p.brand ?? "").toLowerCase().includes(q)
-                ).slice(0, 8));
-            } catch { setProducts([]); }
-            finally { setLoadingProducts(false); }
-        }, 300);
-    }, [productSearch]);
-
-    // Load variants khi chọn sản phẩm
-    const handleSelectProduct = async (product: any) => {
-        setSelectedProduct(product);
-        setProducts([]);
-        setProductSearch(product.name);
-        setSelectedVariant(null);
-        setVariants([]);
-        setVariantSearch("");
-        setLoadingVariants(true);
+    const handleInActivate = async () => {
+        const id = variantInput.trim();
+        if (!id) return;
         try {
-            const data = await variantApi.getAll(product.id);
-            setVariants(data.result ?? []);
-        } catch { setVariants([]); }
-        finally { setLoadingVariants(false); }
-    };
-
-    // Lọc variant theo tên
-    const filteredVariants = variants.filter(v => {
-        const q = variantSearch.toLowerCase();
-        return !q ||
-            (v.colorName ?? "").toLowerCase().includes(q) ||
-            (v.sizeLabel ?? "").toLowerCase().includes(q) ||
-            (v.frameFinish ?? "").toLowerCase().includes(q);
-    });
-
-    // Chọn variant → vô hiệu hóa + load affected orders
-    const handleSelectVariant = async (variant: any) => {
-        setSelectedVariant(variant);
-        try {
-            await inActivate.run(variant.id);
+            await inActivate.run(id);
             setStep(2);
         } catch (e: any) {
-            showToast(e.message ?? "Lỗi khi xử lý variant", "error");
+            showToast(e.message, "error");
         }
     };
 
@@ -137,7 +79,7 @@ function CreateBatchModal({ onClose, onSuccess }: {
             showToast("Đã tạo batch hoàn tiền!", "success");
             setTimeout(() => { onSuccess(created); onClose(); }, 800);
         } catch (e: any) {
-            showToast(e.message ?? "Lỗi khi tạo batch", "error");
+            showToast(e.message, "error");
         }
     };
 
@@ -168,7 +110,7 @@ function CreateBatchModal({ onClose, onSuccess }: {
 
                 {/* step pills */}
                 <div className="flex px-6 pt-4 gap-2">
-                    {[{ n: 1, label: "Chọn Variant" }, { n: 2, label: "Xem đơn bị ảnh hưởng" }].map(s => (
+                    {[{ n: 1, label: "Nhập Variant" }, { n: 2, label: "Xem đơn bị ảnh hưởng" }].map(s => (
                         <div key={s.n} className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
                             step === s.n ? "bg-indigo-600 text-white" :
                             step > s.n   ? "bg-emerald-100 text-emerald-700" :
@@ -183,150 +125,58 @@ function CreateBatchModal({ onClose, onSuccess }: {
                 {/* body */}
                 <div className="px-6 py-5">
 
-                    {/* ── Step 1: Tìm sản phẩm → chọn variant ── */}
+                    {/* Step 1 */}
                     {step === 1 && (
                         <div className="space-y-4">
-
-                            {/* Tìm sản phẩm */}
                             <div>
-                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                                    1. Tìm sản phẩm
+                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                    Variant ID
                                 </label>
-                                <div className="relative">
-                                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-                                    </svg>
-                                    <input
-                                        autoFocus
-                                        type="text"
-                                        value={productSearch}
-                                        onChange={e => {
-                                            setProductSearch(e.target.value);
-                                            setSelectedProduct(null);
-                                            setSelectedVariant(null);
-                                            setVariants([]);
-                                        }}
-                                        placeholder="Nhập tên sản phẩm hoặc thương hiệu..."
-                                        className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-gray-50"
-                                    />
-                                    {loadingProducts && (
-                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin" />
-                                    )}
-                                </div>
-
-                                {/* Dropdown sản phẩm */}
-                                {products.length > 0 && !selectedProduct && (
-                                    <div className="mt-1 border border-gray-200 rounded-xl overflow-hidden shadow-lg">
-                                        {products.map(p => (
-                                            <button
-                                                key={p.id}
-                                                onClick={() => handleSelectProduct(p)}
-                                                className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-indigo-50 transition-colors text-left border-b border-gray-50 last:border-0"
-                                            >
-                                                {p.imageUrl?.[0]?.imageUrl && (
-                                                    <img src={p.imageUrl[0].imageUrl} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
-                                                )}
-                                                <div className="min-w-0">
-                                                    <p className="text-sm font-medium text-gray-800 truncate">{p.name}</p>
-                                                    <p className="text-xs text-gray-400">{p.brand}</p>
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
+                                <input
+                                    autoFocus
+                                    type="text"
+                                    value={variantInput}
+                                    onChange={e => setVariantInput(e.target.value)}
+                                    onKeyDown={e => e.key === "Enter" && handleInActivate()}
+                                    placeholder="Nhập Variant ID..."
+                                    className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-gray-50"
+                                />
+                                <p className="text-[11px] text-gray-400 mt-1.5">
+                                    Tìm Variant ID trong trang quản lý biến thể sản phẩm
+                                </p>
                             </div>
-
-                            {/* Danh sách variant sau khi chọn sản phẩm */}
-                            {selectedProduct && (
-                                <div>
-                                    <div className="flex items-center justify-between mb-1.5">
-                                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                                            2. Chọn variant bị hủy
-                                        </label>
-                                        <span className="text-xs text-indigo-600 font-medium">{selectedProduct.name}</span>
-                                    </div>
-
-                                    {/* Tìm variant */}
-                                    <input
-                                        type="text"
-                                        value={variantSearch}
-                                        onChange={e => setVariantSearch(e.target.value)}
-                                        placeholder="Lọc theo màu, size, chất liệu..."
-                                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-gray-50 mb-2"
-                                    />
-
-                                    {loadingVariants ? (
-                                        <div className="flex justify-center py-6">
-                                            <div className="w-5 h-5 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin" />
-                                        </div>
-                                    ) : filteredVariants.length === 0 ? (
-                                        <p className="text-center py-4 text-sm text-gray-400">Không tìm thấy variant</p>
-                                    ) : (
-                                        <div className="space-y-1.5 max-h-[220px] overflow-y-auto">
-                                            {filteredVariants.map(v => (
-                                                <button
-                                                    key={v.id}
-                                                    onClick={() => handleSelectVariant(v)}
-                                                    disabled={inActivate.loading && selectedVariant?.id === v.id}
-                                                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-left transition-all ${
-                                                        selectedVariant?.id === v.id
-                                                            ? "border-indigo-300 bg-indigo-50"
-                                                            : "border-gray-100 bg-gray-50 hover:border-indigo-200 hover:bg-indigo-50/50"
-                                                    }`}
-                                                >
-                                                    <div className="min-w-0">
-                                                        <p className="text-sm font-semibold text-gray-800">
-                                                            {v.colorName}
-                                                            {v.sizeLabel && <span className="ml-2 text-xs font-normal text-gray-500">· {v.sizeLabel}</span>}
-                                                            {v.frameFinish && <span className="ml-1 text-xs font-normal text-gray-500">· {v.frameFinish}</span>}
-                                                        </p>
-                                                        <p className="text-[11px] text-gray-400 font-mono mt-0.5">{v.id?.slice(0, 16)}...</p>
-                                                    </div>
-                                                    <div className="text-right shrink-0 ml-3">
-                                                        <p className="text-sm font-bold text-gray-700">
-                                                            {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(v.price ?? 0)}
-                                                        </p>
-                                                        {inActivate.loading && selectedVariant?.id === v.id && (
-                                                            <div className="w-4 h-4 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin mt-1 ml-auto" />
-                                                        )}
-                                                    </div>
-                                                </button>
-                                            ))}
-                                        </div>
+                            <div className="flex gap-3">
+                                <button onClick={onClose} className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">
+                                    Hủy
+                                </button>
+                                <button
+                                    onClick={handleInActivate}
+                                    disabled={!variantInput.trim() || inActivate.loading}
+                                    className="flex-1 py-2.5 text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors flex items-center justify-center gap-2"
+                                >
+                                    {inActivate.loading && (
+                                        <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
                                     )}
-                                </div>
-                            )}
-
-                            <button onClick={onClose} className="w-full py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">
-                                Hủy
-                            </button>
+                                    Vô hiệu hóa & Tiếp tục
+                                </button>
+                            </div>
                         </div>
                     )}
 
-                    {/* ── Step 2: Xem đơn bị ảnh hưởng ── */}
+                    {/* Step 2 */}
                     {step === 2 && (
                         <div className="space-y-4">
-                            {/* Variant đã chọn */}
-                            {selectedVariant && (
-                                <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3 flex items-center justify-between">
-                                    <div>
-                                        <p className="text-xs text-indigo-400 uppercase font-semibold tracking-wide">Variant đã vô hiệu hóa</p>
-                                        <p className="text-sm font-bold text-indigo-800 mt-0.5">
-                                            {selectedVariant.colorName}
-                                            {selectedVariant.sizeLabel && ` · ${selectedVariant.sizeLabel}`}
-                                        </p>
-                                        <p className="text-[11px] font-mono text-indigo-400">{selectedVariant.id?.slice(0, 16)}...</p>
-                                    </div>
-                                    <span className="text-xs bg-rose-100 text-rose-700 font-bold px-2 py-1 rounded-lg">Đã hủy</span>
-                                </div>
-                            )}
-
                             <div className="flex items-center justify-between">
                                 <p className="text-sm text-gray-600">
                                     Tìm thấy{" "}
-                                    <span className="font-bold text-rose-600">{inActivate.affectedOrders.length} đơn hàng</span>{" "}
+                                    <span className="font-bold text-rose-600">
+                                        {inActivate.affectedOrders.length} đơn hàng
+                                    </span>{" "}
                                     bị ảnh hưởng
                                 </p>
+                                <span className="text-xs font-mono bg-gray-100 text-gray-500 px-2 py-1 rounded">
+                                    {variantInput.slice(0, 12)}...
+                                </span>
                             </div>
 
                             {inActivate.affectedOrders.length === 0 ? (
@@ -369,7 +219,7 @@ function CreateBatchModal({ onClose, onSuccess }: {
 
                             <div className="flex gap-3">
                                 <button
-                                    onClick={() => { setStep(1); inActivate.reset(); setSelectedVariant(null); }}
+                                    onClick={() => { setStep(1); inActivate.reset(); }}
                                     className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
                                 >
                                     ← Quay lại
@@ -493,6 +343,191 @@ function RefundDetailModal({ refund, onClose, onCheckout }: {
     );
 }
 
+// ─── Modal: Khách hàng hủy đơn ───────────────────────────────────────────────
+
+function CustomerCancelModal({ onClose, onSuccess }: {
+    onClose: () => void;
+    onSuccess: (refunds: RefundItem[]) => void;
+}) {
+    const [step, setStep]                         = useState<1 | 2>(1);
+    const [cancelledOrders, setCancelledOrders]   = useState<Order[]>([]);
+    const [selectedOrders, setSelectedOrders]     = useState<Set<string>>(new Set());
+    const [loading, setLoading]                   = useState(false);
+    const [creating, setCreating]                 = useState(false);
+    const [toast, setToast]                       = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+    const showToast = (msg: string, type: "success" | "error") => {
+        setToast({ msg, type });
+        setTimeout(() => setToast(null), 3000);
+    };
+
+    // Load đơn hủy có thanh toán
+    useEffect(() => {
+        setLoading(true);
+        refundApi.getCancelledPaidOrders()
+            .then(orders => { setCancelledOrders(orders); setStep(1); })
+            .catch(e => showToast(e.message ?? "Lỗi tải dữ liệu", "error"))
+            .finally(() => setLoading(false));
+    }, []);
+
+    const toggleOrder = (orderId: string) => {
+        setSelectedOrders(prev => {
+            const next = new Set(prev);
+            next.has(orderId) ? next.delete(orderId) : next.add(orderId);
+            return next;
+        });
+    };
+
+    const toggleAll = () => {
+        if (selectedOrders.size === cancelledOrders.length) {
+            setSelectedOrders(new Set());
+        } else {
+            setSelectedOrders(new Set(cancelledOrders.map(o => o.orderId)));
+        }
+    };
+
+    const handleCreateBatch = async () => {
+        if (selectedOrders.size === 0) return;
+        setCreating(true);
+        try {
+            const orderIds = Array.from(selectedOrders);
+            const created = await refundApi.createBatch(orderIds);
+            showToast("Đã tạo batch hoàn tiền!", "success");
+            setTimeout(() => { onSuccess(created); onClose(); }, 800);
+        } catch (e: any) {
+            showToast(e.message ?? "Lỗi tạo batch", "error");
+        } finally {
+            setCreating(false);
+        }
+    };
+
+    const totalSelected = cancelledOrders
+        .filter(o => selectedOrders.has(o.orderId))
+        .reduce((s, o) => s + (o.paidAmount ?? 0), 0);
+
+    return (
+        <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+
+                {toast && (
+                    <div className={`absolute top-3 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg text-xs font-semibold ${
+                        toast.type === "success" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
+                    }`}>{toast.msg}</div>
+                )}
+
+                {/* header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                    <div>
+                        <h3 className="text-base font-bold text-gray-900">Hoàn tiền đơn khách hủy</h3>
+                        <p className="text-xs text-gray-400 mt-0.5">Đơn đã hủy có thanh toán thành công</p>
+                    </div>
+                    <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                {/* body */}
+                <div className="px-6 py-5 space-y-4">
+                    {loading ? (
+                        <div className="flex flex-col items-center py-10 gap-3 text-gray-400">
+                            <div className="w-7 h-7 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin" />
+                            <p className="text-sm">Đang tải danh sách đơn hủy...</p>
+                        </div>
+                    ) : cancelledOrders.length === 0 ? (
+                        <div className="text-center py-10 text-gray-400">
+                            <p className="text-3xl mb-2">✅</p>
+                            <p className="text-sm font-medium">Không có đơn hủy nào cần hoàn tiền</p>
+                        </div>
+                    ) : (
+                        <>
+                            {/* chọn tất cả */}
+                            <div className="flex items-center justify-between">
+                                <label className="flex items-center gap-2 cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedOrders.size === cancelledOrders.length}
+                                        onChange={toggleAll}
+                                        className="w-4 h-4 rounded accent-indigo-600"
+                                    />
+                                    <span className="text-sm font-semibold text-gray-700">
+                                        Chọn tất cả ({cancelledOrders.length} đơn)
+                                    </span>
+                                </label>
+                                <span className="text-xs text-rose-600 font-bold bg-rose-50 px-2 py-1 rounded-full">
+                                    {selectedOrders.size} đã chọn
+                                </span>
+                            </div>
+
+                            {/* danh sách đơn */}
+                            <div className="space-y-2 max-h-[280px] overflow-y-auto">
+                                {cancelledOrders.map(order => {
+                                    const name = getProductName(order);
+                                    const checked = selectedOrders.has(order.orderId);
+                                    return (
+                                        <label
+                                            key={order.orderId}
+                                            className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${
+                                                checked ? "border-indigo-300 bg-indigo-50" : "border-gray-100 bg-gray-50 hover:border-gray-200"
+                                            }`}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={checked}
+                                                onChange={() => toggleOrder(order.orderId)}
+                                                className="w-4 h-4 rounded accent-indigo-600 shrink-0"
+                                            />
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-gray-800 truncate">
+                                                    {name ?? order.orderName ?? "Đơn không tên"}
+                                                </p>
+                                                <p className="text-xs text-gray-400 font-mono mt-0.5">
+                                                    #{(order.orderId ?? "").slice(0, 8)}... · {order.phoneNumber}
+                                                </p>
+                                            </div>
+                                            <div className="text-right shrink-0">
+                                                <p className="text-sm font-bold text-gray-800">{fmt(order.paidAmount)}</p>
+                                                <p className="text-[10px] text-gray-400">đã thanh toán</p>
+                                            </div>
+                                        </label>
+                                    );
+                                })}
+                            </div>
+
+                            {/* tổng tiền hoàn */}
+                            {selectedOrders.size > 0 && (
+                                <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 flex justify-between text-sm">
+                                    <span className="text-amber-700 font-medium">Tổng tiền cần hoàn ({selectedOrders.size} đơn)</span>
+                                    <span className="font-bold text-amber-700">{fmt(totalSelected)}</span>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+
+                {/* footer */}
+                {!loading && cancelledOrders.length > 0 && (
+                    <div className="px-6 pb-5 flex gap-3">
+                        <button onClick={onClose} className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">
+                            Hủy
+                        </button>
+                        <button
+                            onClick={handleCreateBatch}
+                            disabled={creating || selectedOrders.size === 0}
+                            className="flex-1 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors flex items-center justify-center gap-2"
+                        >
+                            {creating && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
+                            ⚡ Tạo batch hoàn tiền ({selectedOrders.size})
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 10;
@@ -501,7 +536,10 @@ export default function ManageRefundPage() {
     const { refunds, loading, fetch: loadRefunds, append } = useReadyRefunds();
     const { checkout, checkoutAll, isLoading, isDone, pendingCount } = useCheckoutRefund();
 
+    // Tab chính: NSX hủy vs Khách hủy
+    const [mainTab, setMainTab]                 = useState<"NSX" | "CUSTOMER">("NSX");
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showCustomerModal, setShowCustomerModal] = useState(false);
     const [selectedRefund, setSelectedRefund]   = useState<RefundItem | null>(null);
     const [searchQ, setSearchQ]                 = useState("");
     const [statusTab, setStatusTab]             = useState<"ALL" | "PENDING" | "DONE">("ALL");
@@ -547,7 +585,7 @@ export default function ManageRefundPage() {
             name.toLowerCase().includes(q);
         const matchTab =
             statusTab === "ALL" ||
-            (statusTab === "DONE"    ?  isDone(r.refundId) : !isDone(r.refundId));
+            (statusTab === "DONE" ? isDone(r.refundId) : !isDone(r.refundId));
         return matchSearch && matchTab;
     });
 
@@ -565,6 +603,16 @@ export default function ManageRefundPage() {
                     onSuccess={created => {
                         append(created);
                         showToast("Batch tạo thành công!", "success");
+                    }}
+                />
+            )}
+
+            {showCustomerModal && (
+                <CustomerCancelModal
+                    onClose={() => setShowCustomerModal(false)}
+                    onSuccess={created => {
+                        append(created);
+                        showToast("Batch hoàn tiền khách hủy đã tạo!", "success");
                     }}
                 />
             )}
@@ -608,6 +656,16 @@ export default function ManageRefundPage() {
                                 Hoàn tiền tất cả ({pendingTotal})
                             </button>
                         )}
+                        {/* Nút tạo đợt hoàn tiền theo loại */}
+                        <button
+                            onClick={() => setShowCustomerModal(true)}
+                            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors"
+                        >
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                                <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                            </svg>
+                            Khách hủy đơn
+                        </button>
                         <button
                             onClick={() => setShowCreateModal(true)}
                             className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors"
@@ -615,7 +673,7 @@ export default function ManageRefundPage() {
                             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                                 <path d="M12 5v14M5 12h14" />
                             </svg>
-                            Tạo đợt hoàn tiền
+                            NSX hủy (Variant)
                         </button>
                     </div>
                 </div>

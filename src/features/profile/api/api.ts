@@ -30,9 +30,14 @@ export const profileApi = {
     return api.get('/orders/me');
   },
 
-  // 5. Lấy địa chỉ của người dùng
+  // 5. Hủy đơn hàng (chỉ áp dụng cho PRE_ORDER chưa xử lý)
+  cancelOrder: (orderId: string) => {
+    return api.put(`/orders/${orderId}/cancel`);
+  },
+
+  // 6. Lấy địa chỉ của người dùng
   getAddresses: () => {
     return api.get('/profile/addresses');
   },
 
-};      
+};

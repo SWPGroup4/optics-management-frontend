@@ -68,6 +68,33 @@ export const refundApi = {
         return [];
     },
 
+    // [Khách hủy] Lấy đơn đã hủy có thanh toán thành công
+    getCancelledPaidOrders: async (): Promise<Order[]> => {
+        const res = await api.get(`/management/orders/cancelled/paid`);
+        const data = res.data;
+
+        // Log để debug
+        console.log("getCancelledPaidOrders raw:", JSON.stringify(data));
+
+        // Array trực tiếp
+        if (Array.isArray(data)) return toOrders(data);
+        // { result: [...] }
+        if (Array.isArray(data?.result)) return toOrders(data.result);
+        // { data: [...] }
+        if (Array.isArray(data?.data)) return toOrders(data.data);
+        // { result: { content: [...] } } — phân trang
+        if (Array.isArray(data?.result?.content)) return toOrders(data.result.content);
+        // { result: { items: [...] } }
+        if (Array.isArray(data?.result?.items)) return toOrders(data.result.items);
+        // Object đơn lẻ (1 đơn) → bọc thành array
+        if (data?.result && typeof data.result === "object" && !Array.isArray(data.result)) {
+            const order = toOrder(data.result);
+            return order ? [order] : [];
+        }
+
+        return [];
+    },
+
     // Bước 3: Tạo batch hoàn tiền
     createBatch: async (orderIds: string[]): Promise<RefundItem[]> => {
         const res = await api.post(`/refund/create-batch`, { orderIds });

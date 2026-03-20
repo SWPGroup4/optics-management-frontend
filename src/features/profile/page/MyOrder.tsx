@@ -263,6 +263,10 @@ function OrderItemCard({ item, orderName }: { item: OrderItem; index: number; to
 
 function OrderCard({ order }: { order: Order }) {
   const [expanded, setExpanded] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const queryClient = useQueryClient();
+
   const statusCfg = STATUS_CONFIG[order.orderStatus] ?? {
     color: "bg-gray-50 text-gray-600 border-gray-200",
     label: order.orderStatus,
@@ -272,8 +276,71 @@ function OrderCard({ order }: { order: Order }) {
   const hasDiscount = !!order.comboName && !!order.comboDiscountAmount;
   const hasRefund = order.refundedAmount > 0;
 
+  // Chỉ cho hủy khi có PRE_ORDER và đang ở trạng thái chờ/xác nhận
+  const hasPreOrder = order.items.some(i => i.orderItemType === "PRE_ORDER");
+  const canCancel = hasPreOrder &&
+    ["PENDING", "CONFIRMED"].includes(order.orderStatus);
+
+  const handleCancel = async () => {
+    setCancelling(true);
+    try {
+      await profileApi.cancelOrder(order.orderId);
+      queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+      setShowConfirm(false);
+    } catch (e: any) {
+      alert(e.response?.data?.message ?? "Lỗi khi hủy đơn hàng");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   return (
     <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
+
+      {/* Modal xác nhận hủy */}
+      {showConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowConfirm(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-bold text-gray-900">Xác nhận hủy đơn?</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {order.orderName || `Đơn #${order.orderId.slice(0, 8).toUpperCase()}`}
+                </p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              Đơn hàng <span className="font-semibold text-violet-700">PRE_ORDER</span> sẽ chuyển sang{" "}
+              <span className="font-semibold text-rose-600">Đã hủy</span>. Nếu bạn đã thanh toán, admin sẽ xử lý hoàn tiền cho bạn.
+            </p>
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={() => setShowConfirm(false)}
+                disabled={cancelling}
+                className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors disabled:opacity-50"
+              >
+                Không hủy
+              </button>
+              <button
+                onClick={handleCancel}
+                disabled={cancelling}
+                className="flex-1 py-2.5 text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {cancelling && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
+                Xác nhận hủy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header row – click to expand */}
       <button
         onClick={() => setExpanded(!expanded)}
@@ -394,6 +461,20 @@ function OrderCard({ order }: { order: Order }) {
               <span className="text-lg font-bold text-indigo-700">{formatPrice(order.finalTotalAfterRefund)}</span>
             </div>
           </div>
+
+          {/* Nút hủy đơn PRE_ORDER */}
+          {canCancel && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowConfirm(true); }}
+              className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Hủy đơn PRE_ORDER
+            </button>
+          )}
         </div>
       )}
     </div>
