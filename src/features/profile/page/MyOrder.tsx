@@ -60,7 +60,7 @@ interface Order {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const formatPrice = (price: number | null | undefined) => {
-  if (price == null) return "—";
+  if (price == null) return "0 ₫";
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
@@ -69,7 +69,7 @@ const formatPrice = (price: number | null | undefined) => {
 };
 
 const STATUS_CONFIG: Record<string, { color: string; label: string; dot: string; tab: string }> = {
-  PENDING:               { color: "bg-amber-50 text-amber-700 border-amber-200",     label: "Chờ xử lý",      dot: "bg-amber-500",   tab: "text-amber-600 border-amber-500 bg-amber-50"   },
+  PENDING:               { color: "bg-amber-50 text-amber-700 border-amber-200",     label: "Chờ xử lý",     dot: "bg-amber-500",   tab: "text-amber-600 border-amber-500 bg-amber-50"   },
   ON_HOLD:               { color: "bg-gray-100 text-gray-600 border-gray-200",       label: "Tạm giữ",        dot: "bg-gray-400",    tab: "text-gray-600 border-gray-400 bg-gray-100"     },
   CONFIRMED:             { color: "bg-emerald-50 text-emerald-700 border-emerald-200",label: "Đã xác nhận",   dot: "bg-emerald-500", tab: "text-emerald-600 border-emerald-500 bg-emerald-50"},
   PROCESSING:            { color: "bg-blue-50 text-blue-700 border-blue-200",        label: "Đang xử lý",     dot: "bg-blue-500",    tab: "text-blue-600 border-blue-500 bg-blue-50"      },
@@ -244,7 +244,7 @@ function OrderCard({ order }: { order: Order }) {
   const hasRefund = order.refundedAmount > 0;
 
   return (
-    <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
+    <div className={`border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow duration-200 ${order.orderStatus === "CANCELLED" ? "opacity-90" : ""}`}>
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full text-left px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
@@ -305,13 +305,11 @@ function OrderCard({ order }: { order: Order }) {
           <div className="bg-white border border-gray-100 rounded-xl px-4 py-3 space-y-1.5">
             <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Chi tiết thanh toán</p>
 
-            {/* Tổng giá sản phẩm */}
             <div className="flex justify-between text-sm text-gray-500">
               <span>Tổng giá sản phẩm</span>
               <span className="font-medium text-gray-700">{formatPrice(order.totalAmount)}</span>
             </div>
 
-            {/* Tổng tiền tròng kính */}
             {(() => {
               const totalLens = order.items.reduce((s, i) => s + (i.lensPriceTotal ?? 0), 0);
               return totalLens > 0 ? (
@@ -322,7 +320,6 @@ function OrderCard({ order }: { order: Order }) {
               ) : null;
             })()}
 
-            {/* Giảm giá combo */}
             {hasDiscount && (
               <div className="flex justify-between text-sm text-violet-600">
                 <span className="flex items-center gap-1.5">
@@ -340,7 +337,6 @@ function OrderCard({ order }: { order: Order }) {
               </div>
             )}
 
-            {/* Đã hoàn tiền */}
             {hasRefund && (
               <div className="flex justify-between text-sm text-orange-500">
                 <span className="flex items-center gap-1.5">
@@ -353,7 +349,6 @@ function OrderCard({ order }: { order: Order }) {
 
             <div className="border-t border-dashed border-gray-100 my-1" />
 
-            {/* Đã đặt cọc */}
             {order.depositAmount != null && order.depositAmount > 0 && (
               <div className="flex justify-between text-sm text-emerald-600">
                 <span className="flex items-center gap-1.5">
@@ -371,8 +366,7 @@ function OrderCard({ order }: { order: Order }) {
               </div>
             )}
 
-            {/* Đã thanh toán 100% */}
-            {order.paidAmount >= order.finalTotalAfterRefund && order.finalTotalAfterRefund > 0 && (
+            {order.paidAmount >= order.finalTotalAfterRefund && order.finalTotalAfterRefund > 0 && order.orderStatus !== "CANCELLED" && (
               <div className="mt-1 flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
                 <span className="flex items-center gap-2 text-sm font-semibold text-emerald-700">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -386,29 +380,23 @@ function OrderCard({ order }: { order: Order }) {
               </div>
             )}
 
-            {/* Còn lại phải trả */}
-            {order.depositAmount != null && order.depositAmount > 0 && order.depositAmount < order.finalTotalAfterRefund && (
-              <div className="flex justify-between text-sm text-gray-400">
-                <span className="flex items-center gap-1.5">
-                  <span>⏳</span>
-                  <span>Còn lại phải trả</span>
-                </span>
-                <span className="font-medium">{formatPrice(order.finalTotalAfterRefund - order.depositAmount)}</span>
-              </div>
-            )}
-
-            {/* Còn phải trả */}
             <div className="flex justify-between items-center pt-2.5 mt-1 border-t border-gray-200">
               <span className="text-sm font-semibold text-gray-700">Còn phải trả</span>
-            {order.remainingAmount !== null && order.remainingAmount <= 0 ? (
-  <span className="text-sm font-bold text-emerald-600">
-    Đã thanh toán đủ ✓
-  </span>
-) : (
-  <span className="text-lg font-bold text-rose-600">
-    {formatPrice(order.remainingAmount)}
-  </span>
-)}
+              {/* LOGIC CẬP NHẬT: Kiểm tra trạng thái hủy hoặc hoàn tiền */}
+              {order.orderStatus === "CANCELLED" || order.orderStatus === "REFUNDED" ? (
+                <div className="flex flex-col items-end">
+                  <span className="text-lg font-bold text-gray-400">0 ₫</span>
+                  <span className="text-[10px] text-gray-400 font-medium">(Đơn hàng {order.orderStatus === "CANCELLED" ? "đã hủy" : "đã hoàn tiền"})</span>
+                </div>
+              ) : order.remainingAmount !== null && order.remainingAmount <= 0 ? (
+                <span className="text-sm font-bold text-emerald-600">
+                  Đã thanh toán đủ ✓
+                </span>
+              ) : (
+                <span className="text-lg font-bold text-rose-600">
+                  {formatPrice(order.remainingAmount)}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -443,17 +431,14 @@ export default function MyOrders() {
   if (!orders || orders.length === 0) return <div className="p-12 text-center text-gray-400">Bạn chưa có đơn hàng nào</div>;
 
   const countByStatus = (status: string) => orders.filter((o) => o.orderStatus === status).length;
-
   const filteredOrders = activeTab === "ALL" ? orders : orders.filter((o) => o.orderStatus === activeTab);
-
   const totalPages = Math.max(1, Math.ceil(filteredOrders.length / PAGE_SIZE));
   const paginated  = filteredOrders.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-
   const visibleStatuses = ["ALL", ...ALL_STATUSES.filter((s) => countByStatus(s) > 0)];
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
-    setCurrentPage(1); // reset về trang 1 khi đổi tab
+    setCurrentPage(1);
   };
 
   return (
@@ -463,7 +448,6 @@ export default function MyOrders() {
         <p className="text-sm text-gray-400 mt-1">{filteredOrders.length} đơn hàng</p>
       </div>
 
-      {/* Tabs trạng thái */}
       <div className="flex gap-2 overflow-x-auto pb-1 mb-5 scrollbar-hide">
         {visibleStatuses.map((status) => {
           const cfg = STATUS_CONFIG[status];
@@ -487,14 +471,12 @@ export default function MyOrders() {
         })}
       </div>
 
-      {/* Danh sách đơn hàng */}
       <div className="space-y-4">
         {paginated.map((order) => (
           <OrderCard key={order.orderId} order={order} />
         ))}
       </div>
 
-      {/* Phân trang */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
           <p className="text-xs text-gray-400">
