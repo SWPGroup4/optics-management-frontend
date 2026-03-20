@@ -1,14 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { RefundItem } from "@/features/manager/api/refund-api";
 import type { Order } from "@/features/manager/api/order-api";
+
+
 import {
     useReadyRefunds,
     useInActivateVariant,
     useCreateRefundBatch,
     useCheckoutRefund,
 } from "@/features/manager/hooks/useRefunds";
+import { productApi } from "../products/ProductModal";
+import { variantApi } from "../../api/variant-api";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -48,9 +52,21 @@ function CreateBatchModal({ onClose, onSuccess }: {
     onClose: () => void;
     onSuccess: (refunds: RefundItem[]) => void;
 }) {
-    const [step, setStep]             = useState<1 | 2>(1);
-    const [variantInput, setVariantInput] = useState("");
-    const [toast, setToast]           = useState<{ msg: string; type: "success" | "error" } | null>(null);
+    const [step, setStep] = useState<1 | 2>(1);
+    const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+    // ── Search state ──────────────────────────────────────────────────────────
+    const [productSearch, setProductSearch]   = useState("");
+    const [products, setProducts]             = useState<any[]>([]);
+    const [loadingProducts, setLoadingProducts] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+
+    const [variants, setVariants]             = useState<any[]>([]);
+    const [loadingVariants, setLoadingVariants] = useState(false);
+    const [variantSearch, setVariantSearch]   = useState("");
+    const [selectedVariant, setSelectedVariant] = useState<any | null>(null);
+
+    const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const inActivate  = useInActivateVariant();
     const createBatch = useCreateRefundBatch();
@@ -60,14 +76,58 @@ function CreateBatchModal({ onClose, onSuccess }: {
         setTimeout(() => setToast(null), 3000);
     };
 
-    const handleInActivate = async () => {
-        const id = variantInput.trim();
-        if (!id) return;
+    // Tìm sản phẩm khi gõ
+    useEffect(() => {
+        if (!productSearch.trim()) { setProducts([]); return; }
+        if (searchTimer.current) clearTimeout(searchTimer.current);
+        searchTimer.current = setTimeout(async () => {
+            setLoadingProducts(true);
+            try {
+                const data = await productApi.getAll();
+                const all: any[] = data.result ?? [];
+                const q = productSearch.toLowerCase();
+                setProducts(all.filter(p =>
+                    (p.name ?? "").toLowerCase().includes(q) ||
+                    (p.brand ?? "").toLowerCase().includes(q)
+                ).slice(0, 8));
+            } catch { setProducts([]); }
+            finally { setLoadingProducts(false); }
+        }, 300);
+    }, [productSearch]);
+
+    // Load variants khi chọn sản phẩm
+    const handleSelectProduct = async (product: any) => {
+        setSelectedProduct(product);
+        setProducts([]);
+        setProductSearch(product.name);
+        setSelectedVariant(null);
+        setVariants([]);
+        setVariantSearch("");
+        setLoadingVariants(true);
         try {
-            await inActivate.run(id);
+            const data = await variantApi.getAll(product.id);
+            setVariants(data.result ?? []);
+        } catch { setVariants([]); }
+        finally { setLoadingVariants(false); }
+    };
+
+    // Lọc variant theo tên
+    const filteredVariants = variants.filter(v => {
+        const q = variantSearch.toLowerCase();
+        return !q ||
+            (v.colorName ?? "").toLowerCase().includes(q) ||
+            (v.sizeLabel ?? "").toLowerCase().includes(q) ||
+            (v.frameFinish ?? "").toLowerCase().includes(q);
+    });
+
+    // Chọn variant → vô hiệu hóa + load affected orders
+    const handleSelectVariant = async (variant: any) => {
+        setSelectedVariant(variant);
+        try {
+            await inActivate.run(variant.id);
             setStep(2);
         } catch (e: any) {
-            showToast(e.message, "error");
+            showToast(e.message ?? "Lỗi khi xử lý variant", "error");
         }
     };
 
@@ -77,7 +137,7 @@ function CreateBatchModal({ onClose, onSuccess }: {
             showToast("Đã tạo batch hoàn tiền!", "success");
             setTimeout(() => { onSuccess(created); onClose(); }, 800);
         } catch (e: any) {
-            showToast(e.message, "error");
+            showToast(e.message ?? "Lỗi khi tạo batch", "error");
         }
     };
 
@@ -108,7 +168,7 @@ function CreateBatchModal({ onClose, onSuccess }: {
 
                 {/* step pills */}
                 <div className="flex px-6 pt-4 gap-2">
-                    {[{ n: 1, label: "Nhập Variant" }, { n: 2, label: "Xem đơn bị ảnh hưởng" }].map(s => (
+                    {[{ n: 1, label: "Chọn Variant" }, { n: 2, label: "Xem đơn bị ảnh hưởng" }].map(s => (
                         <div key={s.n} className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
                             step === s.n ? "bg-indigo-600 text-white" :
                             step > s.n   ? "bg-emerald-100 text-emerald-700" :
@@ -123,58 +183,150 @@ function CreateBatchModal({ onClose, onSuccess }: {
                 {/* body */}
                 <div className="px-6 py-5">
 
-                    {/* Step 1 */}
+                    {/* ── Step 1: Tìm sản phẩm → chọn variant ── */}
                     {step === 1 && (
                         <div className="space-y-4">
+
+                            {/* Tìm sản phẩm */}
                             <div>
-                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                                    Variant ID
+                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                                    1. Tìm sản phẩm
                                 </label>
-                                <input
-                                    autoFocus
-                                    type="text"
-                                    value={variantInput}
-                                    onChange={e => setVariantInput(e.target.value)}
-                                    onKeyDown={e => e.key === "Enter" && handleInActivate()}
-                                    placeholder="Nhập Variant ID..."
-                                    className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-gray-50"
-                                />
-                                <p className="text-[11px] text-gray-400 mt-1.5">
-                                    Tìm Variant ID trong trang quản lý biến thể sản phẩm
-                                </p>
-                            </div>
-                            <div className="flex gap-3">
-                                <button onClick={onClose} className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">
-                                    Hủy
-                                </button>
-                                <button
-                                    onClick={handleInActivate}
-                                    disabled={!variantInput.trim() || inActivate.loading}
-                                    className="flex-1 py-2.5 text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors flex items-center justify-center gap-2"
-                                >
-                                    {inActivate.loading && (
-                                        <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                                <div className="relative">
+                                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                                        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                                    </svg>
+                                    <input
+                                        autoFocus
+                                        type="text"
+                                        value={productSearch}
+                                        onChange={e => {
+                                            setProductSearch(e.target.value);
+                                            setSelectedProduct(null);
+                                            setSelectedVariant(null);
+                                            setVariants([]);
+                                        }}
+                                        placeholder="Nhập tên sản phẩm hoặc thương hiệu..."
+                                        className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-gray-50"
+                                    />
+                                    {loadingProducts && (
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin" />
                                     )}
-                                    Vô hiệu hóa & Tiếp tục
-                                </button>
+                                </div>
+
+                                {/* Dropdown sản phẩm */}
+                                {products.length > 0 && !selectedProduct && (
+                                    <div className="mt-1 border border-gray-200 rounded-xl overflow-hidden shadow-lg">
+                                        {products.map(p => (
+                                            <button
+                                                key={p.id}
+                                                onClick={() => handleSelectProduct(p)}
+                                                className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-indigo-50 transition-colors text-left border-b border-gray-50 last:border-0"
+                                            >
+                                                {p.imageUrl?.[0]?.imageUrl && (
+                                                    <img src={p.imageUrl[0].imageUrl} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                                                )}
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-medium text-gray-800 truncate">{p.name}</p>
+                                                    <p className="text-xs text-gray-400">{p.brand}</p>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
+
+                            {/* Danh sách variant sau khi chọn sản phẩm */}
+                            {selectedProduct && (
+                                <div>
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                            2. Chọn variant bị hủy
+                                        </label>
+                                        <span className="text-xs text-indigo-600 font-medium">{selectedProduct.name}</span>
+                                    </div>
+
+                                    {/* Tìm variant */}
+                                    <input
+                                        type="text"
+                                        value={variantSearch}
+                                        onChange={e => setVariantSearch(e.target.value)}
+                                        placeholder="Lọc theo màu, size, chất liệu..."
+                                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-gray-50 mb-2"
+                                    />
+
+                                    {loadingVariants ? (
+                                        <div className="flex justify-center py-6">
+                                            <div className="w-5 h-5 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin" />
+                                        </div>
+                                    ) : filteredVariants.length === 0 ? (
+                                        <p className="text-center py-4 text-sm text-gray-400">Không tìm thấy variant</p>
+                                    ) : (
+                                        <div className="space-y-1.5 max-h-[220px] overflow-y-auto">
+                                            {filteredVariants.map(v => (
+                                                <button
+                                                    key={v.id}
+                                                    onClick={() => handleSelectVariant(v)}
+                                                    disabled={inActivate.loading && selectedVariant?.id === v.id}
+                                                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-left transition-all ${
+                                                        selectedVariant?.id === v.id
+                                                            ? "border-indigo-300 bg-indigo-50"
+                                                            : "border-gray-100 bg-gray-50 hover:border-indigo-200 hover:bg-indigo-50/50"
+                                                    }`}
+                                                >
+                                                    <div className="min-w-0">
+                                                        <p className="text-sm font-semibold text-gray-800">
+                                                            {v.colorName}
+                                                            {v.sizeLabel && <span className="ml-2 text-xs font-normal text-gray-500">· {v.sizeLabel}</span>}
+                                                            {v.frameFinish && <span className="ml-1 text-xs font-normal text-gray-500">· {v.frameFinish}</span>}
+                                                        </p>
+                                                        <p className="text-[11px] text-gray-400 font-mono mt-0.5">{v.id?.slice(0, 16)}...</p>
+                                                    </div>
+                                                    <div className="text-right shrink-0 ml-3">
+                                                        <p className="text-sm font-bold text-gray-700">
+                                                            {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(v.price ?? 0)}
+                                                        </p>
+                                                        {inActivate.loading && selectedVariant?.id === v.id && (
+                                                            <div className="w-4 h-4 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin mt-1 ml-auto" />
+                                                        )}
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            <button onClick={onClose} className="w-full py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">
+                                Hủy
+                            </button>
                         </div>
                     )}
 
-                    {/* Step 2 */}
+                    {/* ── Step 2: Xem đơn bị ảnh hưởng ── */}
                     {step === 2 && (
                         <div className="space-y-4">
+                            {/* Variant đã chọn */}
+                            {selectedVariant && (
+                                <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3 flex items-center justify-between">
+                                    <div>
+                                        <p className="text-xs text-indigo-400 uppercase font-semibold tracking-wide">Variant đã vô hiệu hóa</p>
+                                        <p className="text-sm font-bold text-indigo-800 mt-0.5">
+                                            {selectedVariant.colorName}
+                                            {selectedVariant.sizeLabel && ` · ${selectedVariant.sizeLabel}`}
+                                        </p>
+                                        <p className="text-[11px] font-mono text-indigo-400">{selectedVariant.id?.slice(0, 16)}...</p>
+                                    </div>
+                                    <span className="text-xs bg-rose-100 text-rose-700 font-bold px-2 py-1 rounded-lg">Đã hủy</span>
+                                </div>
+                            )}
+
                             <div className="flex items-center justify-between">
                                 <p className="text-sm text-gray-600">
                                     Tìm thấy{" "}
-                                    <span className="font-bold text-rose-600">
-                                        {inActivate.affectedOrders.length} đơn hàng
-                                    </span>{" "}
+                                    <span className="font-bold text-rose-600">{inActivate.affectedOrders.length} đơn hàng</span>{" "}
                                     bị ảnh hưởng
                                 </p>
-                                <span className="text-xs font-mono bg-gray-100 text-gray-500 px-2 py-1 rounded">
-                                    {variantInput.slice(0, 12)}...
-                                </span>
                             </div>
 
                             {inActivate.affectedOrders.length === 0 ? (
@@ -217,7 +369,7 @@ function CreateBatchModal({ onClose, onSuccess }: {
 
                             <div className="flex gap-3">
                                 <button
-                                    onClick={() => { setStep(1); inActivate.reset(); }}
+                                    onClick={() => { setStep(1); inActivate.reset(); setSelectedVariant(null); }}
                                     className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
                                 >
                                     ← Quay lại
