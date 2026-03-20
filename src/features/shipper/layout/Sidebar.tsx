@@ -1,18 +1,12 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import {
-  LayoutDashboard,
-  LogOut,
-  ChevronLeft,
-  ChevronRight,
-  // Truck
-} from 'lucide-react';
+import { LayoutDashboard, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useSidebar } from '@/features/operation-staff/hooks/useSidebar.ts';
-import Logo from '@/features/operation-staff/components/common/Logo';
+import { useSidebar } from '@/features/shipper/hooks/useSidebar.ts';
+import Logo from '@/features/shipper/components/common/Logo';
 
 const navigation = [
-  { name: 'Tổng quan', href: '/ops-staff', icon: LayoutDashboard },
-  // { name: "Đóng gói", href: "/ops-staff/shipping", icon: Truck },
+  { name: 'Tổng quan', href: '/shipper', icon: LayoutDashboard },
+  // { name: "Đóng gói và giao hàng", href: "/ops-staff/shipping", icon: Truck },
   // { name: "Orders", href: "/manager/orders", icon: ShoppingCart },
   // { name: "Pricing", href: "/manager/pricing", icon: Tag },
   // { name: "Staff", href: "/manager/staff", icon: Users },
@@ -76,7 +70,7 @@ export function Sidebar() {
           {!collapsed && (
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-sidebar-foreground truncate">John Doe</p>
-              <p className="text-xs text-sidebar-muted truncate">Operation Staff</p>
+              <p className="text-xs text-sidebar-muted truncate">Shipper</p>
             </div>
           )}
           {!collapsed && (

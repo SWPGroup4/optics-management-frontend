@@ -34,6 +34,8 @@ import OrderDetailPage from '@/features/seller/page/order/OrderDetailPage';
 import { OpsStaffDashboardLayout } from '@/features/operation-staff/layout/OpsStaffDashboardLayout';
 import OpsStaffDashboardPage from '@/features/operation-staff/page/dashboard/OpsStaffDashboardPage';
 import { RequireRole } from './protected-route';
+import { ShipperDashboardLayout } from '@/features/shipper/layout/ShipperDashboardLayout';
+import ShipperDashboardPage from '@/features/shipper/page/dashboard/ShipperDashboardPage';
 
 export const router = createBrowserRouter([
   {
@@ -132,7 +134,21 @@ export const router = createBrowserRouter([
         <OpsStaffDashboardLayout />
       </RequireRole>
     ),
-    children: [{ index: true, element: <OpsStaffDashboardPage /> }],
+    children: [
+      { index: true, element: <OpsStaffDashboardPage /> },
+      // { path: "shipping", element: <ShippingPage /> }
+    ],
+  },
+
+  // Protected Shipper Routes
+  {
+    path: 'shipper',
+    element: (
+      <RequireRole allowedRoles={['shipper', 'admin']}>
+        <ShipperDashboardLayout />
+      </RequireRole>
+    ),
+    children: [{ index: true, element: <ShipperDashboardPage /> }],
   },
 
   // ===== FALLBACK =====

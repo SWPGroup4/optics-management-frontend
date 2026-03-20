@@ -1,6 +1,6 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
-import { profileApi } from "../api/api";
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { profileApi } from '../api/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -26,7 +26,7 @@ interface OrderItem {
   itemName: string | null;
   productName: string | null;
   variantName: string | null;
-  orderItemType: "IN_STOCK" | "PRE_ORDER";
+  orderItemType: 'IN_STOCK' | 'PRE_ORDER';
   quantity: number;
   unitPrice: number;
   lensId: string | null;
@@ -47,6 +47,8 @@ interface Order {
   orderStatus: string;
   totalAmount: number;
   depositAmount: number | null;
+  remainingAmount: number | null;
+  paidAmount: number;
   items: OrderItem[];
   comboId: string | null;
   comboName: string | null;
@@ -58,34 +60,94 @@ interface Order {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const formatPrice = (price: number | null | undefined) => {
-  if (price == null) return "—";
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
+  if (price == null) return '0 ₫';
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
     maximumFractionDigits: 0,
   }).format(price);
 };
 
 const STATUS_CONFIG: Record<string, { color: string; label: string; dot: string; tab: string }> = {
-  PENDING:               { color: "bg-amber-50 text-amber-700 border-amber-200",     label: "Chờ xử lý",      dot: "bg-amber-500",   tab: "text-amber-600 border-amber-500 bg-amber-50"   },
-  ON_HOLD:               { color: "bg-gray-100 text-gray-600 border-gray-200",       label: "Tạm giữ",        dot: "bg-gray-400",    tab: "text-gray-600 border-gray-400 bg-gray-100"     },
-  CONFIRMED:             { color: "bg-emerald-50 text-emerald-700 border-emerald-200",label: "Đã xác nhận",   dot: "bg-emerald-500", tab: "text-emerald-600 border-emerald-500 bg-emerald-50"},
-  PROCESSING:            { color: "bg-blue-50 text-blue-700 border-blue-200",        label: "Đang xử lý",     dot: "bg-blue-500",    tab: "text-blue-600 border-blue-500 bg-blue-50"      },
-  PREPARING:             { color: "bg-violet-50 text-violet-700 border-violet-200",  label: "Đang chuẩn bị",  dot: "bg-violet-500",  tab: "text-violet-600 border-violet-500 bg-violet-50" },
-  PRODUCED:              { color: "bg-teal-50 text-teal-700 border-teal-200",        label: "Đã sản xuất",    dot: "bg-teal-500",    tab: "text-teal-600 border-teal-500 bg-teal-50"      },
-  DELIVERING:            { color: "bg-cyan-50 text-cyan-700 border-cyan-200",        label: "Đang giao hàng", dot: "bg-cyan-500",    tab: "text-cyan-600 border-cyan-500 bg-cyan-50"      },
-  SHIPPED:               { color: "bg-sky-50 text-sky-700 border-sky-200",           label: "Đã gửi hàng",    dot: "bg-sky-500",     tab: "text-sky-600 border-sky-500 bg-sky-50"         },
-  COMPLETED:             { color: "bg-emerald-50 text-emerald-700 border-emerald-200",label: "Hoàn thành",    dot: "bg-emerald-500", tab: "text-emerald-600 border-emerald-500 bg-emerald-50"},
-  CANCELLED:             { color: "bg-rose-50 text-rose-700 border-rose-200",        label: "Đã huỷ",         dot: "bg-rose-500",    tab: "text-rose-600 border-rose-500 bg-rose-50"      },
-  REFUNDED:              { color: "bg-orange-50 text-orange-700 border-orange-200",  label: "Đã hoàn tiền",   dot: "bg-orange-500",  tab: "text-orange-600 border-orange-500 bg-orange-50" },
-  AWAITING_VERIFICATION: { color: "bg-yellow-50 text-yellow-700 border-yellow-200",  label: "Chờ xác minh",   dot: "bg-yellow-500",  tab: "text-yellow-600 border-yellow-500 bg-yellow-50" },
+  PENDING: {
+    color: 'bg-amber-50 text-amber-700 border-amber-200',
+    label: 'Chờ xử lý',
+    dot: 'bg-amber-500',
+    tab: 'text-amber-600 border-amber-500 bg-amber-50',
+  },
+  ON_HOLD: {
+    color: 'bg-gray-100 text-gray-600 border-gray-200',
+    label: 'Tạm giữ',
+    dot: 'bg-gray-400',
+    tab: 'text-gray-600 border-gray-400 bg-gray-100',
+  },
+  CONFIRMED: {
+    color: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    label: 'Đã xác nhận',
+    dot: 'bg-emerald-500',
+    tab: 'text-emerald-600 border-emerald-500 bg-emerald-50',
+  },
+  PROCESSING: {
+    color: 'bg-blue-50 text-blue-700 border-blue-200',
+    label: 'Đang xử lý',
+    dot: 'bg-blue-500',
+    tab: 'text-blue-600 border-blue-500 bg-blue-50',
+  },
+  PREPARING: {
+    color: 'bg-violet-50 text-violet-700 border-violet-200',
+    label: 'Đang chuẩn bị',
+    dot: 'bg-violet-500',
+    tab: 'text-violet-600 border-violet-500 bg-violet-50',
+  },
+  PRODUCED: {
+    color: 'bg-teal-50 text-teal-700 border-teal-200',
+    label: 'Đã sản xuất',
+    dot: 'bg-teal-500',
+    tab: 'text-teal-600 border-teal-500 bg-teal-50',
+  },
+  DELIVERING: {
+    color: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+    label: 'Đang giao hàng',
+    dot: 'bg-cyan-500',
+    tab: 'text-cyan-600 border-cyan-500 bg-cyan-50',
+  },
+  SHIPPED: {
+    color: 'bg-sky-50 text-sky-700 border-sky-200',
+    label: 'Đã gửi hàng',
+    dot: 'bg-sky-500',
+    tab: 'text-sky-600 border-sky-500 bg-sky-50',
+  },
+  COMPLETED: {
+    color: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    label: 'Hoàn thành',
+    dot: 'bg-emerald-500',
+    tab: 'text-emerald-600 border-emerald-500 bg-emerald-50',
+  },
+  CANCELLED: {
+    color: 'bg-rose-50 text-rose-700 border-rose-200',
+    label: 'Đã huỷ',
+    dot: 'bg-rose-500',
+    tab: 'text-rose-600 border-rose-500 bg-rose-50',
+  },
+  REFUNDED: {
+    color: 'bg-orange-50 text-orange-700 border-orange-200',
+    label: 'Đã hoàn tiền',
+    dot: 'bg-orange-500',
+    tab: 'text-orange-600 border-orange-500 bg-orange-50',
+  },
+  AWAITING_VERIFICATION: {
+    color: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    label: 'Chờ xác minh',
+    dot: 'bg-yellow-500',
+    tab: 'text-yellow-600 border-yellow-500 bg-yellow-50',
+  },
 };
 
 const ITEM_STATUS: Record<string, string> = {
-  IN_PRODUCTION: "Đang sản xuất",
-  PRODUCED:      "Đã sản xuất",
-  PENDING:       "Chờ xử lý",
-  COMPLETED:     "Hoàn thành",
+  IN_PRODUCTION: 'Đang sản xuất',
+  PRODUCED: 'Đã sản xuất',
+  PENDING: 'Chờ xử lý',
+  COMPLETED: 'Hoàn thành',
 };
 
 const ALL_STATUSES = Object.keys(STATUS_CONFIG);
@@ -101,21 +163,33 @@ function PrescriptionImage({ imageUrl }: { imageUrl: string }) {
         className="mt-2 flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 underline underline-offset-2"
       >
         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+          />
         </svg>
         Xem ảnh đơn kính
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={() => setOpen(false)}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+          onClick={() => setOpen(false)}
+        >
           <div className="relative max-w-lg w-full" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => setOpen(false)}
               className="absolute -top-3 -right-3 w-7 h-7 bg-white rounded-full shadow flex items-center justify-center text-gray-500 hover:text-gray-800"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
             <img
@@ -132,20 +206,34 @@ function PrescriptionImage({ imageUrl }: { imageUrl: string }) {
 
 // ─── OrderItem Card ───────────────────────────────────────────────────────────
 
-function OrderItemCard({ item, orderName }: { item: OrderItem; index: number; total: number; orderName?: string | null }) {
-  const productLabel = item.productName || item.itemName || orderName || (item.orderItemType === "PRE_ORDER" ? "Sản phẩm đặt trước" : "Sản phẩm có sẵn");
+function OrderItemCard({
+  item,
+  orderName,
+}: {
+  item: OrderItem;
+  index: number;
+  total: number;
+  orderName?: string | null;
+}) {
+  const productLabel =
+    item.productName ||
+    item.itemName ||
+    orderName ||
+    (item.orderItemType === 'PRE_ORDER' ? 'Sản phẩm đặt trước' : 'Sản phẩm có sẵn');
 
   return (
     <div className="bg-white border border-gray-100 rounded-xl p-4 space-y-3">
       <div className="flex justify-between items-start gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
-            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
-              item.orderItemType === "PRE_ORDER"
-                ? "bg-violet-100 text-violet-700"
-                : "bg-emerald-100 text-emerald-700"
-            }`}>
-              {item.orderItemType === "PRE_ORDER" ? "Đặt trước" : "Hàng có sẵn"}
+            <span
+              className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                item.orderItemType === 'PRE_ORDER'
+                  ? 'bg-violet-100 text-violet-700'
+                  : 'bg-emerald-100 text-emerald-700'
+              }`}
+            >
+              {item.orderItemType === 'PRE_ORDER' ? 'Đặt trước' : 'Hàng có sẵn'}
             </span>
             {item.status && (
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-semibold">
@@ -158,10 +246,14 @@ function OrderItemCard({ item, orderName }: { item: OrderItem; index: number; to
             <p className="text-xs text-gray-500 mt-0.5">🏷️ {item.variantName}</p>
           )}
           {item.lensName && item.lensPrice != null && (
-            <p className="text-xs text-indigo-500 mt-0.5">🔭 {item.lensName} &nbsp;+&nbsp; {formatPrice(item.lensPrice)}</p>
+            <p className="text-xs text-indigo-500 mt-0.5">
+              🔭 {item.lensName} &nbsp;+&nbsp; {formatPrice(item.lensPrice)}
+            </p>
           )}
           {item.productVariantId && (
-            <p className="text-[11px] text-gray-400 font-mono mt-0.5 truncate">Mã: {item.productVariantId.slice(0, 12)}...</p>
+            <p className="text-[11px] text-gray-400 font-mono mt-0.5 truncate">
+              Mã: {item.productVariantId.slice(0, 12)}...
+            </p>
           )}
         </div>
         <p className="text-sm font-bold text-gray-800 shrink-0">{formatPrice(item.totalPrice)}</p>
@@ -189,10 +281,10 @@ function OrderItemCard({ item, orderName }: { item: OrderItem; index: number; to
             <div className="bg-blue-50 rounded-lg p-2.5">
               <p className="text-blue-500 font-semibold mb-1.5">Mắt phải (OD)</p>
               {[
-                ["Cầu (Sphere)",   item.prescription.odSphere],
-                ["Trụ (Cylinder)", item.prescription.odCylinder],
-                ["Trục (Axis)",    item.prescription.odAxis],
-                ["PD",             item.prescription.odPd],
+                ['Cầu (Sphere)', item.prescription.odSphere],
+                ['Trụ (Cylinder)', item.prescription.odCylinder],
+                ['Trục (Axis)', item.prescription.odAxis],
+                ['PD', item.prescription.odPd],
               ].map(([k, v]) => (
                 <div key={k as string} className="flex justify-between text-gray-600">
                   <span className="text-gray-400">{k}:</span>
@@ -203,10 +295,10 @@ function OrderItemCard({ item, orderName }: { item: OrderItem; index: number; to
             <div className="bg-purple-50 rounded-lg p-2.5">
               <p className="text-purple-500 font-semibold mb-1.5">Mắt trái (OS)</p>
               {[
-                ["Cầu (Sphere)",   item.prescription.osSphere],
-                ["Trụ (Cylinder)", item.prescription.osCylinder],
-                ["Trục (Axis)",    item.prescription.osAxis],
-                ["PD",             item.prescription.osPd],
+                ['Cầu (Sphere)', item.prescription.osSphere],
+                ['Trụ (Cylinder)', item.prescription.osCylinder],
+                ['Trục (Axis)', item.prescription.osAxis],
+                ['PD', item.prescription.osPd],
               ].map(([k, v]) => (
                 <div key={k as string} className="flex justify-between text-gray-600">
                   <span className="text-gray-400">{k}:</span>
@@ -221,7 +313,9 @@ function OrderItemCard({ item, orderName }: { item: OrderItem; index: number; to
               <p className="text-xs text-gray-600 italic">{item.prescription.note}</p>
             </div>
           )}
-          {item.prescription.imageUrl && <PrescriptionImage imageUrl={item.prescription.imageUrl} />}
+          {item.prescription.imageUrl && (
+            <PrescriptionImage imageUrl={item.prescription.imageUrl} />
+          )}
         </div>
       )}
     </div>
@@ -233,7 +327,7 @@ function OrderItemCard({ item, orderName }: { item: OrderItem; index: number; to
 function OrderCard({ order }: { order: Order }) {
   const [expanded, setExpanded] = useState(false);
   const statusCfg = STATUS_CONFIG[order.orderStatus] ?? {
-    color: "bg-gray-50 text-gray-600 border-gray-200",
+    color: 'bg-gray-50 text-gray-600 border-gray-200',
     label: order.orderStatus,
     dot: 'bg-gray-400',
   };
@@ -242,15 +336,27 @@ function OrderCard({ order }: { order: Order }) {
   const hasRefund = order.refundedAmount > 0;
 
   return (
-    <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
+    <div
+      className={`border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow duration-200 ${order.orderStatus === 'CANCELLED' ? 'opacity-90' : ''}`}
+    >
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full text-left px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
       >
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-            <svg className="w-4.5 h-4.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            <svg
+              className="w-4.5 h-4.5 text-indigo-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
             </svg>
           </div>
           <div className="min-w-0">
@@ -262,19 +368,35 @@ function OrderCard({ order }: { order: Order }) {
                 {order.items.length} sản phẩm
               </span>
             </div>
-            <p className="text-xs text-gray-400 truncate max-w-xs mt-0.5">{order.deliveryAddress}</p>
+            <p className="text-xs text-gray-400 truncate max-w-xs mt-0.5">
+              {order.deliveryAddress}
+            </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3 shrink-0 ml-2">
-          <span className={`px-3 py-1 rounded-full text-xs font-medium border hidden sm:flex items-center gap-1.5 ${statusCfg.color}`}>
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-medium border hidden sm:flex items-center gap-1.5 ${statusCfg.color}`}
+          >
             <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`} />
             {statusCfg.label}
           </span>
           <div className="flex items-center gap-1.5">
-            <span className="font-bold text-gray-800 text-sm">{formatPrice(order.finalTotalAfterRefund)}</span>
-            <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <span className="font-bold text-gray-800 text-sm">
+              {formatPrice(order.finalTotalAfterRefund)}
+            </span>
+            <svg
+              className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </div>
         </div>
@@ -283,9 +405,24 @@ function OrderCard({ order }: { order: Order }) {
       {expanded && (
         <div className="border-t border-gray-100 px-5 py-4 bg-gray-50/40 space-y-4">
           <div className="flex gap-3 items-start bg-white rounded-xl border border-gray-100 px-4 py-3">
-            <svg className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            <svg
+              className="w-4 h-4 text-gray-400 mt-0.5 shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+              />
             </svg>
             <div>
               <p className="text-[11px] text-gray-400 mb-0.5">Địa chỉ & SĐT</p>
@@ -296,36 +433,120 @@ function OrderCard({ order }: { order: Order }) {
 
           <div className="space-y-3">
             {order.items.map((item, idx) => (
-              <OrderItemCard key={item.orderItemId} item={item} index={idx} total={order.items.length} orderName={order.orderName} />
+              <OrderItemCard
+                key={item.orderItemId}
+                item={item}
+                index={idx}
+                total={order.items.length}
+                orderName={order.orderName}
+              />
             ))}
           </div>
 
-          <div className="bg-white border border-gray-100 rounded-xl px-4 py-3 space-y-2">
+          <div className="bg-white border border-gray-100 rounded-xl px-4 py-3 space-y-1.5">
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">
+              Chi tiết thanh toán
+            </p>
+
             <div className="flex justify-between text-sm text-gray-500">
-              <span>Tổng giá gốc</span>
-              <span>{formatPrice(order.totalAmount)}</span>
+              <span>Tổng giá sản phẩm</span>
+              <span className="font-medium text-gray-700">{formatPrice(order.totalAmount)}</span>
             </div>
-            {order.depositAmount != null && order.depositAmount > 0 && (
-              <div className="flex justify-between text-sm text-gray-500">
-                <span>Đã đặt cọc</span>
-                <span className="text-emerald-600">{formatPrice(order.depositAmount)}</span>
-              </div>
-            )}
+
+            {(() => {
+              const totalLens = order.items.reduce((s, i) => s + (i.lensPriceTotal ?? 0), 0);
+              return totalLens > 0 ? (
+                <div className="flex justify-between text-sm text-indigo-500">
+                  <span>Tổng tròng kính</span>
+                  <span className="font-medium">+{formatPrice(totalLens)}</span>
+                </div>
+              ) : null;
+            })()}
+
             {hasDiscount && (
               <div className="flex justify-between text-sm text-violet-600">
-                <span>Giảm giá ({order.comboName})</span>
-                <span>-{formatPrice(order.comboDiscountAmount)}</span>
+                <span className="flex items-center gap-1.5">
+                  <span>🎁</span>
+                  <span>
+                    Giảm combo
+                    {order.totalAmount > 0 && order.comboDiscountAmount != null && (
+                      <span className="ml-1.5 text-[11px] bg-violet-100 text-violet-600 font-bold px-1.5 py-0.5 rounded-full">
+                        -{Math.round((order.comboDiscountAmount / order.totalAmount) * 100)}%
+                      </span>
+                    )}
+                  </span>
+                </span>
+                <span className="font-semibold">-{formatPrice(order.comboDiscountAmount)}</span>
               </div>
             )}
+
             {hasRefund && (
-              <div className="flex justify-between text-sm text-orange-600">
-                <span>Đã hoàn tiền</span>
-                <span>-{formatPrice(order.refundedAmount)}</span>
+              <div className="flex justify-between text-sm text-orange-500">
+                <span className="flex items-center gap-1.5">
+                  <span>↩</span>
+                  <span>Đã hoàn tiền</span>
+                </span>
+                <span className="font-semibold">-{formatPrice(order.refundedAmount)}</span>
               </div>
             )}
-            <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-              <span className="text-sm font-semibold text-gray-700">Thực thanh toán</span>
-              <span className="text-lg font-bold text-indigo-700">{formatPrice(order.finalTotalAfterRefund)}</span>
+
+            <div className="border-t border-dashed border-gray-100 my-1" />
+
+            {order.depositAmount != null && order.depositAmount > 0 && (
+              <div className="flex justify-between text-sm text-emerald-600">
+                <span className="flex items-center gap-1.5">
+                  <span>✓</span>
+                  <span>
+                    Đã đặt cọc
+                    {order.totalAmount > 0 && (
+                      <span className="ml-1.5 text-[11px] bg-emerald-100 text-emerald-600 font-bold px-1.5 py-0.5 rounded-full">
+                        {Math.round((order.depositAmount / order.totalAmount) * 100)}%
+                      </span>
+                    )}
+                  </span>
+                </span>
+                <span className="font-semibold">{formatPrice(order.depositAmount)}</span>
+              </div>
+            )}
+
+            {order.paidAmount >= order.finalTotalAfterRefund &&
+              order.finalTotalAfterRefund > 0 &&
+              order.orderStatus !== 'CANCELLED' && (
+                <div className="mt-1 flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
+                  <span className="flex items-center gap-2 text-sm font-semibold text-emerald-700">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2.5}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    Đã thanh toán đủ 100%
+                  </span>
+                  <span className="text-[11px] font-bold bg-emerald-500 text-white px-2 py-0.5 rounded-full">
+                    Hoàn tất
+                  </span>
+                </div>
+              )}
+
+            <div className="flex justify-between items-center pt-2.5 mt-1 border-t border-gray-200">
+              <span className="text-sm font-semibold text-gray-700">Còn phải trả</span>
+              {/* LOGIC CẬP NHẬT: Kiểm tra trạng thái hủy hoặc hoàn tiền */}
+              {order.orderStatus === 'CANCELLED' || order.orderStatus === 'REFUNDED' ? (
+                <div className="flex flex-col items-end">
+                  <span className="text-lg font-bold text-gray-400">0 ₫</span>
+                  <span className="text-[10px] text-gray-400 font-medium">
+                    (Đơn hàng {order.orderStatus === 'CANCELLED' ? 'đã hủy' : 'đã hoàn tiền'})
+                  </span>
+                </div>
+              ) : order.remainingAmount !== null && order.remainingAmount <= 0 ? (
+                <span className="text-sm font-bold text-emerald-600">Đã thanh toán đủ ✓</span>
+              ) : (
+                <span className="text-lg font-bold text-rose-600">
+                  {formatPrice(order.remainingAmount)}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -338,14 +559,20 @@ function OrderCard({ order }: { order: Order }) {
 
 export default function MyOrders() {
   const [activeTab, setActiveTab] = useState('ALL');
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+    queryClient.invalidateQueries({ queryKey: ['my-orders'] });
   }, [queryClient]);
 
-  const { data: orders, isLoading, isError } = useQuery({
-    queryKey: ["my-orders"],
+  const {
+    data: orders,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['my-orders'],
     queryFn: async () => {
       const response = await profileApi.getOrders();
       return response.data.result as Order[];
@@ -355,17 +582,26 @@ export default function MyOrders() {
 
   if (isLoading) return <div className="p-12 text-center text-gray-400">Đang tải đơn hàng...</div>;
   if (isError) return <div className="p-12 text-center text-rose-400">Không thể tải đơn hàng</div>;
-  if (!orders || orders.length === 0) return <div className="p-12 text-center text-gray-400">Bạn chưa có đơn hàng nào</div>;
+  if (!orders || orders.length === 0)
+    return <div className="p-12 text-center text-gray-400">Bạn chưa có đơn hàng nào</div>;
 
   const countByStatus = (status: string) => orders.filter((o) => o.orderStatus === status).length;
-  const filteredOrders = activeTab === "ALL" ? orders : orders.filter((o) => o.orderStatus === activeTab);
-  const visibleStatuses = ["ALL", ...ALL_STATUSES.filter((s) => countByStatus(s) > 0)];
+  const filteredOrders =
+    activeTab === 'ALL' ? orders : orders.filter((o) => o.orderStatus === activeTab);
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / PAGE_SIZE));
+  const paginated = filteredOrders.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const visibleStatuses = ['ALL', ...ALL_STATUSES.filter((s) => countByStatus(s) > 0)];
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+  };
 
   return (
     <div className="max-w-3xl mx-auto p-6">
       <div className="mb-5">
         <h1 className="text-2xl font-bold text-gray-800">Đơn hàng của tôi</h1>
-        <p className="text-sm text-gray-400 mt-1">{orders.length} đơn hàng</p>
+        <p className="text-sm text-gray-400 mt-1">{filteredOrders.length} đơn hàng</p>
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-1 mb-5 scrollbar-hide">
@@ -377,14 +613,16 @@ export default function MyOrders() {
           return (
             <button
               key={status}
-              onClick={() => setActiveTab(status)}
+              onClick={() => handleTabChange(status)}
               className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-all ${
-                isActive 
-                  ? status === 'ALL' ? 'bg-indigo-600 text-white border-indigo-600' : `${cfg?.tab} border-current`
+                isActive
+                  ? status === 'ALL'
+                    ? 'bg-indigo-600 text-white border-indigo-600'
+                    : `${cfg?.tab} border-current`
                   : 'bg-white text-gray-500 border-gray-200'
               }`}
             >
-              {status === "ALL" ? "Tất cả" : cfg?.label}
+              {status === 'ALL' ? 'Tất cả' : cfg?.label}
               <span className="ml-1 text-xs opacity-60">({count})</span>
             </button>
           );
@@ -392,10 +630,51 @@ export default function MyOrders() {
       </div>
 
       <div className="space-y-4">
-        {filteredOrders.map((order) => (
+        {paginated.map((order) => (
           <OrderCard key={order.orderId} order={order} />
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+          <p className="text-xs text-gray-400">
+            Hiển thị {(currentPage - 1) * PAGE_SIZE + 1}–
+            {Math.min(currentPage * PAGE_SIZE, filteredOrders.length)} / {filteredOrders.length} đơn
+          </p>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              ←
+            </button>
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const page = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
+              return (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 text-xs font-medium rounded-lg transition-colors ${
+                    page === currentPage
+                      ? 'bg-indigo-600 text-white'
+                      : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {page}
+                </button>
+              );
+            })}
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              →
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

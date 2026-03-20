@@ -8,7 +8,6 @@ import { useProductionStore } from '@/features/operation-staff/store/productionS
 
 const OrderProcessingDrawer: React.FC = () => {
   const { isOpen, selectedOrder, closeDrawer } = useOrderDrawerStore();
-  const startOrder = useProductionStore((state) => state.startOrder);
   const finishOrder = useProductionStore((state) => state.finishOrder);
 
   useEffect(() => {
@@ -23,7 +22,6 @@ const OrderProcessingDrawer: React.FC = () => {
     };
   }, [isOpen]);
 
-  // Close on Escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
@@ -35,23 +33,11 @@ const OrderProcessingDrawer: React.FC = () => {
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, closeDrawer]);
 
-  const handleStartProcessing = () => {
-    if (selectedOrder) {
-      startOrder(selectedOrder.id)
-        .then(() => {
-          console.log('Order started successfully:', selectedOrder.id);
-        })
-        .catch((error) => {
-          console.error('Failed to start order:', error);
-        });
-    }
-  };
-
   const handleCompleteProcessing = () => {
     if (selectedOrder) {
-      finishOrder(selectedOrder.id)
+      finishOrder(selectedOrder.orderId)
         .then(() => {
-          console.log('Order completed successfully:', selectedOrder.id);
+          console.log('Order completed successfully:', selectedOrder.orderId);
           closeDrawer();
         })
         .catch((error) => {
@@ -65,11 +51,11 @@ const OrderProcessingDrawer: React.FC = () => {
       {selectedOrder && (
         <>
           <DrawerHeader order={selectedOrder} onClose={closeDrawer} />
-          <DrawerContent order={selectedOrder} isOpen={isOpen} />
+          <DrawerContent orderId={selectedOrder.orderId} isOpen={isOpen} />
           <DrawerFooter
-            onReportError={handleStartProcessing}
             onCompleteProcessing={handleCompleteProcessing}
-            isProcessing={selectedOrder.processingStatus === 'in_progress'}
+            orderStatus={selectedOrder.orderStatus}
+            // isProcessing={selectedOrder.processingStatus === 'in_progress'}
           />
         </>
       )}
