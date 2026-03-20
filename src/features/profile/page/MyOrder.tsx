@@ -47,6 +47,8 @@ interface Order {
   orderStatus: string;
   totalAmount: number;
   depositAmount: number | null;
+  remainingAmount: number | null;
+  paidAmount: number;
   items: OrderItem[];
   comboId: string | null;
   comboName: string | null;
@@ -58,7 +60,7 @@ interface Order {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const formatPrice = (price: number | null | undefined) => {
-  if (price == null) return "—";
+  if (price == null) return "0 ₫";
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
@@ -67,7 +69,7 @@ const formatPrice = (price: number | null | undefined) => {
 };
 
 const STATUS_CONFIG: Record<string, { color: string; label: string; dot: string; tab: string }> = {
-  PENDING:               { color: "bg-amber-50 text-amber-700 border-amber-200",     label: "Chờ xử lý",      dot: "bg-amber-500",   tab: "text-amber-600 border-amber-500 bg-amber-50"   },
+  PENDING:               { color: "bg-amber-50 text-amber-700 border-amber-200",     label: "Chờ xử lý",     dot: "bg-amber-500",   tab: "text-amber-600 border-amber-500 bg-amber-50"   },
   ON_HOLD:               { color: "bg-gray-100 text-gray-600 border-gray-200",       label: "Tạm giữ",        dot: "bg-gray-400",    tab: "text-gray-600 border-gray-400 bg-gray-100"     },
   CONFIRMED:             { color: "bg-emerald-50 text-emerald-700 border-emerald-200",label: "Đã xác nhận",   dot: "bg-emerald-500", tab: "text-emerald-600 border-emerald-500 bg-emerald-50"},
   PROCESSING:            { color: "bg-blue-50 text-blue-700 border-blue-200",        label: "Đang xử lý",     dot: "bg-blue-500",    tab: "text-blue-600 border-blue-500 bg-blue-50"      },
@@ -242,7 +244,7 @@ function OrderCard({ order }: { order: Order }) {
   const hasRefund = order.refundedAmount > 0;
 
   return (
-    <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
+    <div className={`border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow duration-200 ${order.orderStatus === "CANCELLED" ? "opacity-90" : ""}`}>
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full text-left px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
@@ -300,32 +302,101 @@ function OrderCard({ order }: { order: Order }) {
             ))}
           </div>
 
-          <div className="bg-white border border-gray-100 rounded-xl px-4 py-3 space-y-2">
+          <div className="bg-white border border-gray-100 rounded-xl px-4 py-3 space-y-1.5">
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Chi tiết thanh toán</p>
+
             <div className="flex justify-between text-sm text-gray-500">
-              <span>Tổng giá gốc</span>
-              <span>{formatPrice(order.totalAmount)}</span>
+              <span>Tổng giá sản phẩm</span>
+              <span className="font-medium text-gray-700">{formatPrice(order.totalAmount)}</span>
             </div>
-            {order.depositAmount != null && order.depositAmount > 0 && (
-              <div className="flex justify-between text-sm text-gray-500">
-                <span>Đã đặt cọc</span>
-                <span className="text-emerald-600">{formatPrice(order.depositAmount)}</span>
-              </div>
-            )}
+
+            {(() => {
+              const totalLens = order.items.reduce((s, i) => s + (i.lensPriceTotal ?? 0), 0);
+              return totalLens > 0 ? (
+                <div className="flex justify-between text-sm text-indigo-500">
+                  <span>Tổng tròng kính</span>
+                  <span className="font-medium">+{formatPrice(totalLens)}</span>
+                </div>
+              ) : null;
+            })()}
+
             {hasDiscount && (
               <div className="flex justify-between text-sm text-violet-600">
-                <span>Giảm giá ({order.comboName})</span>
-                <span>-{formatPrice(order.comboDiscountAmount)}</span>
+                <span className="flex items-center gap-1.5">
+                  <span>🎁</span>
+                  <span>
+                    Giảm combo
+                    {order.totalAmount > 0 && order.comboDiscountAmount != null && (
+                      <span className="ml-1.5 text-[11px] bg-violet-100 text-violet-600 font-bold px-1.5 py-0.5 rounded-full">
+                        -{Math.round((order.comboDiscountAmount / order.totalAmount) * 100)}%
+                      </span>
+                    )}
+                  </span>
+                </span>
+                <span className="font-semibold">-{formatPrice(order.comboDiscountAmount)}</span>
               </div>
             )}
+
             {hasRefund && (
-              <div className="flex justify-between text-sm text-orange-600">
-                <span>Đã hoàn tiền</span>
-                <span>-{formatPrice(order.refundedAmount)}</span>
+              <div className="flex justify-between text-sm text-orange-500">
+                <span className="flex items-center gap-1.5">
+                  <span>↩</span>
+                  <span>Đã hoàn tiền</span>
+                </span>
+                <span className="font-semibold">-{formatPrice(order.refundedAmount)}</span>
               </div>
             )}
-            <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-              <span className="text-sm font-semibold text-gray-700">Thực thanh toán</span>
-              <span className="text-lg font-bold text-indigo-700">{formatPrice(order.finalTotalAfterRefund)}</span>
+
+            <div className="border-t border-dashed border-gray-100 my-1" />
+
+            {order.depositAmount != null && order.depositAmount > 0 && (
+              <div className="flex justify-between text-sm text-emerald-600">
+                <span className="flex items-center gap-1.5">
+                  <span>✓</span>
+                  <span>
+                    Đã đặt cọc
+                    {order.totalAmount > 0 && (
+                      <span className="ml-1.5 text-[11px] bg-emerald-100 text-emerald-600 font-bold px-1.5 py-0.5 rounded-full">
+                        {Math.round((order.depositAmount / order.totalAmount) * 100)}%
+                      </span>
+                    )}
+                  </span>
+                </span>
+                <span className="font-semibold">{formatPrice(order.depositAmount)}</span>
+              </div>
+            )}
+
+            {order.paidAmount >= order.finalTotalAfterRefund && order.finalTotalAfterRefund > 0 && order.orderStatus !== "CANCELLED" && (
+              <div className="mt-1 flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
+                <span className="flex items-center gap-2 text-sm font-semibold text-emerald-700">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Đã thanh toán đủ 100%
+                </span>
+                <span className="text-[11px] font-bold bg-emerald-500 text-white px-2 py-0.5 rounded-full">
+                  Hoàn tất
+                </span>
+              </div>
+            )}
+
+            <div className="flex justify-between items-center pt-2.5 mt-1 border-t border-gray-200">
+              <span className="text-sm font-semibold text-gray-700">Còn phải trả</span>
+              {/* LOGIC CẬP NHẬT: Kiểm tra trạng thái hủy hoặc hoàn tiền */}
+              {order.orderStatus === "CANCELLED" || order.orderStatus === "REFUNDED" ? (
+                <div className="flex flex-col items-end">
+                  <span className="text-lg font-bold text-gray-400">0 ₫</span>
+                  <span className="text-[10px] text-gray-400 font-medium">(Đơn hàng {order.orderStatus === "CANCELLED" ? "đã hủy" : "đã hoàn tiền"})</span>
+                </div>
+              ) : order.remainingAmount !== null && order.remainingAmount <= 0 ? (
+                <span className="text-sm font-bold text-emerald-600">
+                  Đã thanh toán đủ ✓
+                </span>
+              ) : (
+                <span className="text-lg font-bold text-rose-600">
+                  {formatPrice(order.remainingAmount)}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -338,6 +409,8 @@ function OrderCard({ order }: { order: Order }) {
 
 export default function MyOrders() {
   const [activeTab, setActiveTab] = useState('ALL');
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -359,13 +432,20 @@ export default function MyOrders() {
 
   const countByStatus = (status: string) => orders.filter((o) => o.orderStatus === status).length;
   const filteredOrders = activeTab === "ALL" ? orders : orders.filter((o) => o.orderStatus === activeTab);
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / PAGE_SIZE));
+  const paginated  = filteredOrders.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
   const visibleStatuses = ["ALL", ...ALL_STATUSES.filter((s) => countByStatus(s) > 0)];
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+  };
 
   return (
     <div className="max-w-3xl mx-auto p-6">
       <div className="mb-5">
         <h1 className="text-2xl font-bold text-gray-800">Đơn hàng của tôi</h1>
-        <p className="text-sm text-gray-400 mt-1">{orders.length} đơn hàng</p>
+        <p className="text-sm text-gray-400 mt-1">{filteredOrders.length} đơn hàng</p>
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-1 mb-5 scrollbar-hide">
@@ -377,9 +457,9 @@ export default function MyOrders() {
           return (
             <button
               key={status}
-              onClick={() => setActiveTab(status)}
+              onClick={() => handleTabChange(status)}
               className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-all ${
-                isActive 
+                isActive
                   ? status === 'ALL' ? 'bg-indigo-600 text-white border-indigo-600' : `${cfg?.tab} border-current`
                   : 'bg-white text-gray-500 border-gray-200'
               }`}
@@ -392,10 +472,50 @@ export default function MyOrders() {
       </div>
 
       <div className="space-y-4">
-        {filteredOrders.map((order) => (
+        {paginated.map((order) => (
           <OrderCard key={order.orderId} order={order} />
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+          <p className="text-xs text-gray-400">
+            Hiển thị {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filteredOrders.length)} / {filteredOrders.length} đơn
+          </p>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              ←
+            </button>
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const page = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
+              return (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 text-xs font-medium rounded-lg transition-colors ${
+                    page === currentPage
+                      ? "bg-indigo-600 text-white"
+                      : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  {page}
+                </button>
+              );
+            })}
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              →
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
