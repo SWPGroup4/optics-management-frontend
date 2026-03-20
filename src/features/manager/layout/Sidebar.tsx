@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard,
     Package,
@@ -10,21 +10,21 @@ import {
     ChevronLeft,
     ChevronRight,
     Glasses,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useSidebar } from "@/features/manager/hooks/useSidebar.ts";
-import Logo from "@/components/common/Logo";
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useSidebar } from '@/features/manager/hooks/useSidebar.ts';
+import Logo from '@/components/common/Logo';
 
 const navigation = [
-    { name: "Bảng điều khiển", href: "/manager", icon: LayoutDashboard },
-    { name: "Sản phẩm", href: "/manager/products", icon: Package },
-    { name: "Đơn hàng", href: "/manager/orders", icon: ShoppingCart },
-    { name: "Giá bán", href: "/manager/pricing", icon: Tag },
-    { name: "Nhân viên", href: "/manager/staff", icon: Users },
-    { name: "Khách hàng", href: "/manager/customers", icon: Users },
-    { name: "Tròng kính", href: "/manager/lenses", icon: Glasses },
-    {name : "Hoàn tiền", href: "/manager/refunds", icon: Tag},
-    // { name: "Cài đặt", href: "/manager/settings", icon: Settings },
+    { name: 'Bảng điều khiển', href: '/manager', icon: LayoutDashboard },
+    { name: 'Sản phẩm', href: '/manager/products', icon: Package },
+    { name: 'Đơn hàng', href: '/manager/orders', icon: ShoppingCart },
+    { name: 'Giá bán', href: '/manager/pricing', icon: Tag },
+    { name: 'Nhân viên', href: '/manager/staff', icon: Users },
+    { name: 'Khách hàng', href: '/manager/customers', icon: Users },
+    { name: 'Tròng kính', href: '/manager/lenses', icon: Glasses },
+    { name: 'Hoàn tiền', href: '/manager/refunds', icon: Tag },
+    // { name: 'Cài đặt', href: '/manager/settings', icon: Settings },
 ];
 
 export function Sidebar() {
@@ -34,27 +34,21 @@ export function Sidebar() {
     return (
         <aside
             className={cn(
-                "fixed left-0 top-0 h-full bg-sidebar border-r border-sidebar-border transition-all duration-300 z-50 flex flex-col",
-                collapsed ? "w-16" : "w-64"
+                'fixed left-0 top-0 h-full bg-sidebar border-r border-sidebar-border transition-all duration-300 z-50 flex flex-col',
+                collapsed ? 'w-16' : 'w-64',
             )}
         >
             {/* Logo */}
             <div className="h-16 md:h-20 flex items-center justify-between px-4 border-sidebar-border">
-                {!collapsed && (
-                    <Logo />
-                )}
+                {!collapsed && <Logo />}
                 <button
                     onClick={toggleCollapsed}
                     className={cn(
-                        "p-1.5 rounded-lg text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
-                        collapsed && "mx-auto"
+                        'p-1.5 rounded-lg text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors',
+                        collapsed && 'mx-auto',
                     )}
                 >
-                    {collapsed ? (
-                        <ChevronRight className="w-4 h-4" />
-                    ) : (
-                        <ChevronLeft className="w-4 h-4" />
-                    )}
+                    {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
                 </button>
             </div>
 
@@ -67,9 +61,9 @@ export function Sidebar() {
                             key={item.name}
                             to={item.href}
                             className={cn(
-                                "nav-item",
-                                isActive && "nav-item-active",
-                                collapsed && "justify-center px-2"
+                                'nav-item',
+                                isActive && 'nav-item-active',
+                                collapsed && 'justify-center px-2',
                             )}
                             title={collapsed ? item.name : undefined}
                         >
@@ -82,23 +76,14 @@ export function Sidebar() {
 
             {/* User Section */}
             <div className="p-3 border-t border-sidebar-border">
-                <div
-                    className={cn(
-                        "flex items-center gap-3",
-                        collapsed && "justify-center"
-                    )}
-                >
+                <div className={cn('flex items-center gap-3', collapsed && 'justify-center')}>
                     <div className="w-9 h-9 rounded-full bg-sidebar-accent flex items-center justify-center text-sidebar-foreground font-medium text-sm">
                         JD
                     </div>
                     {!collapsed && (
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-sidebar-foreground truncate">
-                                John Doe
-                            </p>
-                            <p className="text-xs text-sidebar-muted truncate">
-                                Store Manager
-                            </p>
+                            <p className="text-sm font-medium text-sidebar-foreground truncate">John Doe</p>
+                            <p className="text-xs text-sidebar-muted truncate">Store Manager</p>
                         </div>
                     )}
                     {!collapsed && (

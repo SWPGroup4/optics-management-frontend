@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { useCartStore } from '@/features/cart/store/useCartStore';
 import { useCheckoutStore } from '@/features/checkout/store/useCheckoutStore';
-import { api } from '@/lib/axios';
 import { toast } from 'sonner';
 import axios from 'axios';
+import { paymentApi } from '../api/checkout-api';
 
 export const useCheckoutFlow = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { step, setStep, nextStep, prevStep, shippingData, paymentMethod } = useCheckoutStore();
+  const { step, setStep, nextStep, prevStep, shippingData, paymentMethod, bankInfo } =
+    useCheckoutStore();
   const { items, clearCart } = useCartStore();
 
   const submitOrder = async () => {
@@ -18,10 +19,10 @@ export const useCheckoutFlow = () => {
       setIsSubmitting(true);
 
       // --- VALIDATION NHANH ---
-      if (!shippingData.phone || !shippingData.address) {
+      if (!shippingData.phone || !shippingData.address || !shippingData.name) {
         toast.error('Thiếu thông tin giao hàng', {
           id: toastId,
-          description: 'Vui lòng kiểm tra lại số điện thoại và địa chỉ.',
+          description: 'Vui lòng kiểm tra lại họ tên, số điện thoại và địa chỉ.',
         });
         setIsSubmitting(false);
         setStep(1);
@@ -29,10 +30,10 @@ export const useCheckoutFlow = () => {
       }
 
       // --- BƯỚC 1: CHUẨN BỊ DATA ---
-      const deliveryAddress = `${shippingData.address || ''},`.trim();
+      const deliveryAddress = `${shippingData.address || ''}`.trim();
 
       const orderItems = items.map((item) => {
-        let mappedPrescription = undefined;
+        let mappedPrescription = null;
         if (item.prescription) {
           const p = item.prescription;
           mappedPrescription = {
@@ -53,58 +54,51 @@ export const useCheckoutFlow = () => {
           productVariantId: item.productId,
           quantity: item.quantity,
           lensId: item.lensId || null,
-          ...(mappedPrescription ? { prescription: mappedPrescription } : {}),
+          prescription: mappedPrescription,
         };
       });
 
+      const validBankInfo =
+        bankInfo?.bankName && bankInfo?.bankAccountNumber && bankInfo?.accountHolderName
+          ? bankInfo
+          : null;
+
       const orderInfo = {
-        deliveryAddress,
+        deliveryAddress: deliveryAddress,
+        recipientName: shippingData.name,
         phoneNumber: shippingData.phone,
         items: orderItems,
+        comboId: null,
+        bankInfo: validBankInfo,
       };
 
       const formData = new FormData();
       formData.append('orderInfo', JSON.stringify(orderInfo));
 
-      // --- SỬA FLOW GỬI ẢNH Ở ĐÂY ---
+      // --- XỬ LÝ ẢNH ---
       const itemWithImage = items.find((item) => item.prescription?.imageUrl);
       const imageUrl = itemWithImage?.prescription?.imageUrl;
 
-      // Kiểm tra chuỗi Base64 (bắt đầu bằng data:image)
       if (imageUrl && imageUrl.startsWith('data:image/')) {
-        // Dùng fetch để parse chuỗi Base64 thành Blob dữ liệu nhị phân
         const response = await fetch(imageUrl);
         const blobData = await response.blob();
         formData.append('prescriptionImage', blobData, 'prescription.jpg');
       } else {
         formData.append('prescriptionImage', '');
       }
-      // -------------------------------
 
-      const hasPrescription = items.some((item) => item.lensId !== null);
-      const currentOrderItemType = hasPrescription ? 'PRESCRIPTION' : 'IN_STOCK';
+      // --- BƯỚC 2: TẠO ĐƠN HÀNG (SỬ DỤNG API ĐÃ TÁCH) ---
+      const orderResponseData = await paymentApi.createOrder(formData, paymentMethod);
+      const actualOrderId = orderResponseData?.result?.orderId || orderResponseData?.orderId;
 
-      // --- BƯỚC 2: TẠO ĐƠN HÀNG ---
-      const orderResponse = await api.post('/orders/create', formData, {
-        params: {
-          OrderItemType: currentOrderItemType,
-          PaymentMethod: paymentMethod,
-        },
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-
-      const actualOrderId = orderResponse.data?.result?.orderId || orderResponse.data?.orderId;
       if (!actualOrderId) throw new Error('Không lấy được mã đơn hàng.');
 
-      // --- BƯỚC 3: XỬ LÝ THANH TOÁN ---
+      // --- BƯỚC 3: XỬ LÝ THANH TOÁN (SỬ DỤNG API ĐÃ TÁCH) ---
       if (paymentMethod === 'VNPAY') {
         toast.loading('Đang kết nối cổng thanh toán VNPay...', { id: toastId });
 
-        const paymentResponse = await api.post('/payment/checkout', null, {
-          params: { orderId: actualOrderId },
-        });
-
-        const paymentUrl = paymentResponse.data?.result || paymentResponse.data;
+        const paymentResponseData = await paymentApi.checkoutVnpay(actualOrderId);
+        const paymentUrl = paymentResponseData?.result || paymentResponseData;
 
         if (paymentUrl && typeof paymentUrl === 'string') {
           clearCart();

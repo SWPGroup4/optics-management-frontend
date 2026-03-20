@@ -3,9 +3,7 @@ import { Camera, Tag, Box, Glasses, Layout, User, Target, Wrench, Scale } from '
 import { useProduct } from '../hooks/useProducts';
 import { api } from '@/lib/axios';
 
-const VirtualTryOn = lazy(
-  () => import("@/components/common/VirtualTryOn")
-);
+const VirtualTryOn = lazy(() => import('@/components/common/VirtualTryOn'));
 // Interface cho state của VirtualTryOn
 interface VariantForTryOn {
   id: string;
@@ -26,7 +24,6 @@ interface ProductImage {
 }
 
 export default function ProductGallery({ productId }: { productId: string }) {
-
   // 1. Lấy dữ liệu từ Hook
   const { data: product, isLoading } = useProduct(productId);
 
@@ -34,7 +31,6 @@ export default function ProductGallery({ productId }: { productId: string }) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [tryOnOpen, setTryOnOpen] = useState(false);
   const [variantImages, setVariantImages] = useState<VariantForTryOn[]>([]);
-
 
   // Fetch variants for Virtual Try-On
   useEffect(() => {
@@ -45,16 +41,15 @@ export default function ProductGallery({ productId }: { productId: string }) {
           params: { page: 0, size: 10, sortBy: 'id', sortDir: 'asc' },
         });
         const items = res.data?.result?.items ?? [];
-        
+
         // Build variant images: use product images as fallback per variant
-        const mapped: VariantForTryOn[] = items
-          .map((v: ApiVariant) => ({
-            id: v.id,
-            variantName: v.colorName || undefined,
-            color: v.colorName || undefined,
-            imageUrl: '', // will be filled below
-          }));
-          
+        const mapped: VariantForTryOn[] = items.map((v: ApiVariant) => ({
+          id: v.id,
+          variantName: v.colorName || undefined,
+          color: v.colorName || undefined,
+          imageUrl: '', // will be filled below
+        }));
+
         // If product has images, assign first image to each variant as try-on image
         if (mapped.length > 0 && product?.imageUrl?.length) {
           mapped.forEach((m: VariantForTryOn, idx: number) => {
@@ -67,7 +62,7 @@ export default function ProductGallery({ productId }: { productId: string }) {
             product.imageUrl.map((img: ProductImage, idx: number) => ({
               id: `img-${idx}`,
               imageUrl: img.imageUrl,
-            }))
+            })),
           );
         }
       } catch {
@@ -77,7 +72,7 @@ export default function ProductGallery({ productId }: { productId: string }) {
             product.imageUrl.map((img: ProductImage, idx: number) => ({
               id: `img-${idx}`,
               imageUrl: img.imageUrl,
-            }))
+            })),
           );
         }
       }
@@ -179,13 +174,10 @@ export default function ProductGallery({ productId }: { productId: string }) {
 
       {/* --- THÔNG SỐ KỸ THUẬT (BENTO GRID UI) --- */}
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8">
-        
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <h3 className="text-lg font-black text-gray-900 tracking-tight">
-              Thông số chi tiết
-            </h3>
+            <h3 className="text-lg font-black text-gray-900 tracking-tight">Thông số chi tiết</h3>
             <span className="px-2.5 py-1 bg-gray-100 text-gray-600 text-[10px] uppercase font-bold tracking-widest rounded-full">
               Specs
             </span>
@@ -202,22 +194,26 @@ export default function ProductGallery({ productId }: { productId: string }) {
             { label: 'Giới tính', value: product.gender, icon: User },
             { label: 'Đệm mũi', value: product.nosePadType, icon: Target },
             { label: 'Bản lề', value: product.hingeType, icon: Wrench },
-            { label: 'Trọng lượng', value: product.weightGram ? `${product.weightGram}g` : null, icon: Scale },
+            {
+              label: 'Trọng lượng',
+              value: product.weightGram ? `${product.weightGram}g` : null,
+              icon: Scale,
+            },
           ]
             .filter((item) => item.value)
             .map((item) => {
               const Icon = item.icon;
-              
+
               return (
-                <div 
-                  key={item.label} 
+                <div
+                  key={item.label}
                   className="group flex items-center gap-4 p-4 rounded-2xl bg-[#F8FAFB] border border-transparent hover:border-[#4A8795]/20 hover:bg-white hover:shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-all duration-300"
                 >
                   {/* Cột trái: Icon */}
                   <div className="w-10 h-10 flex shrink-0 items-center justify-center rounded-full bg-white text-gray-400 shadow-sm group-hover:text-[#4A8795] group-hover:scale-110 transition-all duration-300">
                     <Icon className="w-4 h-4" strokeWidth={2.5} />
                   </div>
-                  
+
                   {/* Cột phải: Text */}
                   <div className="flex flex-col min-w-0">
                     <span className="text-[11px] uppercase tracking-wider font-semibold text-gray-400 mb-0.5">

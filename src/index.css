@@ -1,7 +1,13 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 
 @custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: 'Inter', sans-serif;
+  --font-serif: 'Playfair Display', serif;
+}
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -298,7 +304,8 @@
   }
 
   @keyframes pulseSubtle {
-    0%, 100% {
+    0%,
+    100% {
       opacity: 1;
     }
     50% {

@@ -1,6 +1,6 @@
 // src/features/products/hooks/useProducts.ts
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { productApi } from "../api/product-api";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { productApi } from '../api/product-api';
 
 // Key để quản lý cache
 const QUERY_KEYS = {
@@ -15,7 +15,7 @@ export const useProducts = () => {
       const data = await productApi.getAll();
       return (data.result || []) as any[]; // Cast để tránh lỗi never[]
     },
-    staleTime: 1000 * 60 * 5, 
+    staleTime: 1000 * 60 * 5,
   });
 };
 
@@ -29,7 +29,7 @@ export const useCreateProduct = () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.all });
     },
     onError: (error) => {
-      console.error("Failed to create:", error);
+      console.error('Failed to create:', error);
     },
   });
 };
@@ -39,13 +39,12 @@ export const useUpdateProduct = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: any }) =>
-      productApi.update(id, payload),
+    mutationFn: ({ id, payload }: { id: string; payload: any }) => productApi.update(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.all });
     },
     onError: (error) => {
-      console.error("Failed to update:", error);
+      console.error('Failed to update:', error);
     },
   });
 };
@@ -60,7 +59,7 @@ export const useDeleteProduct = () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.all });
     },
     onError: (error) => {
-        console.error("Failed to delete:", error);
-    }
+      console.error('Failed to delete:', error);
+    },
   });
 };

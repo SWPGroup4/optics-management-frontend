@@ -1,4 +1,4 @@
-import { api } from "@/lib/axios";
+import { api } from '@/lib/axios';
 
 export interface Prescription {
     id: string;
@@ -23,7 +23,7 @@ export interface OrderItem {
     productName: string | null;
     productImage: string | null;
     variantName: string | null;
-    orderItemType: "IN_STOCK" | "PRE_ORDER" | "PREORDER";
+    orderItemType: 'IN_STOCK' | 'PRE_ORDER' | 'PREORDER';
     quantity: number;
     unitPrice: number;
     lensId: string | null;
@@ -31,7 +31,7 @@ export interface OrderItem {
     lensPrice: number;
     lensPriceTotal: number;
     totalPrice: number;
-    status: string | null;
+    status: 'IN_PRODUCTION' | 'COMPLETED' | 'PENDING' | string | null;
     prescription: Prescription | null;
 }
 
@@ -68,7 +68,15 @@ export interface Order {
     deliveryAddress: string;
     recipientName: string | null;
     phoneNumber: string;
-    orderStatus: string;
+    orderStatus:
+    | 'PENDING'
+    | 'ON_HOLD'
+    | 'CONFIRMED'
+    | 'PROCESSING'
+    | 'PRODUCED'
+    | 'SHIPPED'
+    | 'COMPLETED'
+    | 'CANCELLED';
     totalAmount: number;
     depositAmount: number;
     remainingAmount: number | null;

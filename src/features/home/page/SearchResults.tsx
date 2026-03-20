@@ -1,21 +1,21 @@
-import { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import { useProducts } from "../hooks/useProducts";
-import Breadcrumb from "@/components/common/Breadcrumb";
+import { useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { useProducts } from '../hooks/useProducts';
+import Breadcrumb from '@/components/common/Breadcrumb';
 
 export const SearchResults = () => {
   // 1. Quản lý URL Params
   const [searchParams, setSearchParams] = useSearchParams();
-  const urlQ = searchParams.get("q") || "";
-  const urlGender = searchParams.get("gender") || ""; 
+  const urlQ = searchParams.get('q') || '';
+  const urlGender = searchParams.get('gender') || '';
 
   // State lưu lại URL cũ để so sánh
   const [prevUrlQ, setPrevUrlQ] = useState(urlQ);
-  const [prevUrlGender, setPrevUrlGender] = useState(urlGender); 
+  const [prevUrlGender, setPrevUrlGender] = useState(urlGender);
 
   // 2. States "Nháp" (Dùng để hiển thị lên giao diện lúc đang thao tác)
   const [draftQ, setDraftQ] = useState(urlQ);
-  const [draftGender, setDraftGender] = useState(urlGender); 
+  const [draftGender, setDraftGender] = useState(urlGender);
   const [draftPrice, setDraftPrice] = useState({ min: 0, max: 15000000 });
 
   // 3. States "Chính thức" (Dùng để gọi API)
@@ -23,15 +23,15 @@ export const SearchResults = () => {
   const size = 9;
 
   const [appliedQ, setAppliedQ] = useState(urlQ);
-  const [appliedGender, setAppliedGender] = useState(urlGender); 
+  const [appliedGender, setAppliedGender] = useState(urlGender);
   const [appliedPrice, setAppliedPrice] = useState({ min: 0, max: 15000000 });
 
   const [sortConfig, setSortConfig] = useState<{
     sortBy: string;
-    sortDir: "desc" | "asc" | undefined;
+    sortDir: 'desc' | 'asc' | undefined;
   }>({
-    sortBy: "id",
-    sortDir: "desc",
+    sortBy: 'id',
+    sortDir: 'desc',
   });
 
   // 🌟 KHỐI LỆNH ĐỒNG BỘ: Nếu URL thay đổi, tự động cập nhật bộ lọc
@@ -54,7 +54,7 @@ export const SearchResults = () => {
     gender: appliedGender || undefined,
     sortBy: sortConfig.sortBy,
     sortDir: sortConfig.sortDir,
-    page,
+    page: page - 1,
     size,
     minPrice: appliedPrice.min,
     maxPrice: appliedPrice.max,
@@ -70,11 +70,11 @@ export const SearchResults = () => {
     setPage(1);
 
     switch (value) {
-      case "name_asc":
-        setSortConfig({ sortBy: "name", sortDir: "asc" });
+      case 'name_asc':
+        setSortConfig({ sortBy: 'name', sortDir: 'asc' });
         break;
       default:
-        setSortConfig({ sortBy: "id", sortDir: "desc" });
+        setSortConfig({ sortBy: 'id', sortDir: 'desc' });
         break;
     }
   };
@@ -86,36 +86,34 @@ export const SearchResults = () => {
     setPage(1);
 
     const newParams = new URLSearchParams(searchParams);
-    if (draftQ) newParams.set("q", draftQ);
-    else newParams.delete("q");
+    if (draftQ) newParams.set('q', draftQ);
+    else newParams.delete('q');
 
-    if (draftGender) newParams.set("gender", draftGender);
-    else newParams.delete("gender");
+    if (draftGender) newParams.set('gender', draftGender);
+    else newParams.delete('gender');
 
     setSearchParams(newParams, { replace: true });
   };
 
   const handleResetFilters = () => {
     const defaultPrice = { min: 0, max: 15000000 };
-    setDraftQ("");
-    setDraftGender("");
+    setDraftQ('');
+    setDraftGender('');
     setDraftPrice(defaultPrice);
 
-    setAppliedQ("");
-    setAppliedGender("");
+    setAppliedQ('');
+    setAppliedGender('');
     setAppliedPrice(defaultPrice);
     setPage(1);
-    
+
     const newParams = new URLSearchParams(searchParams);
-    newParams.delete("q");
-    newParams.delete("gender");
+    newParams.delete('q');
+    newParams.delete('gender');
     setSearchParams(newParams, { replace: true });
   };
 
   // 🌟 LOGIC BREADCRUMB ĐỘNG
-  const breadcrumbItems = [
-    { label: "Cửa hàng", link: "" }
-  ];
+  const breadcrumbItems = [{ label: 'Cửa hàng', link: '' }];
 
   if (isLoading) {
     return (
@@ -139,7 +137,7 @@ export const SearchResults = () => {
         <div className="p-20 text-center text-red-500 bg-red-50 rounded-xl">
           <p className="font-bold">Đã xảy ra lỗi tải dữ liệu</p>
           <p className="text-sm">
-            ⚠️ {error instanceof Error ? error.message : "Lỗi không xác định"}
+            ⚠️ {error instanceof Error ? error.message : 'Lỗi không xác định'}
           </p>
         </div>
       </main>
@@ -148,11 +146,9 @@ export const SearchResults = () => {
 
   return (
     <main className="max-w-7xl mx-auto py-10 px-4">
-      
       {/* 🌟 1. TOP BAR ĐÃ GỘP: Breadcrumb + Số lượng + Sắp xếp */}
       <div className="mb-8 pb-4 border-b border-gray-100">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          
           {/* Cụm bên trái: Breadcrumb */}
           <div className="flex-1">
             <Breadcrumb items={breadcrumbItems} />
@@ -160,7 +156,6 @@ export const SearchResults = () => {
 
           {/* Cụm bên phải: Cố định Số lượng và Sắp xếp */}
           <div className="flex flex-wrap items-center gap-3 sm:gap-4 md:justify-end">
-            
             {/* Box Đếm số lượng */}
             <div className="text-[13px] sm:text-sm text-gray-500 bg-gray-50 px-3 py-1.5 rounded-lg border flex-shrink-0">
               Hiển thị <span className="font-bold text-gray-900">{totalItems}</span> sản phẩm
@@ -179,14 +174,12 @@ export const SearchResults = () => {
                 <option value="name_asc">Tên: A → Z</option>
               </select>
             </div>
-
           </div>
         </div>
       </div>
 
       {/* 🌟 2. Layout */}
       <div className="flex flex-col lg:grid lg:grid-cols-4 gap-10">
-        
         {/* Sidebar Filter */}
         <aside className="lg:col-span-1">
           <div className="bg-white border rounded-xl p-5 shadow-sm sticky top-24 flex flex-col h-fit">
@@ -221,10 +214,10 @@ export const SearchResults = () => {
                 <p className="text-sm font-medium text-gray-700 mb-3">Giới tính</p>
                 <div className="space-y-2">
                   {[
-                    { value: "", label: "Tất cả" },
-                    { value: "MALE", label: "Nam" },
-                    { value: "FEMALE", label: "Nữ" },
-                    { value: "UNISEX", label: "Unisex" },
+                    { value: '', label: 'Tất cả' },
+                    { value: 'MALE', label: 'Nam' },
+                    { value: 'FEMALE', label: 'Nữ' },
+                    { value: 'UNISEX', label: 'Unisex' },
                   ].map((item) => (
                     <label
                       key={item.value}
@@ -238,9 +231,7 @@ export const SearchResults = () => {
                         onChange={(e) => setDraftGender(e.target.value)}
                         className="w-4 h-4 text-teal-600 border-gray-300 focus:ring-teal-500 cursor-pointer"
                       />
-                      <span className="group-hover:text-teal-700 transition">
-                        {item.label}
-                      </span>
+                      <span className="group-hover:text-teal-700 transition">{item.label}</span>
                     </label>
                   ))}
                 </div>
@@ -255,7 +246,9 @@ export const SearchResults = () => {
                     value={draftPrice.min}
                     min={0}
                     max={draftPrice.max}
-                    onChange={(e) => setDraftPrice((prev) => ({ ...prev, min: Number(e.target.value) }))}
+                    onChange={(e) =>
+                      setDraftPrice((prev) => ({ ...prev, min: Number(e.target.value) }))
+                    }
                     className="w-full border rounded-md px-2 py-1.5 text-sm"
                   />
                   <span className="text-gray-400">-</span>
@@ -263,7 +256,9 @@ export const SearchResults = () => {
                     type="number"
                     value={draftPrice.max}
                     min={draftPrice.min}
-                    onChange={(e) => setDraftPrice((prev) => ({ ...prev, max: Number(e.target.value) }))}
+                    onChange={(e) =>
+                      setDraftPrice((prev) => ({ ...prev, max: Number(e.target.value) }))
+                    }
                     className="w-full border rounded-md px-2 py-1.5 text-sm"
                   />
                 </div>
@@ -276,7 +271,9 @@ export const SearchResults = () => {
                     max="15000000"
                     step="100000"
                     value={draftPrice.min}
-                    onChange={(e) => setDraftPrice((prev) => ({ ...prev, min: Number(e.target.value) }))}
+                    onChange={(e) =>
+                      setDraftPrice((prev) => ({ ...prev, min: Number(e.target.value) }))
+                    }
                     className="w-full accent-teal-600"
                   />
                   <input
@@ -285,7 +282,9 @@ export const SearchResults = () => {
                     max="15000000"
                     step="100000"
                     value={draftPrice.max}
-                    onChange={(e) => setDraftPrice((prev) => ({ ...prev, max: Number(e.target.value) }))}
+                    onChange={(e) =>
+                      setDraftPrice((prev) => ({ ...prev, max: Number(e.target.value) }))
+                    }
                     className="w-full accent-teal-600"
                   />
                 </div>
@@ -299,7 +298,7 @@ export const SearchResults = () => {
                 disabled={isFetching}
                 className="w-full bg-teal-600 text-white font-medium py-2.5 rounded-lg hover:bg-teal-700 transition disabled:bg-teal-400 disabled:cursor-not-allowed shadow-sm flex items-center justify-center gap-2"
               >
-                {isFetching ? "Đang lọc..." : "Áp dụng bộ lọc"}
+                {isFetching ? 'Đang lọc...' : 'Áp dụng bộ lọc'}
               </button>
             </div>
           </div>
@@ -310,7 +309,7 @@ export const SearchResults = () => {
           {productList.length === 0 ? (
             <div className="py-20 text-center text-gray-400 border-2 border-dashed rounded-xl bg-gray-50">
               Không tìm thấy sản phẩm nào.
-              <button 
+              <button
                 onClick={handleResetFilters}
                 className="block mx-auto mt-3 text-teal-600 hover:underline text-sm font-medium"
               >
@@ -318,19 +317,27 @@ export const SearchResults = () => {
               </button>
             </div>
           ) : (
-            <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7 mb-12 transition-opacity duration-300 ${isFetching ? 'opacity-50' : 'opacity-100'}`}>
+            <div
+              className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7 mb-12 transition-opacity duration-300 ${isFetching ? 'opacity-50' : 'opacity-100'}`}
+            >
               {productList.map((product) => {
                 const hasPriceRange = product.minPrice > 0 && product.maxPrice > product.minPrice;
 
                 const getGenderBadge = (gender: string) => {
                   switch (gender) {
-                    case "MALE":
-                      return { label: "Nam", style: "bg-blue-100/80 text-blue-700 border-blue-200" };
-                    case "FEMALE":
-                      return { label: "Nữ", style: "bg-rose-100/80 text-rose-700 border-rose-200" };
-                    case "UNISEX":
+                    case 'MALE':
+                      return {
+                        label: 'Nam',
+                        style: 'bg-blue-100/80 text-blue-700 border-blue-200',
+                      };
+                    case 'FEMALE':
+                      return { label: 'Nữ', style: 'bg-rose-100/80 text-rose-700 border-rose-200' };
+                    case 'UNISEX':
                     default:
-                      return { label: "Unisex", style: "bg-purple-100/80 text-purple-700 border-purple-200" };
+                      return {
+                        label: 'Unisex',
+                        style: 'bg-purple-100/80 text-purple-700 border-purple-200',
+                      };
                   }
                 };
 
@@ -344,7 +351,9 @@ export const SearchResults = () => {
                   >
                     <div className="aspect-[4/3] bg-gray-50 overflow-hidden relative">
                       {genderBadge && (
-                        <span className={`absolute top-3 left-3 z-10 backdrop-blur-md text-[10px] font-bold px-2.5 py-1.5 rounded-md shadow-sm border uppercase tracking-wider ${genderBadge.style}`}>
+                        <span
+                          className={`absolute top-3 left-3 z-10 backdrop-blur-md text-[10px] font-bold px-2.5 py-1.5 rounded-md shadow-sm border uppercase tracking-wider ${genderBadge.style}`}
+                        >
                           {genderBadge.label}
                         </span>
                       )}
@@ -352,7 +361,7 @@ export const SearchResults = () => {
                       <img
                         src={
                           product.imageUrl?.[0]?.imageUrl ||
-                          "https://images.unsplash.com/photo-1572635196237-14b3f281503f"
+                          'https://images.unsplash.com/photo-1572635196237-14b3f281503f'
                         }
                         alt={product.name}
                         className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500 ease-out"
@@ -395,17 +404,28 @@ export const SearchResults = () => {
                           )}
                           <p className="text-teal-700 font-bold text-base">
                             {product.minPrice
-                              ? new Intl.NumberFormat("vi-VN", {
-                                  style: "currency",
-                                  currency: "VND",
+                              ? new Intl.NumberFormat('vi-VN', {
+                                  style: 'currency',
+                                  currency: 'VND',
                                 }).format(product.minPrice)
-                              : "Liên hệ"}
+                              : 'Liên hệ'}
                           </p>
                         </div>
-                        
+
                         <div className="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center text-teal-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={2}
+                            stroke="currentColor"
+                            className="w-4 h-4"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                            />
                           </svg>
                         </div>
                       </div>
@@ -433,8 +453,8 @@ export const SearchResults = () => {
                   onClick={() => setPage(i + 1)}
                   className={`px-3.5 py-1.5 border rounded-md text-sm font-medium ${
                     page === i + 1
-                      ? "bg-teal-600 text-white border-teal-600"
-                      : "hover:bg-gray-50 text-gray-700"
+                      ? 'bg-teal-600 text-white border-teal-600'
+                      : 'hover:bg-gray-50 text-gray-700'
                   }`}
                 >
                   {i + 1}
