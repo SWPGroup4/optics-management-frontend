@@ -1,14 +1,18 @@
 import React from 'react';
-import OrderRow from './OrderRow';
 import type { BEOrder } from '@/features/operation-staff/types/types';
+import ShippingOrderRow from '@/features/operation-staff/components/shipping/ShippingOrderRow';
 
-interface OrdersTableProps {
+interface ReadyToShipOrderTableProps {
   orders: BEOrder[];
   selectedOrders: Set<string>;
   onSelectionChange: (orderId: string, selected: boolean) => void;
 }
 
-const OrdersTable: React.FC<OrdersTableProps> = ({ orders, selectedOrders, onSelectionChange }) => {
+const ReadyToShipOrderTable: React.FC<ReadyToShipOrderTableProps> = ({
+  orders,
+  selectedOrders,
+  onSelectionChange,
+}) => {
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     const checked = e.target.checked;
     orders.forEach((order) => {
@@ -36,17 +40,17 @@ const OrdersTable: React.FC<OrdersTableProps> = ({ orders, selectedOrders, onSel
                 type="checkbox"
               />
             </th>
-            <th className="px-6 py-4">Mã đơn hàng</th>
-            <th className="px-6 py-4">Tên đơn hàng</th>
-            <th className="px-6 py-4">SĐT Khách</th>
-            <th className="px-6 py-4">Trạng thái</th>
-            <th className="px-6 py-4 text-right">Hành động</th>
+            <th className="px-6 py-4 font-semibold">Mã đơn hàng</th>
+            <th className="px-6 py-4 font-semibold">Thông tin giao hàng</th>
+            <th className="px-6 py-4 font-semibold">Sản phẩm</th>
+            <th className="px-6 py-4 font-semibold text-right">Tổng tiền</th>
+            <th className="px-6 py-4 font-semibold">Ngày tạo</th>
+            <th className="px-6 py-4 font-semibold">Trạng thái</th>
           </tr>
         </thead>
-
         <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
           {orders?.map((order) => (
-            <OrderRow
+            <ShippingOrderRow
               key={order.orderId}
               order={order}
               isSelected={selectedOrders.has(order.orderId)}
@@ -59,4 +63,4 @@ const OrdersTable: React.FC<OrdersTableProps> = ({ orders, selectedOrders, onSel
   );
 };
 
-export default OrdersTable;
+export default ReadyToShipOrderTable;

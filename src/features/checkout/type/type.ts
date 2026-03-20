@@ -66,7 +66,7 @@ export interface CheckoutState {
 export interface OrderDetailsData {
   orderId: string;
   recipientName: string; // Lấy tên để hiển thị "Cảm ơn [Tên]..."
-  totalAmount: number;   // Lấy tổng tiền để show biên lai (nếu cần)
+  totalAmount: number; // Lấy tổng tiền để show biên lai (nếu cần)
 }
 
 export interface OrderDetailsResponse {

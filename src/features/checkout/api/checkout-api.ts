@@ -1,5 +1,5 @@
-import { api } from "@/lib/axios";
-import type { CheckoutRequest, CheckoutResponse, OrderDetailsResponse } from "../type/type";
+import { api } from '@/lib/axios';
+import type { CheckoutRequest, CheckoutResponse, OrderDetailsResponse } from '../type/type';
 
 export const paymentApi = {
   getPaymentRequirement: async (payload: CheckoutRequest) =>
