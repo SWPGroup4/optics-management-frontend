@@ -1,15 +1,9 @@
-<<<<<<< HEAD
 import { Outlet } from "react-router-dom";
 import Footer from "./footer/Footer";
 import Header from "./header";
 import { CartDrawer } from "@/features/cart/components/CartDrawer";
 import ChatBot from "@/features/chatbot/components/ChatBot";
-=======
-import { Outlet } from 'react-router-dom';
-import Footer from './footer/Footer';
-import Header from './header';
-import { CartDrawer } from '@/features/cart/components/CartDrawer';
->>>>>>> 16131c79e4d51d9a6031d37c3babfb37717e060d
+
 
 export const MainLayout = () => {
   return (
@@ -24,10 +18,9 @@ export const MainLayout = () => {
       </main>
 
       <Footer />
-<<<<<<< HEAD
+
       <ChatBot />
-=======
->>>>>>> 16131c79e4d51d9a6031d37c3babfb37717e060d
+
     </div>
   );
 };

@@ -15,10 +15,17 @@ export const useProducts = (filters: FilterParams = {}) => {
     queryKey: productKeys.list(filters),
     queryFn: async () => {
       const data = await productApi.getFilteredProducts(filters);
-      return data.result; // trả full pagination
+      // Bảo hiểm: nếu backend trả undefined/null hoặc không có result thì trả giá trị mặc định
+      return (
+        data?.result ?? {
+          items: [],
+          totalElements: 0,
+          totalPages: 0,
+        }
+      );
     },
     staleTime: 1000 * 60 * 5,
-    placeholderData: keepPreviousData,
+    keepPreviousData: true,
   });
 };
 // --- HOOK 2: Lấy chi tiết sản phẩm ---
@@ -27,7 +34,7 @@ export const useProduct = (id: string) => {
     queryKey: productKeys.detail(id),
     queryFn: async () => {
       const data = await productApi.getProductById(id);
-      return data.result;
+      return data?.result ?? null;
     },
     enabled: !!id,
   });
