@@ -24,22 +24,21 @@ export const useLoginForm = () => {
   const onSubmit = async (data: LoginInput) => {
     try {
       await login(data.username, data.password);
-      
+
       const redirectPath = useAuthStore.getState().redirectByRole();
       navigate(redirectPath, { replace: true });
-    } catch (error) { 
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Đăng nhập thất bại';
 
-      const errorMessage = error instanceof Error ? error.message : "Đăng nhập thất bại";
-      
-      form.setError("root", {
+      form.setError('root', {
         message: errorMessage,
       });
     }
   };
 
   return {
-    form,       
-    onSubmit,   
-    isLoading,  
+    form,
+    onSubmit,
+    isLoading,
   };
 };

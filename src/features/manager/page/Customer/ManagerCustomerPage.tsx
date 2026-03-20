@@ -1,13 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { api } from "@/lib/axios";
-import {
-  Search,
-  Bell,
-  Settings,
-  MoreHorizontal,
-  Eye,
-  Trash2,
-} from "lucide-react";
+import { useEffect, useMemo, useState } from 'react';
+import { api } from '@/lib/axios';
+import { Search, Bell, Settings, MoreHorizontal, Eye, Trash2 } from 'lucide-react';
 
 type User = {
   id: string;
@@ -27,7 +20,7 @@ const ManageCustomerPage = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [openActionId, setOpenActionId] = useState<string | null>(null);
 
   // GET /users
@@ -36,12 +29,12 @@ const ManageCustomerPage = () => {
       setLoading(true);
 
       // axios.ts của bạn đang return response.data luôn => data chính là {code,message,result}
-      const data = await api.get<ApiResponse<User[]>>("/users");
+      const data = await api.get<ApiResponse<User[]>>('/users');
       setUsers(data.data.result || []);
     } catch (error) {
-      console.error("Fetch users failed:", error);
-      alert("Failed to load users");
-    } finally {     
+      console.error('Fetch users failed:', error);
+      alert('Failed to load users');
+    } finally {
       setLoading(false);
     }
   };
@@ -64,14 +57,14 @@ const ManageCustomerPage = () => {
   }, [users, searchTerm]);
 
   const formatDob = (dob: string) => {
-    if (!dob) return "-";
+    if (!dob) return '-';
     // nếu dob là ISO date => show yyyy-mm-dd
     return dob.slice(0, 10);
   };
 
   const handleView = (user: User) => {
     alert(
-      `User:\n${user.username}\nDOB: ${formatDob(user.dob)}\nEmail: ${user.email}\nPhone: ${user.phone}`
+      `User:\n${user.username}\nDOB: ${formatDob(user.dob)}\nEmail: ${user.email}\nPhone: ${user.phone}`,
     );
     setOpenActionId(null);
   };
@@ -79,7 +72,7 @@ const ManageCustomerPage = () => {
   const handleDelete = (user: User) => {
     // nếu backend bạn có DELETE /users/{id} thì mình có thể nối tiếp
     if (window.confirm(`Delete user "${user.username}" ?`)) {
-      alert("Currently only UI demo. Provide DELETE endpoint to connect.");
+      alert('Currently only UI demo. Provide DELETE endpoint to connect.');
       setOpenActionId(null);
     }
   };
@@ -95,9 +88,7 @@ const ManageCustomerPage = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Manage customers and view customer insights
-          </p>
+          <p className="text-gray-500 text-sm mt-1">Manage customers and view customer insights</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -165,39 +156,24 @@ const ManageCustomerPage = () => {
                 </tr>
               ) : filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => (
-                  <tr
-                    key={user.id}
-                    className="hover:bg-gray-50/80 transition-colors group"
-                  >
+                  <tr key={user.id} className="hover:bg-gray-50/80 transition-colors group">
                     <td className="px-6 py-4">
-                      <span className="font-semibold text-gray-900 text-sm">
-                        {user.username}
-                      </span>
+                      <span className="font-semibold text-gray-900 text-sm">{user.username}</span>
                     </td>
 
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {formatDob(user.dob)}
-                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{formatDob(user.dob)}</td>
 
-                    <td className="px-6 py-4 text-sm text-gray-700">
-                      {user.email}
-                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">{user.email}</td>
 
-                    <td className="px-6 py-4 text-sm text-gray-700">
-                      {user.phone}
-                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">{user.phone}</td>
 
                     {/* ACTIONS */}
                     <td className="px-6 py-4 text-right relative">
                       <div onClick={(e) => e.stopPropagation()}>
                         <button
-                          onClick={() =>
-                            setOpenActionId(openActionId === user.id ? null : user.id)
-                          }
+                          onClick={() => setOpenActionId(openActionId === user.id ? null : user.id)}
                           className={`p-2 rounded-full hover:bg-gray-100 transition-colors ${
-                            openActionId === user.id
-                              ? "bg-gray-100 text-gray-900"
-                              : "text-gray-400"
+                            openActionId === user.id ? 'bg-gray-100 text-gray-900' : 'text-gray-400'
                           }`}
                         >
                           <MoreHorizontal className="w-5 h-5" />
@@ -250,10 +226,7 @@ const ManageCustomerPage = () => {
             >
               Previous
             </button>
-            <button
-              className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50"
-              disabled
-            >
+            <button className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50" disabled>
               Next
             </button>
           </div>

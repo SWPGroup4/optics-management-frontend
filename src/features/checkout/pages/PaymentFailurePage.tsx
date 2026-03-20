@@ -1,6 +1,6 @@
-import { XCircle, RefreshCw, HelpCircle, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { XCircle, RefreshCw, HelpCircle, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 export const PaymentFailurePage = () => {
   return (
@@ -22,13 +22,14 @@ export const PaymentFailurePage = () => {
 
           {/* 3. Lý do lỗi (Rất quan trọng về UX) */}
           <div className="bg-red-50/50 rounded-xl p-4 mb-8 border border-red-100 flex items-start gap-3 text-left">
-             <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-             <div>
-                <h4 className="text-sm font-bold text-gray-900">Error: Insufficient Funds</h4>
-                <p className="text-xs text-gray-600 mt-1">
-                  Your card was declined by the bank. Please ensure you have sufficient funds or try another card.
-                </p>
-             </div>
+            <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="text-sm font-bold text-gray-900">Error: Insufficient Funds</h4>
+              <p className="text-xs text-gray-600 mt-1">
+                Your card was declined by the bank. Please ensure you have sufficient funds or try
+                another card.
+              </p>
+            </div>
           </div>
 
           {/* 4. Các nút điều hướng - Ưu tiên nút "Thử lại" */}
@@ -36,14 +37,14 @@ export const PaymentFailurePage = () => {
             <Button className="w-full h-11 bg-gray-900 hover:bg-black font-bold shadow-md gap-2">
               <RefreshCw className="w-4 h-4" /> Try Payment Again
             </Button>
-            
+
             <div className="grid grid-cols-2 gap-3">
-               <Button variant="outline" className="w-full font-semibold border-gray-200">
-                  Change Method
-               </Button>
-               <Button variant="ghost" className="w-full font-semibold text-gray-600">
-                  <HelpCircle className="w-4 h-4 mr-2" /> Help
-               </Button>
+              <Button variant="outline" className="w-full font-semibold border-gray-200">
+                Change Method
+              </Button>
+              <Button variant="ghost" className="w-full font-semibold text-gray-600">
+                <HelpCircle className="w-4 h-4 mr-2" /> Help
+              </Button>
             </div>
           </div>
         </div>
