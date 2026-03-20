@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { profileApi } from "../api/api";
+import { refundApi } from "@/features/manager/api/refund-api";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -276,15 +277,16 @@ function OrderCard({ order }: { order: Order }) {
   const hasDiscount = !!order.comboName && !!order.comboDiscountAmount;
   const hasRefund = order.refundedAmount > 0;
 
-  // Chỉ cho hủy khi có PRE_ORDER và đang ở trạng thái chờ/xác nhận
+  // Cho hủy khi có PRE_ORDER và chưa hoàn tất/huỷ/hoàn tiền
   const hasPreOrder = order.items.some(i => i.orderItemType === "PRE_ORDER");
   const canCancel = hasPreOrder &&
-    ["PENDING", "CONFIRMED"].includes(order.orderStatus);
+    !["CANCELLED", "COMPLETED", "REFUNDED", "DELIVERED"].includes(order.orderStatus);
 
   const handleCancel = async () => {
     setCancelling(true);
     try {
       await profileApi.cancelOrder(order.orderId);
+      await refundApi.createBatch([order.orderId])// Cập nhật danh sách hoàn tiền (nếu có)
       queryClient.invalidateQueries({ queryKey: ["my-orders"] });
       setShowConfirm(false);
     } catch (e: any) {
@@ -293,6 +295,7 @@ function OrderCard({ order }: { order: Order }) {
       setCancelling(false);
     }
   };
+
 
   return (
     <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
