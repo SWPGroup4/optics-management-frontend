@@ -89,7 +89,7 @@ export function useCreateRefundBatch() {
     return { loading, error, run };
 }
 
-// ─── Hook 4: Checkout từng refund → VNPay ────────────────────────────────────
+
 export function useCheckoutRefund() {
     const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
     const [doneSet, setDoneSet]       = useState<Set<string>>(new Set());
