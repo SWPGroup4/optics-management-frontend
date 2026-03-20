@@ -13,7 +13,7 @@ const sidebarItems = [
     title: 'Đơn hàng của tôi',
     href: '/profile/orders',
     icon: Package,
-  }
+  },
 ];
 
 export function ProfileSidebar() {
