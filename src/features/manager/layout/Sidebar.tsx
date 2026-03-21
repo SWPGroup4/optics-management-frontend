@@ -23,6 +23,7 @@ const navigation = [
   { name: 'Nhân viên', href: '/manager/staff', icon: Users },
   { name: 'Khách hàng', href: '/manager/customers', icon: Users },
   { name: 'Tròng kính', href: '/manager/lenses', icon: Glasses },
+  { name: 'Chính sách', href: '/manager/policies', icon: Tag },
   // { name: "Cài đặt", href: "/manager/settings", icon: Settings },
 ];
 

@@ -26,6 +26,7 @@ import ProductVariantManagePage from '@/features/manager/page/products/ProductVa
 import StaffCustomerPage from '@/features/manager/page/staff/StaffCustomerPage';
 import ManageCustomerPage from '@/features/manager/page/Customer/ManagerCustomerPage';
 import LensesManagerPage from '@/features/manager/page/Lenses/LensesManagerPage';
+import PolicyManager from '@/features/manager/page/Policy/PolicyManager';
 
 import SellerLayout from '@/features/seller/layout/SellerLayout';
 import OrderPage from '@/features/seller/page/order/OrderPage';
@@ -107,6 +108,7 @@ export const router = createBrowserRouter([
           { path: 'products/:productId/variants', element: <ProductVariantManagePage /> },
           { path: 'staff', element: <StaffCustomerPage /> },
           { path: 'lenses', element: <LensesManagerPage /> },
+        { path: 'policies', element: <PolicyManager /> },
         ],
       },
 
