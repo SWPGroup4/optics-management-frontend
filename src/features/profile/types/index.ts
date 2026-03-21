@@ -30,3 +30,17 @@ export interface ApiResponse<T> {
   code: number;
   result: T; // Dữ liệu thật nằm ở đây
 }
+
+export interface BEFeedback {
+  feedbackId: string;
+  orderId: string;
+  productId: string;
+  productName: string;
+  customerId: string;
+  customerName: string;
+  rating: number;
+  comment: string;
+  imageUrls: string[];
+  createdAt: string;
+  updatedAt: string;
+}
