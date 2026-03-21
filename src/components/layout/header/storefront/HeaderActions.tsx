@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Bell, LogOut, User, FileText, History, Search, X } from 'lucide-react'; // 🌟 Thêm icon X
+import { ShoppingBag, Bell, LogOut, User, History, Search, X } from 'lucide-react'; // 🌟 Thêm icon X
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -172,15 +172,11 @@ export default function HeaderActions() {
                   label="Tài khoản cá nhân"
                 />
                 <DropdownItemLink
-                  to="/account/orders"
+                  to="/profile/orders"
                   icon={<History className="mr-3 h-4 w-4" />}
                   label="Lịch sử đơn hàng"
                 />
-                <DropdownItemLink
-                  to="/account/prescriptions"
-                  icon={<FileText className="mr-3 h-4 w-4" />}
-                  label="Sổ đo mắt điện tử"
-                />
+
               </div>
 
               <DropdownMenuSeparator className="bg-gray-50" />

@@ -1,7 +1,6 @@
 // src/features/products/api/product-api.ts
 import { api } from '@/lib/axios';
-import type { Product } from '../types/types';
-
+import type { PaginatedResponse, Product, ProductQueryParams } from '../types/types';
 export const productApi = {
   // Lấy danh sách
   getAll: async () => {
@@ -62,5 +61,17 @@ export const productApi = {
   delete: async (id: string) => {
     const response = await api.delete(`/products/${id}`);
     return response.data;
+  },
+
+  getFiltered: async (params: ProductQueryParams) => {
+    const response = await api.get<PaginatedResponse<Product>>('/products/filter', {
+      params: {
+        ...params,
+        // Đảm bảo default values nếu cần
+        page: params.page ?? 0,
+        size: params.size ?? 10,
+      },
+    });
+    return response.data.result; // Trả về object chứa { items, totalPages, ... }
   },
 };

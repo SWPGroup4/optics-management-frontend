@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   LogOut,
@@ -7,22 +7,39 @@ import {
   // Truck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useSidebar } from '@/features/operation-staff/hooks/useSidebar.ts';
-import Logo from '@/features/operation-staff/components/common/Logo';
+import { useSidebar } from '@/features/operation-staff/hooks/useSidebar';
+// Đưa Logo về component dùng chung để dễ quản lý, nếu bạn bắt buộc dùng Logo riêng thì đổi lại đường dẫn nhé
+import Logo from '@/components/common/Logo';
+
+// Import store để lấy thông tin user và xử lý logout
+import { useAuthStore } from '@/features/auth/stores/useAuthStore';
 
 const navigation = [
   { name: 'Tổng quan', href: '/ops-staff', icon: LayoutDashboard },
   // { name: "Đóng gói", href: "/ops-staff/shipping", icon: Truck },
-  // { name: "Orders", href: "/manager/orders", icon: ShoppingCart },
-  // { name: "Pricing", href: "/manager/pricing", icon: Tag },
-  // { name: "Staff", href: "/manager/staff", icon: Users },
-  // { name: "Customers", href: "/manager/customers", icon: Users },
-  // { name: "Settings", href: "/manager/settings", icon: Settings },
 ];
 
 export function Sidebar() {
   const { collapsed, toggleCollapsed } = useSidebar();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Lấy user và hàm logout từ store
+  const { user, logout } = useAuthStore();
+
+  // Hàm xử lý đăng xuất
+  const handleLogout = () => {
+    logout();
+    navigate('/auth/login');
+  };
+
+  // Hàm tạo avatar chữ (Ví dụ: "John Doe" -> "JD")
+  const getInitials = (name?: string) => {
+    if (!name) return 'U';
+    const parts = name.trim().split(' ');
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
 
   return (
     <aside
@@ -48,7 +65,8 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
         {navigation.map((item) => {
-          const isActive = location.pathname === item.href;
+          // Sửa lại isActive để vẫn highlight khi vào các trang con (ví dụ: /ops-staff/shipping/123)
+          const isActive = location.pathname === item.href || location.pathname.startsWith(`${item.href}/`);
           return (
             <NavLink
               key={item.name}
@@ -67,23 +85,38 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* User Section */}
+      {/* User Section (Dynamic Data) */}
       <div className="p-3 border-t border-sidebar-border">
         <div className={cn('flex items-center gap-3', collapsed && 'justify-center')}>
-          <div className="w-9 h-9 rounded-full bg-sidebar-accent flex items-center justify-center text-sidebar-foreground font-medium text-sm">
-            JD
+          
+          {/* Avatar lấy từ store */}
+          <div className="w-9 h-9 rounded-full bg-sidebar-accent flex items-center justify-center text-sidebar-foreground font-medium text-sm shrink-0 uppercase">
+            {getInitials(user?.name)}
           </div>
+          
+          {/* Tên và chức vụ */}
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">John Doe</p>
-              <p className="text-xs text-sidebar-muted truncate">Operation Staff</p>
+              <p className="text-sm font-medium text-sidebar-foreground truncate">
+                {user?.name || 'Nhân viên vận hành'}
+              </p>
+              <p className="text-xs text-sidebar-muted truncate uppercase">
+                {user?.role || 'OPS STAFF'}
+              </p>
             </div>
           )}
+          
+          {/* Nút Logout */}
           {!collapsed && (
-            <button className="p-1.5 rounded-lg text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors">
+            <button 
+              onClick={handleLogout}
+              title="Đăng xuất"
+              className="p-1.5 rounded-lg text-sidebar-muted hover:text-rose-600 hover:bg-rose-50 transition-colors shrink-0"
+            >
               <LogOut className="w-4 h-4" />
             </button>
           )}
+          
         </div>
       </div>
     </aside>

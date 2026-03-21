@@ -18,14 +18,14 @@ interface PrescriptionData {
 interface PrescriptionState {
   // Trạng thái đơn hàng
   orderType: 'buy-now' | 'pre-order' | 'custom';
-  selectedLensId: string;
+  selectedLensId: string | null;
 
   // Dữ liệu độ cận
   prescription: PrescriptionData;
 
   // Actions
   setOrderType: (type: 'buy-now' | 'pre-order' | 'custom') => void;
-  setLensId: (id: string) => void;
+  setLensId: (id: string | null) => void;
   // Thay đổi 'any' bằng Partial<PrescriptionData>
   updatePrescription: (data: Partial<PrescriptionData>) => void;
   resetPrescription: () => void;
@@ -44,7 +44,7 @@ export const usePrescriptionStore = create<PrescriptionState>((set) => ({
   prescription: initialPrescription,
 
   setOrderType: (type) => set({ orderType: type }),
-  setLensId: (id) => set({ selectedLensId: id }),
+  setLensId: (id: string | null) => set({ selectedLensId: id }),
 
   // Logic cập nhật an toàn
   updatePrescription: (data) =>
@@ -55,7 +55,7 @@ export const usePrescriptionStore = create<PrescriptionState>((set) => ({
   resetPrescription: () =>
     set({
       prescription: initialPrescription,
-      selectedLensId: 'standard',
+      selectedLensId: null,
       orderType: 'buy-now',
     }),
 }));

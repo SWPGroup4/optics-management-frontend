@@ -1,869 +1,199 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef } from "react";
-import type { RefundItem } from "@/features/manager/api/refund-api";
-import { refundApi } from "@/features/manager/api/refund-api";
-import type { Order } from "@/features/manager/api/order-api";
-
-import {
-    useReadyRefunds,
-    useInActivateVariant,
-    useCreateRefundBatch,
-    useCheckoutRefund,
-} from "@/features/manager/hooks/useRefunds";
-
-// ─── helpers ──────────────────────────────────────────────────────────────────
-
-const fmt = (n: number | null | undefined) => {
-    if (n == null) return "—";
-    return new Intl.NumberFormat("vi-VN", {
-        style: "currency", currency: "VND", maximumFractionDigits: 0,
-    }).format(n);
-};
-
-const getProductName = (order: Order) => {
-    const item = (order.items ?? []).find(i => i.itemName || i.productName);
-    return item ? (item.itemName || item.productName) : null;
-};
-
-// ─── Toast ────────────────────────────────────────────────────────────────────
-
-function Toast({ message, type, onClose }: {
-    message: string;
-    type: "success" | "error";
-    onClose: () => void;
-}) {
-    return (
-        <div className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl text-sm font-medium ${
-            type === "success" ? "bg-emerald-600 text-white" : "bg-rose-600 text-white"
-        }`}>
-            <span>{type === "success" ? "✓" : "⚠"}</span>
-            <span>{message}</span>
-            <button onClick={onClose} className="ml-1 opacity-70 hover:opacity-100 text-lg leading-none">×</button>
-        </div>
-    );
-}
-
-// ─── Modal: Tạo batch ─────────────────────────────────────────────────────────
-
-function CreateBatchModal({ onClose, onSuccess }: {
-    onClose: () => void;
-    onSuccess: (refunds: RefundItem[]) => void;
-}) {
-    const [step, setStep]             = useState<1 | 2>(1);
-    const [variantInput, setVariantInput] = useState("");
-    const [toast, setToast]           = useState<{ msg: string; type: "success" | "error" } | null>(null);
-
-    const inActivate  = useInActivateVariant();
-    const createBatch = useCreateRefundBatch();
-
-    const showToast = (msg: string, type: "success" | "error") => {
-        setToast({ msg, type });
-        setTimeout(() => setToast(null), 3000);
-    };
-
-    const handleInActivate = async () => {
-        const id = variantInput.trim();
-        if (!id) return;
-        try {
-            await inActivate.run(id);
-            setStep(2);
-        } catch (e: any) {
-            showToast(e.message, "error");
-        }
-    };
-
-    const handleCreateBatch = async () => {
-        try {
-            const created = await createBatch.run(inActivate.affectedOrders);
-            showToast("Đã tạo batch hoàn tiền!", "success");
-            setTimeout(() => { onSuccess(created); onClose(); }, 800);
-        } catch (e: any) {
-            showToast(e.message, "error");
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
-
-                {/* inline toast */}
-                {toast && (
-                    <div className={`absolute top-3 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg text-xs font-semibold ${
-                        toast.type === "success" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
-                    }`}>{toast.msg}</div>
-                )}
-
-                {/* header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                    <div>
-                        <h3 className="text-base font-bold text-gray-900">Tạo đợt hoàn tiền</h3>
-                        <p className="text-xs text-gray-400 mt-0.5">Xử lý khi nhà sản xuất hủy pre-order</p>
-                    </div>
-                    <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                            <path d="M18 6L6 18M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
-
-                {/* step pills */}
-                <div className="flex px-6 pt-4 gap-2">
-                    {[{ n: 1, label: "Nhập Variant" }, { n: 2, label: "Xem đơn bị ảnh hưởng" }].map(s => (
-                        <div key={s.n} className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
-                            step === s.n ? "bg-indigo-600 text-white" :
-                            step > s.n   ? "bg-emerald-100 text-emerald-700" :
-                                           "bg-gray-100 text-gray-400"
-                        }`}>
-                            <span>{step > s.n ? "✓" : s.n}</span>
-                            <span>{s.label}</span>
-                        </div>
-                    ))}
-                </div>
-
-                {/* body */}
-                <div className="px-6 py-5">
-
-                    {/* Step 1 */}
-                    {step === 1 && (
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                                    Variant ID
-                                </label>
-                                <input
-                                    autoFocus
-                                    type="text"
-                                    value={variantInput}
-                                    onChange={e => setVariantInput(e.target.value)}
-                                    onKeyDown={e => e.key === "Enter" && handleInActivate()}
-                                    placeholder="Nhập Variant ID..."
-                                    className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-gray-50"
-                                />
-                                <p className="text-[11px] text-gray-400 mt-1.5">
-                                    Tìm Variant ID trong trang quản lý biến thể sản phẩm
-                                </p>
-                            </div>
-                            <div className="flex gap-3">
-                                <button onClick={onClose} className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">
-                                    Hủy
-                                </button>
-                                <button
-                                    onClick={handleInActivate}
-                                    disabled={!variantInput.trim() || inActivate.loading}
-                                    className="flex-1 py-2.5 text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors flex items-center justify-center gap-2"
-                                >
-                                    {inActivate.loading && (
-                                        <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                                    )}
-                                    Vô hiệu hóa & Tiếp tục
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Step 2 */}
-                    {step === 2 && (
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <p className="text-sm text-gray-600">
-                                    Tìm thấy{" "}
-                                    <span className="font-bold text-rose-600">
-                                        {inActivate.affectedOrders.length} đơn hàng
-                                    </span>{" "}
-                                    bị ảnh hưởng
-                                </p>
-                                <span className="text-xs font-mono bg-gray-100 text-gray-500 px-2 py-1 rounded">
-                                    {variantInput.slice(0, 12)}...
-                                </span>
-                            </div>
-
-                            {inActivate.affectedOrders.length === 0 ? (
-                                <div className="text-center py-8 text-gray-400">
-                                    <p className="text-2xl mb-1">📭</p>
-                                    <p className="text-sm">Không có đơn nào bị ảnh hưởng</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-2 max-h-[240px] overflow-y-auto">
-                                    {inActivate.affectedOrders.map((order, i) => (
-                                        <div
-                                            key={order.orderId || i}
-                                            className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 text-sm"
-                                        >
-                                            <div className="min-w-0">
-                                                <p className="font-medium text-gray-800 truncate">
-                                                    {getProductName(order) ?? "Sản phẩm không xác định"}
-                                                </p>
-                                                <p className="text-xs text-gray-400 font-mono mt-0.5">
-                                                    #{(order.orderId ?? "").slice(0, 8)}...
-                                                </p>
-                                            </div>
-                                            <div className="text-right shrink-0 ml-4">
-                                                <p className="font-bold text-gray-800">{fmt(order.paidAmount)}</p>
-                                                <p className="text-xs text-gray-400">đã thanh toán</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            {inActivate.affectedOrders.length > 0 && (
-                                <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 flex justify-between text-sm">
-                                    <span className="text-amber-700 font-medium">Tổng tiền cần hoàn</span>
-                                    <span className="font-bold text-amber-700">
-                                        {fmt(inActivate.affectedOrders.reduce((s, o) => s + (o.paidAmount ?? 0), 0))}
-                                    </span>
-                                </div>
-                            )}
-
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => { setStep(1); inActivate.reset(); }}
-                                    className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
-                                >
-                                    ← Quay lại
-                                </button>
-                                <button
-                                    onClick={handleCreateBatch}
-                                    disabled={createBatch.loading || inActivate.affectedOrders.length === 0}
-                                    className="flex-1 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors flex items-center justify-center gap-2"
-                                >
-                                    {createBatch.loading && (
-                                        <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                                    )}
-                                    ⚡ Tạo batch hoàn tiền
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// ─── Modal: Chi tiết refund ───────────────────────────────────────────────────
-
-function RefundDetailModal({ refund, onClose, onCheckout }: {
-    refund: RefundItem;
-    onClose: () => void;
-    onCheckout: (id: string) => Promise<string | null>;
-}) {
-    const [loading, setLoading] = useState(false);
-    const order = refund.order;
-
-    const handleCheckout = async () => {
-        setLoading(true);
-        const url = await onCheckout(refund.refundId);
-        setLoading(false);
-        if (!url) onClose();
-    };
-
-    return (
-        <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md">
-
-                {/* header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                    <div>
-                        <p className="text-xs text-gray-400 uppercase tracking-widest">Chi tiết hoàn tiền</p>
-                        <p className="text-sm font-bold text-gray-800 mt-0.5 font-mono">
-                            #{(refund.refundId ?? "").slice(0, 8)}...
-                        </p>
-                    </div>
-                    <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                            <path d="M18 6L6 18M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
-
-                {/* body */}
-                <div className="px-6 py-5 space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
-                        {([
-                            ["Sản phẩm",       getProductName(order) ?? "—"],
-                            ["Mã đơn hàng",    `#${(order.orderId ?? "").slice(0, 8)}...`],
-                            ["SĐT khách",      order.phoneNumber || "—"],
-                            ["Số tiền hoàn",   fmt(order.paidAmount)],
-                            ["Đặt cọc",        fmt(order.depositAmount)],
-                            ["Trạng thái đơn", order.orderStatus ?? "—"],
-                        ] as [string, string][]).map(([k, v]) => (
-                            <div key={k} className="bg-gray-50 rounded-xl px-3 py-2.5">
-                                <p className="text-[10px] text-gray-400 uppercase tracking-wide">{k}</p>
-                                <p className="text-sm font-semibold text-gray-800 mt-0.5 truncate">{v}</p>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="bg-gray-50 rounded-xl px-3 py-2.5">
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wide">Địa chỉ giao hàng</p>
-                        <p className="text-sm font-semibold text-gray-800 mt-0.5">{order.deliveryAddress || "—"}</p>
-                    </div>
-
-                    {order.bankInfo?.bankName && (
-                        <div className="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5">
-                            <p className="text-[10px] text-blue-600 uppercase tracking-wide font-semibold mb-1">
-                                Thông tin hoàn tiền
-                            </p>
-                            <p className="text-sm text-gray-700">
-                                <span className="text-gray-400">Ngân hàng:</span>{" "}
-                                <span className="font-medium">{order.bankInfo.bankName}</span>
-                            </p>
-                            <p className="text-sm text-gray-700">
-                                <span className="text-gray-400">STK:</span>{" "}
-                                <span className="font-medium">{order.bankInfo.bankAccountNumber}</span>
-                            </p>
-                            <p className="text-sm text-gray-700">
-                                <span className="text-gray-400">Chủ TK:</span>{" "}
-                                <span className="font-medium">{order.bankInfo.accountHolderName}</span>
-                            </p>
-                        </div>
-                    )}
-                </div>
-
-                {/* footer */}
-                <div className="px-6 pb-5 flex gap-3">
-                    <button onClick={onClose} className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">
-                        Đóng
-                    </button>
-                    <button
-                        onClick={handleCheckout}
-                        disabled={loading}
-                        className="flex-1 py-2.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 rounded-xl transition-colors flex items-center justify-center gap-2"
-                    >
-                        {loading && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
-                        ✓ Xác nhận hoàn tiền
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// ─── Modal: Khách hàng hủy đơn ───────────────────────────────────────────────
-
-function CustomerCancelModal({ onClose, onSuccess }: {
-    onClose: () => void;
-    onSuccess: (refunds: RefundItem[]) => void;
-}) {
-    const [step, setStep]                         = useState<1 | 2>(1);
-    const [cancelledOrders, setCancelledOrders]   = useState<Order[]>([]);
-    const [selectedOrders, setSelectedOrders]     = useState<Set<string>>(new Set());
-    const [loading, setLoading]                   = useState(false);
-    const [creating, setCreating]                 = useState(false);
-    const [toast, setToast]                       = useState<{ msg: string; type: "success" | "error" } | null>(null);
-
-    const showToast = (msg: string, type: "success" | "error") => {
-        setToast({ msg, type });
-        setTimeout(() => setToast(null), 3000);
-    };
-
-    // Load đơn hủy có thanh toán
-    useEffect(() => {
-        setLoading(true);
-        refundApi.getCancelledPaidOrders()
-            .then(orders => { setCancelledOrders(orders); setStep(1); })
-            .catch(e => showToast(e.message ?? "Lỗi tải dữ liệu", "error"))
-            .finally(() => setLoading(false));
-    }, []);
-
-    const toggleOrder = (orderId: string) => {
-        setSelectedOrders(prev => {
-            const next = new Set(prev);
-            next.has(orderId) ? next.delete(orderId) : next.add(orderId);
-            return next;
-        });
-    };
-
-    const toggleAll = () => {
-        if (selectedOrders.size === cancelledOrders.length) {
-            setSelectedOrders(new Set());
-        } else {
-            setSelectedOrders(new Set(cancelledOrders.map(o => o.orderId)));
-        }
-    };
-
-    const handleCreateBatch = async () => {
-        if (selectedOrders.size === 0) return;
-        setCreating(true);
-        try {
-            const orderIds = Array.from(selectedOrders);
-            const created = await refundApi.createBatch(orderIds);
-            showToast("Đã tạo batch hoàn tiền!", "success");
-            setTimeout(() => { onSuccess(created); onClose(); }, 800);
-        } catch (e: any) {
-            showToast(e.message ?? "Lỗi tạo batch", "error");
-        } finally {
-            setCreating(false);
-        }
-    };
-
-    const totalSelected = cancelledOrders
-        .filter(o => selectedOrders.has(o.orderId))
-        .reduce((s, o) => s + (o.paidAmount ?? 0), 0);
-
-    return (
-        <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
-
-                {toast && (
-                    <div className={`absolute top-3 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg text-xs font-semibold ${
-                        toast.type === "success" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
-                    }`}>{toast.msg}</div>
-                )}
-
-                {/* header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                    <div>
-                        <h3 className="text-base font-bold text-gray-900">Hoàn tiền đơn khách hủy</h3>
-                        <p className="text-xs text-gray-400 mt-0.5">Đơn đã hủy có thanh toán thành công</p>
-                    </div>
-                    <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                            <path d="M18 6L6 18M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
-
-                {/* body */}
-                <div className="px-6 py-5 space-y-4">
-                    {loading ? (
-                        <div className="flex flex-col items-center py-10 gap-3 text-gray-400">
-                            <div className="w-7 h-7 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin" />
-                            <p className="text-sm">Đang tải danh sách đơn hủy...</p>
-                        </div>
-                    ) : cancelledOrders.length === 0 ? (
-                        <div className="text-center py-10 text-gray-400">
-                            <p className="text-3xl mb-2">✅</p>
-                            <p className="text-sm font-medium">Không có đơn hủy nào cần hoàn tiền</p>
-                        </div>
-                    ) : (
-                        <>
-                            {/* chọn tất cả */}
-                            <div className="flex items-center justify-between">
-                                <label className="flex items-center gap-2 cursor-pointer select-none">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedOrders.size === cancelledOrders.length}
-                                        onChange={toggleAll}
-                                        className="w-4 h-4 rounded accent-indigo-600"
-                                    />
-                                    <span className="text-sm font-semibold text-gray-700">
-                                        Chọn tất cả ({cancelledOrders.length} đơn)
-                                    </span>
-                                </label>
-                                <span className="text-xs text-rose-600 font-bold bg-rose-50 px-2 py-1 rounded-full">
-                                    {selectedOrders.size} đã chọn
-                                </span>
-                            </div>
-
-                            {/* danh sách đơn */}
-                            <div className="space-y-2 max-h-[280px] overflow-y-auto">
-                                {cancelledOrders.map(order => {
-                                    const name = getProductName(order);
-                                    const checked = selectedOrders.has(order.orderId);
-                                    return (
-                                        <label
-                                            key={order.orderId}
-                                            className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${
-                                                checked ? "border-indigo-300 bg-indigo-50" : "border-gray-100 bg-gray-50 hover:border-gray-200"
-                                            }`}
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                checked={checked}
-                                                onChange={() => toggleOrder(order.orderId)}
-                                                className="w-4 h-4 rounded accent-indigo-600 shrink-0"
-                                            />
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium text-gray-800 truncate">
-                                                    {name ?? order.orderName ?? "Đơn không tên"}
-                                                </p>
-                                                <p className="text-xs text-gray-400 font-mono mt-0.5">
-                                                    #{(order.orderId ?? "").slice(0, 8)}... · {order.phoneNumber}
-                                                </p>
-                                            </div>
-                                            <div className="text-right shrink-0">
-                                                <p className="text-sm font-bold text-gray-800">{fmt(order.paidAmount)}</p>
-                                                <p className="text-[10px] text-gray-400">đã thanh toán</p>
-                                            </div>
-                                        </label>
-                                    );
-                                })}
-                            </div>
-
-                            {/* tổng tiền hoàn */}
-                            {selectedOrders.size > 0 && (
-                                <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 flex justify-between text-sm">
-                                    <span className="text-amber-700 font-medium">Tổng tiền cần hoàn ({selectedOrders.size} đơn)</span>
-                                    <span className="font-bold text-amber-700">{fmt(totalSelected)}</span>
-                                </div>
-                            )}
-                        </>
-                    )}
-                </div>
-
-                {/* footer */}
-                {!loading && cancelledOrders.length > 0 && (
-                    <div className="px-6 pb-5 flex gap-3">
-                        <button onClick={onClose} className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">
-                            Hủy
-                        </button>
-                        <button
-                            onClick={handleCreateBatch}
-                            disabled={creating || selectedOrders.size === 0}
-                            className="flex-1 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors flex items-center justify-center gap-2"
-                        >
-                            {creating && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
-                            ⚡ Tạo batch hoàn tiền ({selectedOrders.size})
-                        </button>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-}
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
-
-const PAGE_SIZE = 10;
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { useReadyRefunds, useCheckoutRefund } from '@/features/manager/hooks/useRefunds';
+import type { RefundItem } from '../../types/refund';
+import { fmt, getProductName } from '@/lib/utils';
+import { CreateBatchModal } from '../../components/refund/CreateBatchModal';
+import { CustomerCancelModal } from '../../components/refund/CustomerCancelModal';
+import { RefundDetailModal } from '../../components/refund/RefundDetailModal';
 
 export default function ManageRefundPage() {
-    const { refunds, loading, fetch: loadRefunds, append } = useReadyRefunds();
-    const { checkout, checkoutAll, isLoading, isDone, pendingCount } = useCheckoutRefund();
+  // 1. Lấy dữ liệu
+  const { data: refunds = [], isLoading } = useReadyRefunds();
+  const { mutateAsync: checkoutRefund } = useCheckoutRefund();
 
-    // Tab chính: NSX hủy vs Khách hủy
-    const [mainTab, setMainTab]                 = useState<"NSX" | "CUSTOMER">("NSX");
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [showCustomerModal, setShowCustomerModal] = useState(false);
-    const [selectedRefund, setSelectedRefund]   = useState<RefundItem | null>(null);
-    const [searchQ, setSearchQ]                 = useState("");
-    const [statusTab, setStatusTab]             = useState<"ALL" | "PENDING" | "DONE">("ALL");
-    const [currentPage, setCurrentPage]         = useState(1);
-    const [toast, setToast]                     = useState<{ msg: string; type: "success" | "error" } | null>(null);
-    const [checkingAll, setCheckingAll]         = useState(false);
+  // 2. State điều khiển UI
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [selectedRefund, setSelectedRefund] = useState<RefundItem | null>(null);
+  const [searchQ, setSearchQ] = useState('');
+  const [checkingAll, setCheckingAll] = useState(false);
 
-    // Gọi lần đầu
-    useState(() => { loadRefunds(); });
+  // Track ID đã hoàn tiền thành công cục bộ
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+  const isDone = (id: string) => completedIds.has(id);
 
-    const showToast = (msg: string, type: "success" | "error") => {
-        setToast({ msg, type });
-        setTimeout(() => setToast(null), 3500);
-    };
+  // 3. Logic xử lý Hoàn tất cả
+  const handleCheckoutAll = async () => {
+    const pendingRefunds = filtered.filter((r) => !isDone(r.refundId));
+    if (pendingRefunds.length === 0) return;
 
-    const handleCheckout = async (refundId: string): Promise<string | null> => {
-        try {
-            const url = await checkout(refundId);
-            if (!url) showToast("Hoàn tiền thành công!", "success");
-            return url;
-        } catch (e: any) {
-            showToast(e.message ?? "Lỗi hoàn tiền", "error");
-            return null;
-        }
-    };
+    setCheckingAll(true);
+    try {
+      await Promise.all(pendingRefunds.map((r) => checkoutRefund(r.refundId)));
+      setCompletedIds((prev) => new Set([...prev, ...pendingRefunds.map((r) => r.refundId)]));
+      toast.success(`Đã hoàn tiền thành công ${pendingRefunds.length} đơn!`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Lỗi hoàn tiền hàng loạt');
+    } finally {
+      setCheckingAll(false);
+    }
+  };
 
-    const handleCheckoutAll = async () => {
-        setCheckingAll(true);
-        await checkoutAll(filtered);
-        showToast("Đã hoàn tiền tất cả!", "success");
-        setCheckingAll(false);
-    };
-
-    // filter
-    const filtered = refunds.filter(r => {
-        if (!r?.order) return false;
-        const q = searchQ.toLowerCase();
-        const name = getProductName(r.order) ?? "";
-        const matchSearch = !q ||
-            (r.refundId ?? "").toLowerCase().includes(q) ||
-            (r.order.orderId ?? "").toLowerCase().includes(q) ||
-            (r.order.phoneNumber ?? "").includes(q) ||
-            name.toLowerCase().includes(q);
-        const matchTab =
-            statusTab === "ALL" ||
-            (statusTab === "DONE" ? isDone(r.refundId) : !isDone(r.refundId));
-        return matchSearch && matchTab;
-    });
-
-    const totalPages   = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-    const paginated    = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-    const pendingTotal = pendingCount(refunds);
+  // 4. Filter dữ liệu (Không Paging)
+  const filtered = refunds.filter((r) => {
+    if (!r?.order) return false;
+    const q = searchQ.toLowerCase();
+    const name = getProductName(r.order) ?? '';
 
     return (
-        <div className="min-h-screen bg-[#f7f8fa]">
-            {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
-
-            {showCreateModal && (
-                <CreateBatchModal
-                    onClose={() => setShowCreateModal(false)}
-                    onSuccess={created => {
-                        append(created);
-                        showToast("Batch tạo thành công!", "success");
-                    }}
-                />
-            )}
-
-            {showCustomerModal && (
-                <CustomerCancelModal
-                    onClose={() => setShowCustomerModal(false)}
-                    onSuccess={created => {
-                        append(created);
-                        showToast("Batch hoàn tiền khách hủy đã tạo!", "success");
-                    }}
-                />
-            )}
-
-            {selectedRefund && (
-                <RefundDetailModal
-                    refund={selectedRefund}
-                    onClose={() => setSelectedRefund(null)}
-                    onCheckout={handleCheckout}
-                />
-            )}
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-
-                {/* tiêu đề */}
-                <div className="flex items-start justify-between mb-6">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Quản lý hoàn tiền</h1>
-                        <p className="text-sm text-gray-500 mt-1">Xem xét và xử lý các yêu cầu hoàn tiền</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => loadRefunds()}
-                            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-white rounded-lg border border-gray-200 transition-colors"
-                            title="Làm mới"
-                        >
-                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                        </button>
-                        {pendingTotal > 1 && (
-                            <button
-                                onClick={handleCheckoutAll}
-                                disabled={checkingAll}
-                                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 rounded-xl transition-colors"
-                            >
-                                {checkingAll
-                                    ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                                    : "✓"
-                                }
-                                Hoàn tiền tất cả ({pendingTotal})
-                            </button>
-                        )}
-                        {/* Nút tạo đợt hoàn tiền theo loại */}
-                        <button
-                            onClick={() => setShowCustomerModal(true)}
-                            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors"
-                        >
-                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
-                            </svg>
-                            Khách hủy đơn
-                        </button>
-                        <button
-                            onClick={() => setShowCreateModal(true)}
-                            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors"
-                        >
-                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                <path d="M12 5v14M5 12h14" />
-                            </svg>
-                            NSX hủy (Variant)
-                        </button>
-                    </div>
-                </div>
-
-                {/* toolbar */}
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-3 mb-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                    <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
-                        {([
-                            { key: "ALL",     label: "Tất cả",       count: refunds.length },
-                            { key: "PENDING", label: "Chờ xử lý",    count: pendingTotal },
-                            { key: "DONE",    label: "Đã hoàn tiền", count: refunds.length - pendingTotal },
-                        ] as const).map(tab => (
-                            <button
-                                key={tab.key}
-                                onClick={() => { setStatusTab(tab.key); setCurrentPage(1); }}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                                    statusTab === tab.key
-                                        ? "bg-white text-gray-900 shadow-sm"
-                                        : "text-gray-500 hover:text-gray-700"
-                                }`}
-                            >
-                                {tab.label}
-                                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                                    statusTab === tab.key ? "bg-indigo-100 text-indigo-600" : "bg-gray-200 text-gray-500"
-                                }`}>
-                                    {tab.count}
-                                </span>
-                            </button>
-                        ))}
-                    </div>
-
-                    <div className="relative flex-1 w-full">
-                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-                        </svg>
-                        <input
-                            type="text"
-                            placeholder="Tìm theo mã hoàn tiền, tên sản phẩm, số điện thoại..."
-                            value={searchQ}
-                            onChange={e => { setSearchQ(e.target.value); setCurrentPage(1); }}
-                            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-gray-50"
-                        />
-                    </div>
-                </div>
-
-                {/* bảng */}
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="border-b border-gray-100 bg-gray-50/70">
-                                    {["Mã hoàn tiền", "Mã đơn hàng", "Sản phẩm", "Số điện thoại", "Số tiền", "Ngân hàng", "Trạng thái", "Thao tác"].map(h => (
-                                        <th key={h} className="px-5 py-3.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
-                                            {h}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {loading && (
-                                    <tr>
-                                        <td colSpan={8} className="text-center py-16 text-sm text-gray-400">
-                                            <div className="flex flex-col items-center gap-3">
-                                                <div className="w-7 h-7 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin" />
-                                                Đang tải...
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-                                {!loading && paginated.length === 0 && (
-                                    <tr>
-                                        <td colSpan={8} className="text-center py-16 text-sm text-gray-400">
-                                            Không có dữ liệu hoàn tiền.
-                                        </td>
-                                    </tr>
-                                )}
-                                {!loading && paginated.map((refund, idx) => {
-                                    const order    = refund.order;
-                                    const done     = isDone(refund.refundId);
-                                    const nameItem = (order.items ?? []).find(i => i.itemName || i.productName);
-                                    const prodName = nameItem ? (nameItem.itemName || nameItem.productName) : null;
-                                    const extraCnt = (order.items ?? []).length - 1;
-
-                                    return (
-                                        <tr
-                                            key={refund.refundId}
-                                            className={`border-b border-gray-50 hover:bg-indigo-50/20 transition-colors ${idx % 2 !== 0 ? "bg-gray-50/30" : ""}`}
-                                        >
-                                            <td className="px-5 py-3.5">
-                                                <span className="font-mono text-xs text-gray-500">
-                                                    #{(refund.refundId ?? "").slice(0, 8)}...
-                                                </span>
-                                            </td>
-                                            <td className="px-5 py-3.5">
-                                                <span className="font-mono text-xs text-gray-500">
-                                                    #{(order.orderId ?? "").slice(0, 8)}...
-                                                </span>
-                                            </td>
-                                            <td className="px-5 py-3.5">
-                                                <div className="flex items-center gap-2">
-                                                    {nameItem?.productImage && (
-                                                        <img src={nameItem.productImage} alt="" className="w-8 h-8 rounded-lg object-cover border border-gray-100 shrink-0" />
-                                                    )}
-                                                    <div className="min-w-0">
-                                                        <p className="text-sm font-medium text-gray-800 max-w-[160px] truncate">
-                                                            {prodName ?? <span className="text-gray-400 italic text-xs">Không xác định</span>}
-                                                        </p>
-                                                        {extraCnt > 0 && (
-                                                            <p className="text-xs text-gray-400">+{extraCnt} sản phẩm khác</p>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-5 py-3.5 text-sm text-gray-700 whitespace-nowrap">
-                                                {order.phoneNumber || "—"}
-                                            </td>
-                                            <td className="px-5 py-3.5">
-                                                <p className="text-sm font-bold text-gray-800 whitespace-nowrap">{fmt(order.paidAmount)}</p>
-                                                <p className="text-xs text-gray-400">đã thanh toán</p>
-                                            </td>
-                                            <td className="px-5 py-3.5 text-sm text-gray-600 whitespace-nowrap">
-                                                {order.bankInfo?.bankName || <span className="text-gray-300">—</span>}
-                                            </td>
-                                            <td className="px-5 py-3.5">
-                                                {done ? (
-                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                                        Đã hoàn tiền
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                                                        Chờ xử lý
-                                                    </span>
-                                                )}
-                                            </td>
-                                            <td className="px-5 py-3.5">
-                                                <div className="flex items-center gap-2">
-                                                    <button
-                                                        onClick={() => setSelectedRefund(refund)}
-                                                        className="text-xs px-3 py-1.5 rounded-lg text-indigo-600 bg-indigo-50 hover:bg-indigo-100 font-semibold transition-colors whitespace-nowrap"
-                                                    >
-                                                        Xem chi tiết
-                                                    </button>
-                                                    {!done && (
-                                                        <button
-                                                            onClick={() => handleCheckout(refund.refundId)}
-                                                            disabled={isLoading(refund.refundId)}
-                                                            className="text-xs px-3 py-1.5 rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 font-semibold transition-colors whitespace-nowrap flex items-center gap-1"
-                                                        >
-                                                            {isLoading(refund.refundId) && (
-                                                                <div className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" />
-                                                            )}
-                                                            Hoàn tiền
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* phân trang */}
-                    {!loading && totalPages > 1 && (
-                        <div className="flex items-center justify-between px-5 py-3 border-t border-gray-100">
-                            <p className="text-xs text-gray-400">
-                                Hiển thị {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} trong {filtered.length} kết quả
-                            </p>
-                            <div className="flex gap-1.5">
-                                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}
-                                    className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">←</button>
-                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                    const page = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
-                                    return (
-                                        <button key={page} onClick={() => setCurrentPage(page)}
-                                            className={`w-8 h-8 text-xs font-medium rounded-lg transition-colors ${
-                                                page === currentPage ? "bg-indigo-600 text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50"
-                                            }`}>{page}</button>
-                                    );
-                                })}
-                                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}
-                                    className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">→</button>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
+      !q ||
+      (r.refundId ?? '').toLowerCase().includes(q) ||
+      (r.order.orderId ?? '').toLowerCase().includes(q) ||
+      (r.order.phoneNumber ?? '').includes(q) ||
+      name.toLowerCase().includes(q)
     );
+  });
+
+  const pendingCount = refunds.filter((r) => !isDone(r.refundId)).length;
+
+  return (
+    <div className="min-h-screen bg-[#f7f8fa]">
+      {showCreateModal && <CreateBatchModal onClose={() => setShowCreateModal(false)} />}
+      {showCustomerModal && <CustomerCancelModal onClose={() => setShowCustomerModal(false)} />}
+
+      {selectedRefund && (
+        <RefundDetailModal
+          refund={selectedRefund}
+          onClose={() => {
+            setSelectedRefund(null);
+            setCompletedIds((prev) => new Set(prev).add(selectedRefund.refundId));
+          }}
+        />
+      )}
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Quản lý Hoàn Tiền</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Có <span className="font-bold text-rose-600">{pendingCount}</span> khoản cần xử lý
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowCustomerModal(true)}
+              className="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl shadow-sm hover:bg-gray-50 transition-colors"
+            >
+              Đơn khách hủy
+            </button>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-sm hover:bg-indigo-700 transition-colors"
+            >
+              + Tạo Batch (NSX Hủy)
+            </button>
+          </div>
+        </div>
+
+        {/* Toolbar: Search & Action */}
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-gray-700 px-4 py-2 bg-gray-100 rounded-lg">
+              Tất cả danh sách
+            </span>
+          </div>
+
+          <div className="flex w-full md:w-auto gap-3">
+            <input
+              type="text"
+              placeholder="Tìm mã đơn, SĐT..."
+              value={searchQ}
+              onChange={(e) => setSearchQ(e.target.value)}
+              className="w-full md:w-80 px-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-gray-50"
+            />
+            <button
+              onClick={handleCheckoutAll}
+              disabled={checkingAll || pendingCount === 0}
+              className="px-4 py-2 bg-emerald-100 text-emerald-700 text-sm font-bold rounded-xl hover:bg-emerald-200 disabled:opacity-50 transition-colors shrink-0"
+            >
+              {checkingAll ? 'Đang xử lý...' : 'Hoàn tất cả'}
+            </button>
+          </div>
+        </div>
+
+        {/* Table List */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          {isLoading ? (
+            <div className="py-20 text-center flex flex-col items-center">
+              <div className="w-8 h-8 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mb-3" />
+              <p className="text-sm text-gray-400">Đang tải dữ liệu...</p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="py-20 text-center text-gray-400">
+              <p className="text-4xl mb-3">📭</p>
+              <p className="text-sm">Không tìm thấy yêu cầu hoàn tiền nào</p>
+            </div>
+          ) : (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50/50 border-b border-gray-100 text-xs uppercase tracking-wider text-gray-500 font-semibold">
+                  <th className="p-4 pl-6">Mã Refund</th>
+                  <th className="p-4">Thông tin đơn</th>
+                  <th className="p-4">Số tiền</th>
+                  <th className="p-4">Trạng thái</th>
+                  <th className="p-4 pr-6 text-right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filtered.map((r) => {
+                  const done = isDone(r.refundId);
+                  return (
+                    <tr key={r.refundId} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="p-4 pl-6">
+                        <p className="text-sm font-mono text-gray-900 font-medium">
+                          #{(r.refundId ?? '').slice(0, 8)}
+                        </p>
+                      </td>
+                      <td className="p-4">
+                        <p className="text-sm font-semibold text-gray-800">
+                          {getProductName(r.order) ?? 'Đơn hàng'}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          SĐT: {r.order.phoneNumber || '—'}
+                        </p>
+                      </td>
+                      <td className="p-4">
+                        <p className="text-sm font-bold text-gray-900">{fmt(r.order.paidAmount)}</p>
+                      </td>
+                      <td className="p-4">
+                        <span
+                          className={`inline-flex px-2 py-1 text-[10px] font-bold uppercase rounded-md ${
+                            done ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                          }`}
+                        >
+                          {done ? 'Đã hoàn tiền' : 'Chờ xử lý'}
+                        </span>
+                      </td>
+                      <td className="p-4 pr-6 text-right">
+                        <button
+                          onClick={() => setSelectedRefund(r)}
+                          className="px-3 py-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
+                        >
+                          Xem & Xử lý
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }

@@ -1,125 +1,85 @@
-import { useState, useCallback } from "react";
-import { refundApi, type RefundItem } from "@/features/manager/api/refund-api";
-import type { Order } from "@/features/manager/api/order-api";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { refundApi } from '../api/refund-api';
+import type { PaginationParams } from '../types/refund';
+// 1. Quản lý Query Keys tập trung (Best Practice)
+// Giúp tránh gõ sai type và dễ dàng invalidate cache sau này
+export const refundKeys = {
+  all: ['refunds'] as const,
+  affectedOrders: (variantId: string) => [...refundKeys.all, 'affected-orders', variantId] as const,
+  // Cập nhật Key để chứa params
+  cancelledPaidOrders: (params?: PaginationParams) =>
+    [...refundKeys.all, 'cancelled-paid-orders', params] as const,
+  readyRefunds: () => [...refundKeys.all, 'ready'] as const,
+};
 
-// ─── Hook 1: Danh sách refund sẵn sàng ───────────────────────────────────────
-export function useReadyRefunds() {
-    const [refunds, setRefunds] = useState<RefundItem[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError]     = useState<string | null>(null);
+// ==========================================
+// QUERIES (Dành cho các API GET - Lấy dữ liệu)
+// ==========================================
 
-    const fetch = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await refundApi.getReadyRefunds();
-            setRefunds(data);
-        } catch (e: any) {
-            setError(e.message ?? "Lỗi tải danh sách hoàn tiền");
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+// Lấy danh sách đơn bị ảnh hưởng (Bước 2)
+export const useAffectedOrders = (variantId: string) => {
+  return useQuery({
+    queryKey: refundKeys.affectedOrders(variantId),
+    queryFn: () => refundApi.getAffectedOrders(variantId),
+    // Chỉ gọi API khi variantId có giá trị (tránh gọi dư thừa khi chưa có ID)
+    enabled: !!variantId,
+  });
+};
 
-    const append = useCallback((items: RefundItem[]) => {
-        setRefunds(prev => {
-            const map = new Map(prev.map(r => [r.refundId, r]));
-            items.forEach(r => map.set(r.refundId, r));
-            return Array.from(map.values());
-        });
-    }, []);
+// Lấy đơn đã hủy có thanh toán thành công
+export const useCancelledPaidOrders = (params?: PaginationParams) => {
+  return useQuery({
+    queryKey: refundKeys.cancelledPaidOrders(params),
+    queryFn: () => refundApi.getCancelledPaidOrders(params),
+    // Tùy chọn: bạn có thể dùng select ở đây nếu CHỈ muốn lấy mảng,
+    // nhưng khuyên nên lấy toàn bộ PaginatedResult để UI có thể làm phân trang.
+  });
+};
 
-    return { refunds, loading, error, fetch, append };
-}
+// Lấy danh sách refund sẵn sàng xử lý (Bước 4)
+export const useReadyRefunds = () => {
+  return useQuery({
+    queryKey: refundKeys.readyRefunds(),
+    queryFn: refundApi.getReadyRefunds,
+  });
+};
 
-// ─── Hook 2: Vô hiệu hóa variant + lấy đơn bị ảnh hưởng ─────────────────────
-export function useInActivateVariant() {
-    const [affectedOrders, setAffectedOrders] = useState<Order[]>([]);
-    const [loading, setLoading]               = useState(false);
-    const [error, setError]                   = useState<string | null>(null);
+// ==========================================
+// MUTATIONS (Dành cho API POST/PATCH - Sửa đổi dữ liệu)
+// ==========================================
 
-    const run = useCallback(async (variantId: string) => {
-        setLoading(true);
-        setError(null);
-        try {
-            await refundApi.inActivateVariant(variantId);
-            const orders = await refundApi.getAffectedOrders(variantId);
-            setAffectedOrders(orders);
-            return orders;
-        } catch (e: any) {
-            const msg = e.message ?? "Lỗi khi vô hiệu hóa variant";
-            setError(msg);
-            throw new Error(msg);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+// Vô hiệu hóa variant (Bước 1)
+export const useInActivateVariant = () => {
+  return useMutation({
+    mutationFn: (variantId: string) => refundApi.inActivateVariant(variantId),
+  });
+};
 
-    const reset = useCallback(() => setAffectedOrders([]), []);
+// Tạo batch hoàn tiền (Bước 3)
+export const useCreateBatch = () => {
+  const queryClient = useQueryClient();
 
-    return { affectedOrders, loading, error, run, reset };
-}
+  return useMutation({
+    mutationFn: (orderIds: string[]) => refundApi.createBatch(orderIds),
+    onSuccess: () => {
+      // CỰC KỲ QUAN TRỌNG:
+      // Sau khi tạo batch thành công, phải báo cho React Query biết để nó gọi lại
+      // API lấy danh sách refund sẵn sàng (getReadyRefunds) và làm mới danh sách đơn đã hủy
+      queryClient.invalidateQueries({ queryKey: refundKeys.readyRefunds() });
+      queryClient.invalidateQueries({ queryKey: refundKeys.cancelledPaidOrders() });
+    },
+  });
+};
 
-// ─── Hook 3: Tạo batch hoàn tiền ─────────────────────────────────────────────
-export function useCreateRefundBatch() {
-    const [loading, setLoading] = useState(false);
-    const [error, setError]     = useState<string | null>(null);
+// Xác nhận hoàn tiền (Bước 5)
+export const useCheckoutRefund = () => {
+  const queryClient = useQueryClient();
 
-    const run = useCallback(async (orders: Order[]) => {
-        const orderIds = orders
-            .map(o => o.orderId)
-            .filter((id): id is string => Boolean(id));
-
-        if (orderIds.length === 0) throw new Error("Không có orderId hợp lệ");
-
-        setLoading(true);
-        setError(null);
-        try {
-            const created = await refundApi.createBatch(orderIds);
-            return created;
-        } catch (e: any) {
-            const msg = e.message ?? "Lỗi khi tạo batch hoàn tiền";
-            setError(msg);
-            throw new Error(msg);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    return { loading, error, run };
-}
-
-
-export function useCheckoutRefund() {
-    const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
-    const [doneSet, setDoneSet]       = useState<Set<string>>(new Set());
-
-    const checkout = useCallback(async (refundId: string): Promise<string | null> => {
-        setLoadingMap(prev => ({ ...prev, [refundId]: true }));
-        try {
-            const url = await refundApi.checkoutRefund(refundId);
-            if (url) {
-                window.location.href = url;
-                return url;
-            }
-            setDoneSet(prev => new Set([...prev, refundId]));
-            return null;
-        } finally {
-            setLoadingMap(prev => ({ ...prev, [refundId]: false }));
-        }
-    }, []);
-
-    const checkoutAll = useCallback(async (refunds: RefundItem[]) => {
-        const pending = refunds.filter(r => !doneSet.has(r.refundId));
-        for (const r of pending) {
-            try { await checkout(r.refundId); } catch {}
-        }
-    }, [doneSet, checkout]);
-
-    const isLoading = (id: string) => !!loadingMap[id];
-    const isDone    = (id: string) => doneSet.has(id);
-    const pendingCount = (refunds: RefundItem[]) =>
-        refunds.filter(r => !doneSet.has(r.refundId)).length;
-
-    return { checkout, checkoutAll, isLoading, isDone, pendingCount };
-}
+  return useMutation({
+    mutationFn: (refundId: string) => refundApi.checkoutRefund(refundId),
+    onSuccess: () => {
+      // Sau khi checkout thành công, cập nhật lại danh sách refund đang chờ
+      queryClient.invalidateQueries({ queryKey: refundKeys.readyRefunds() });
+    },
+  });
+};
