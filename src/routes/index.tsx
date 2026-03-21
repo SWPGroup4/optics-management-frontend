@@ -20,14 +20,12 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { ManagerDashboardLayout } from '@/features/manager/layout/ManagerDashboardLayout';
 import ManagerDashboardPage from '@/features/manager/page/dashboard/ManagerDashboardPage';
 import ManagerOrderPage from '@/features/manager/page/orders/ManagerOrderPage';
-import ManagerPricingPage from '@/features/manager/page/pricing/ManagerPricingPage';
 import ProductManagePage from '@/features/manager/page/products/ProductManagePage';
 import ProductVariantManagePage from '@/features/manager/page/products/ProductVariantManageage';
 import StaffCustomerPage from '@/features/manager/page/staff/StaffCustomerPage';
-import ManageCustomerPage from '@/features/manager/page/Customer/ManagerCustomerPage';
 import LensesManagerPage from '@/features/manager/page/Lenses/LensesManagerPage';
+import RefundManagePage from '@/features/manager/page/Refund/ManageRefundPage';
 
-import SellerLayout from '@/features/seller/layout/SellerLayout';
 import OrderPage from '@/features/seller/page/order/OrderPage';
 import OrderDetailPage from '@/features/seller/page/order/OrderDetailPage';
 
@@ -36,6 +34,7 @@ import OpsStaffDashboardPage from '@/features/operation-staff/page/dashboard/Ops
 import { RequireRole } from './protected-route';
 import { ShipperDashboardLayout } from '@/features/shipper/layout/ShipperDashboardLayout';
 import ShipperDashboardPage from '@/features/shipper/page/dashboard/ShipperDashboardPage';
+import { SellerLayout } from '@/features/seller/layout/SellerLayout';
 
 export const router = createBrowserRouter([
   {
@@ -101,12 +100,11 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <ManagerDashboardPage /> },
           { path: 'orders', element: <ManagerOrderPage /> },
-          { path: 'pricing', element: <ManagerPricingPage /> },
           { path: 'products', element: <ProductManagePage /> },
-          { path: 'customers', element: <ManageCustomerPage /> },
           { path: 'products/:productId/variants', element: <ProductVariantManagePage /> },
           { path: 'staff', element: <StaffCustomerPage /> },
           { path: 'lenses', element: <LensesManagerPage /> },
+          { path: 'refunds', element: <RefundManagePage /> },
         ],
       },
 

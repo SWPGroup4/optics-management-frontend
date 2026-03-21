@@ -1,11 +1,12 @@
 import { type ReactNode } from 'react';
 import { Search, Bell, Menu } from 'lucide-react';
-import { WorkspaceUserMenu } from './WorkspaceUserMenu'; // Import component vừa tạo
+import { WorkspaceUserMenu } from './WorkspaceUserMenu'; 
 
 interface WorkspaceHeaderProps {
   roleName: string;
   roleColor?: string;
   searchPlaceholder?: string;
+  onMenuClick?: () => void; // Thêm prop này để xử lý đóng/mở Sidebar
   children?: ReactNode;
 }
 
@@ -13,15 +14,21 @@ export default function WorkspaceHeader({
   roleName,
   roleColor,
   searchPlaceholder,
+  onMenuClick,
   children,
 }: WorkspaceHeaderProps) {
   return (
-    <header className="sticky top-0 z-40 bg-white border-b h-16 flex items-center justify-between px-6 shadow-sm">
-      {/* LEFT: Logo & Role Title */}
+    <header className="sticky top-0 z-40 bg-white border-b h-16 flex items-center justify-between px-4 sm:px-6 shadow-sm">
+      {/* LEFT: Menu Toggle (Mobile) & Role Title */}
       <div className="flex items-center gap-3">
-        <button className="lg:hidden p-2 hover:bg-gray-100 rounded-md">
+        {/* Nút Hamburger cho màn hình nhỏ, gọi hàm onMenuClick */}
+        <button 
+          onClick={onMenuClick}
+          className="lg:hidden p-2 hover:bg-gray-100 rounded-md transition-colors"
+        >
           <Menu className="w-5 h-5 text-gray-600" />
         </button>
+        
         <div className="hidden sm:flex flex-col">
           <span className="font-bold text-[10px] tracking-widest text-gray-400 uppercase">
             System Portal
@@ -35,7 +42,7 @@ export default function WorkspaceHeader({
       </div>
 
       {/* CENTER: Search Bar */}
-      <div className="flex-1 max-w-2xl mx-6 relative hidden md:block">
+      <div className="flex-1 max-w-2xl mx-4 sm:mx-6 relative hidden md:block">
         <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
         <input
           placeholder={searchPlaceholder || 'Search...'}
@@ -45,7 +52,6 @@ export default function WorkspaceHeader({
 
       {/* RIGHT: Actions & User Menu */}
       <div className="flex items-center gap-2 sm:gap-4">
-        {/* Nút chức năng riêng (ví dụ: Button Add New) */}
         {children}
 
         <div className="h-6 w-px bg-gray-200 mx-1 hidden sm:block"></div>
@@ -53,7 +59,7 @@ export default function WorkspaceHeader({
         {/* Notification Bell */}
         <button className="relative p-2 hover:bg-gray-100 rounded-full transition-colors">
           <Bell className="w-5 h-5 text-gray-600" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+          <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
         </button>
 
         {/* User Menu Component */}

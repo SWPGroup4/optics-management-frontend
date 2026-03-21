@@ -1,17 +1,13 @@
-// src/features/products/pages/ProductManagePage.tsx
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Search,
   Bell,
   Settings,
-  Filter,
   Plus,
   MoreHorizontal,
-  ChevronDown,
   Trash2,
   Edit,
   Eye,
-  Check,
   AlertCircle,
   Loader2,
   ImageIcon,
@@ -20,58 +16,79 @@ import {
 } from 'lucide-react';
 import {
   useDeleteProduct,
-  useProducts,
+  useFilteredProducts,
   useCreateProduct,
   useUpdateProduct,
 } from '../../hooks/useProducts';
-import { useClickOutside } from '../../hooks/useClickOutside';
 import { useNavigate } from 'react-router-dom';
 import ProductModal from './ProductModal';
+import type { ProductQueryParams, Product } from '../../types/types';
+
+// Định nghĩa kiểu dữ liệu trả về từ form (ProductModal)
+interface ProductSubmitForm {
+  productData: Partial<Product>;
+  file: File | null;
+}
 
 const ProductManagePage = () => {
-  // 1. LẤY DỮ LIỆU (FETCHING)
-  const { data: products = [], isLoading, isError } = useProducts();
-
-  const deleteMutation = useDeleteProduct();
-  const createMutation = useCreateProduct();
-  const updateMutation = useUpdateProduct();
-
   const navigate = useNavigate();
 
-  // 2. TRẠNG THÁI UI (UI STATES)
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState<string>('all');
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  // 1. TRẠNG THÁI UI & FILTER (UI STATES)
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
+  const [page, setPage] = useState<number>(1);
+  const size = 10; // Số lượng item trên 1 trang
+
   const [openActionId, setOpenActionId] = useState<string | null>(null);
 
-  // Trạng thái Modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<any>(null);
+  // Trạng thái Modal (Thay any bằng Product | null)
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
-  const filterRef = useRef<HTMLDivElement>(null);
-  useClickOutside(filterRef, () => setIsFilterOpen(false));
-
+  // Đóng menu thả xuống khi click ra ngoài
   useEffect(() => {
     const handleClickGlobal = () => setOpenActionId(null);
     window.addEventListener('click', handleClickGlobal);
     return () => window.removeEventListener('click', handleClickGlobal);
   }, []);
 
-  // 3. LOGIC LỌC SẢN PHẨM
-  const filteredProducts = useMemo(() => {
-    if (!products) return [];
-    return products.filter((product) => {
-      const term = searchTerm.toLowerCase();
-      const matchesSearch =
-        product.name.toLowerCase().includes(term) ||
-        (product.brand?.toLowerCase() || '').includes(term) ||
-        (product.frameMaterial?.toLowerCase() || '').includes(term);
-      const matchesCategory = filterCategory === 'all' || product.category === filterCategory;
-      return matchesSearch && matchesCategory;
-    });
-  }, [products, searchTerm, filterCategory]);
+  // Debounce Search Term
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setPage(1); // Reset về trang 1 khi search
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
+  // 2. CHUẨN BỊ PARAMS ĐỂ GỌI API
+  const queryParams: ProductQueryParams = useMemo(() => {
+    const params: ProductQueryParams = { 
+      page: page - 1, // <--- THÊM - 1 Ở ĐÂY ĐỂ GỬI SERVER TRANG 0,1,2...
+      size 
+    };
+    if (debouncedSearch) params.q = debouncedSearch;
+    return params;
+  }, [debouncedSearch, page, size]);
+
+  // 3. LẤY DỮ LIỆU (FETCHING)
+  const { data, isLoading, isError } = useFilteredProducts(queryParams);
+  
+  // Đã bỏ `.result` và gán kiểu `Product[]`
+  const products: Product[] = data?.items || [];
+  const totalElements: number = data?.totalElements || 0;
+  const totalPages: number = data?.totalPages || 1;
+
+  const deleteMutation = useDeleteProduct();
+  const createMutation = useCreateProduct();
+  const updateMutation = useUpdateProduct();
 
   // 4. CÁC HÀM XỬ LÝ (HANDLERS)
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setPage(1);
+  };
+
   const handleDeleteProduct = (id: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa sản phẩm này không?')) {
       deleteMutation.mutate(id, {
@@ -85,7 +102,8 @@ const ProductManagePage = () => {
     setIsModalOpen(true);
   };
 
-  const handleOpenEdit = (product: any) => {
+  // Gán kiểu Product cho tham số
+  const handleOpenEdit = (product: Product) => {
     setEditingProduct(product);
     setIsModalOpen(true);
     setOpenActionId(null);
@@ -96,7 +114,8 @@ const ProductManagePage = () => {
     setEditingProduct(null);
   };
 
-  const handleSubmit = (form: any) => {
+  // Gán kiểu ProductSubmitForm thay cho any
+  const handleSubmit = (form: ProductSubmitForm) => {
     if (editingProduct) {
       updateMutation.mutate(
         {
@@ -121,7 +140,7 @@ const ProductManagePage = () => {
     if (cat === 'FRAME') return 'bg-indigo-50 text-indigo-700 border-indigo-200';
     if (cat === 'LENS') return 'bg-sky-50 text-sky-700 border-sky-200';
     if (cat === 'CONTACT') return 'bg-rose-50 text-rose-700 border-rose-200';
-    return 'bg-slate-50 text-slate-600 border-slate-200';
+    return 'bg-amber-50 text-amber-700 border-amber-200';
   };
 
   const getStatusBadge = (status: string) => {
@@ -131,11 +150,12 @@ const ProductManagePage = () => {
     return 'bg-slate-100 text-slate-500 border-slate-200';
   };
 
-  const categoryMap: any = {
-    all: 'Tất cả danh mục',
+  // Gán kiểu Record<string, string> thay cho any
+  const categoryMap: Record<string, string> = {
     FRAME: 'Gọng kính',
     LENS: 'Tròng kính',
     CONTACT: 'Kính áp tròng',
+    OTHER: 'Khác',
   };
 
   return (
@@ -183,50 +203,6 @@ const ProductManagePage = () => {
           </div>
 
           <div className="flex items-center gap-4 w-full lg:w-auto">
-            <div className="relative" ref={filterRef}>
-              <button
-                onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className={`flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium rounded-xl border transition-all shadow-sm ${
-                  filterCategory !== 'all'
-                    ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Filter className="w-4 h-4" />
-                  <span>{categoryMap[filterCategory]}</span>
-                </div>
-                <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-300 ${isFilterOpen ? 'rotate-180' : ''}`}
-                />
-              </button>
-
-              {isFilterOpen && (
-                <div className="absolute top-full right-0 mt-2 w-60 bg-white border border-slate-100 rounded-xl shadow-xl z-50 p-1.5 animate-in fade-in zoom-in-95">
-                  <div className="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                    Lọc theo loại
-                  </div>
-                  {['all', 'FRAME', 'LENS', 'CONTACT'].map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => {
-                        setFilterCategory(cat);
-                        setIsFilterOpen(false);
-                      }}
-                      className={`flex w-full items-center justify-between px-3 py-2.5 text-sm rounded-lg transition-all ${
-                        filterCategory === cat
-                          ? 'bg-indigo-50 text-indigo-700 font-semibold'
-                          : 'text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span>{categoryMap[cat]}</span>
-                      {filterCategory === cat && <Check className="w-4 h-4 text-indigo-600" />}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
             <button
               className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-semibold shadow-lg hover:bg-slate-800 transition-all active:scale-95"
               onClick={handleOpenAdd}
@@ -279,8 +255,8 @@ const ProductManagePage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50 bg-white">
-                {filteredProducts.length > 0
-                  ? filteredProducts.map((product, index) => (
+                {products.length > 0
+                  ? products.map((product, index) => (
                       <tr
                         key={product.id}
                         style={{ animationDelay: `${index * 50}ms` }}
@@ -290,11 +266,7 @@ const ProductManagePage = () => {
                           <div className="w-14 h-14 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
                             {product.imageUrl && product.imageUrl.length > 0 ? (
                               <img
-                                src={
-                                  typeof product.imageUrl[0] === 'string'
-                                    ? product.imageUrl[0]
-                                    : product.imageUrl[0].imageUrl
-                                }
+                                src={product.imageUrl[0].imageUrl} // Đã sửa lại cho đúng với interface ProductImage
                                 alt={product.name}
                                 className="w-full h-full object-cover"
                               />
@@ -313,11 +285,6 @@ const ProductManagePage = () => {
                               <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-md border border-slate-200/60">
                                 {product.brand}
                               </span>
-                              {product.sku && (
-                                <span className="text-xs text-slate-400 font-mono border border-slate-200 px-2 py-1 rounded-md">
-                                  {product.sku}
-                                </span>
-                              )}
                             </div>
                           </div>
                         </td>
@@ -355,12 +322,12 @@ const ProductManagePage = () => {
                         </td>
 
                         <td className="px-6 py-5 align-middle text-center">
-                          <span
-                            className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold tracking-wide uppercase border shadow-sm ${getCategoryBadge(product.category)}`}
-                          >
-                            {categoryMap[product.category] || product.category}
-                          </span>
-                        </td>
+  <span
+    className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-bold tracking-wide uppercase border shadow-sm w-[110px] ${getCategoryBadge(product.category)}`}
+  >
+    {categoryMap[product.category?.toUpperCase()] || 'Khác'}
+  </span>
+</td>
 
                         <td className="px-6 py-5 align-middle text-center">
                           <span
@@ -444,13 +411,10 @@ const ProductManagePage = () => {
                               Chúng tôi không tìm thấy sản phẩm nào khớp với tìm kiếm của bạn.
                             </p>
                             <button
-                              onClick={() => {
-                                setSearchTerm('');
-                                setFilterCategory('all');
-                              }}
+                              onClick={handleClearFilters}
                               className="px-6 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all shadow-sm"
                             >
-                              Xóa bộ lọc
+                              Xóa tìm kiếm
                             </button>
                           </div>
                         </td>
@@ -461,27 +425,30 @@ const ProductManagePage = () => {
           )}
         </div>
 
-        {/* PHÂN TRANG (PAGINATION) */}
-        <div className="bg-white px-6 py-5 border-t border-slate-100 flex items-center justify-between gap-4 text-sm sticky bottom-0 z-10">
-          <span className="text-slate-500 font-medium">
-            Hiển thị <span className="font-bold text-slate-900">{filteredProducts.length}</span> sản
-            phẩm
-          </span>
-          <div className="flex gap-2.5">
-            <button
-              className="px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
-              disabled
-            >
-              Trước đó
-            </button>
-            <button
-              className="px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
-              disabled
-            >
-              Tiếp theo
-            </button>
+        {/* PHÂN TRANG (PAGINATION - SERVER SIDE) */}
+        {!isLoading && !isError && totalElements > 0 && (
+          <div className="bg-white px-6 py-5 border-t border-slate-100 flex items-center justify-between gap-4 text-sm sticky bottom-0 z-10">
+            <span className="text-slate-500 font-medium">
+              Hiển thị <span className="font-bold text-slate-900">{products.length}</span> / <span className="font-bold text-slate-900">{totalElements}</span> sản phẩm (Trang {page}/{totalPages})
+            </span>
+            <div className="flex gap-2.5">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+              >
+                Trước đó
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+              >
+                Tiếp theo
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <ProductModal

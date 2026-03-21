@@ -1,11 +1,10 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Package,
   ShoppingCart,
   Users,
   Tag,
-  // Settings,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -15,20 +14,39 @@ import { cn } from '@/lib/utils';
 import { useSidebar } from '@/features/manager/hooks/useSidebar.ts';
 import Logo from '@/components/common/Logo';
 
+// Import store lấy user và hàm logout của bạn
+import { useAuthStore } from '@/features/auth/stores/useAuthStore';
+
 const navigation = [
   { name: 'Bảng điều khiển', href: '/manager', icon: LayoutDashboard },
   { name: 'Sản phẩm', href: '/manager/products', icon: Package },
   { name: 'Đơn hàng', href: '/manager/orders', icon: ShoppingCart },
-  { name: 'Giá bán', href: '/manager/pricing', icon: Tag },
   { name: 'Nhân viên', href: '/manager/staff', icon: Users },
-  { name: 'Khách hàng', href: '/manager/customers', icon: Users },
   { name: 'Tròng kính', href: '/manager/lenses', icon: Glasses },
-  // { name: "Cài đặt", href: "/manager/settings", icon: Settings },
+  { name: 'Hoàn tiền', href: '/manager/refunds', icon: Tag },
 ];
 
 export function Sidebar() {
   const { collapsed, toggleCollapsed } = useSidebar();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Lấy data thật từ store
+  const { user, logout } = useAuthStore();
+
+  // Hàm xử lý đăng xuất giống hệt WorkspaceUserMenu
+  const handleLogout = () => {
+    logout();
+    navigate('/auth/login');
+  };
+
+  // Hàm tạo avatar chữ (Lấy từ user.name)
+  const getInitials = (name?: string) => {
+    if (!name) return 'U';
+    const parts = name.trim().split(' ');
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
 
   return (
     <aside
@@ -73,20 +91,33 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* User Section */}
+      {/* User Section (Đã gắn API/Data động từ useAuthStore) */}
       <div className="p-3 border-t border-sidebar-border">
         <div className={cn('flex items-center gap-3', collapsed && 'justify-center')}>
-          <div className="w-9 h-9 rounded-full bg-sidebar-accent flex items-center justify-center text-sidebar-foreground font-medium text-sm">
-            JD
+          {/* Avatar Initials */}
+          <div className="w-9 h-9 rounded-full bg-sidebar-accent flex items-center justify-center text-sidebar-foreground font-medium text-sm shrink-0 uppercase">
+            {getInitials(user?.name)}
           </div>
+          
+          {/* Tên & Role */}
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">John Doe</p>
-              <p className="text-xs text-sidebar-muted truncate">Store Manager</p>
+              <p className="text-sm font-medium text-sidebar-foreground truncate">
+                {user?.name || 'Nhân viên'}
+              </p>
+              <p className="text-xs text-sidebar-muted truncate uppercase">
+                {user?.role || 'STAFF'}
+              </p>
             </div>
           )}
+          
+          {/* Nút Đăng xuất */}
           {!collapsed && (
-            <button className="p-1.5 rounded-lg text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors">
+            <button 
+              onClick={handleLogout}
+              title="Đăng xuất"
+              className="p-1.5 rounded-lg text-sidebar-muted hover:text-rose-600 hover:bg-rose-50 transition-colors shrink-0"
+            >
               <LogOut className="w-4 h-4" />
             </button>
           )}

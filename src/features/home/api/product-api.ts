@@ -27,8 +27,10 @@ export const productApi = {
   getVariants: async (productId: string): Promise<ProductVariant[]> => {
     const response = await api.get<GetVariantsResponse>(`/products/${productId}/variants`, {
       params: {
+        
         page: 0,
         size: 10,
+        status: 'ACTIVE',
         sortBy: 'id',
         sortDir: 'asc',
       },

@@ -1,5 +1,6 @@
 // src/features/products/api/variant-api.ts
 import { api } from '@/lib/axios';
+import type { VariantQueryParams, VariantResponse } from '../types/types';
 
 export const variantApi = {
   // Cập nhật endpoint đúng: /products/{productId}/variants
@@ -59,5 +60,19 @@ export const variantApi = {
 
   delete: async (_productId: string, variantId: string) => {
     return (await api.delete(`/product-variants/${variantId}`)).data;
+  },
+  getFiltered: async (productId: string, params: VariantQueryParams) => {
+    const response = await api.get<VariantResponse>(`/products/${productId}/variants`, {
+      params: {
+        ...params,
+        page: params.page ?? 0,
+        size: params.size ?? 10,
+        sortBy: params.sortBy ?? 'id',
+        sortDir: params.sortDir ?? 'asc',
+      },
+    });
+
+    // Trả về toàn bộ object result (bao gồm items, page, totalElements...)
+    return response.data.result;
   },
 };
