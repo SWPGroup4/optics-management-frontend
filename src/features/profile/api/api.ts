@@ -34,4 +34,37 @@ export const profileApi = {
   getAddresses: () => {
     return api.get('/profile/addresses');
   },
+
+  // 6. Feedback APIs
+  getFeedbackByOrder: (orderId: string) => {
+    return api.get(`/feedbacks/order/${orderId}`);
+  },
+
+  getFeedbackDetail: (feedbackId: string) => {
+    return api.get(`/feedbacks/${feedbackId}`);
+  },
+
+  getMyFeedbacks: () => {
+    return api.get('/feedbacks/me');
+  },
+
+  createFeedback: (data: FormData) => {
+    return api.post('/feedbacks', data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+
+  updateFeedback: (feedbackId: string, data: FormData) => {
+    return api.put(`/feedbacks/${feedbackId}`, data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+
+  deleteFeedback: (feedbackId: string) => {
+    return api.delete(`/feedbacks/${feedbackId}`);
+  },
 };
