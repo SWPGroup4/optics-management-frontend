@@ -45,4 +45,9 @@ export const productApi = {
     });
     return response.data;
   },
+
+  getProductFeedback: async (productId: string) => {
+    const response = await api.get(`/feedbacks/product/${productId}`);
+    return response.data?.result ?? [];
+  },
 };
