@@ -1,17 +1,15 @@
 // src/features/users/pages/StaffCustomerPage.tsx
 import { useState } from 'react';
-import { Trash2, Loader2, ShieldCheck, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { Trash2, Loader2, ShieldCheck, X, CheckCircle, AlertCircle, Edit } from 'lucide-react';
 import { useUsers, useAssignRole } from '../../hooks/useUsers';
 
-type StaffRole = 'SALE' | 'OPERATION' | 'SHIPPER';
+type StaffRole = 'SALE' | 'OPERATION' | 'SHIPPER' | 'MANAGER' | 'ADMIN';
 
 const STAFF_ROLES: { key: StaffRole; label: string; color: string }[] = [
+  { key: 'ADMIN', label: 'Admin', color: 'bg-red-50 text-red-600 hover:bg-red-100' },
+  { key: 'MANAGER', label: 'Manager', color: 'bg-orange-50 text-orange-600 hover:bg-orange-100' },
   { key: 'SALE', label: 'Sale', color: 'bg-blue-50 text-blue-600 hover:bg-blue-100' },
-  {
-    key: 'OPERATION',
-    label: 'Operation',
-    color: 'bg-purple-50 text-purple-600 hover:bg-purple-100',
-  },
+  { key: 'OPERATION', label: 'Operation', color: 'bg-purple-50 text-purple-600 hover:bg-purple-100' },
   { key: 'SHIPPER', label: 'Shipper', color: 'bg-green-50 text-green-600 hover:bg-green-100' },
 ];
 
@@ -37,11 +35,117 @@ const Toast = ({
   </div>
 );
 
+// 🚀 REUSABLE MODAL CHO CẢ NHÂN VIÊN VÀ KHÁCH HÀNG
+const AssignRoleModal = ({
+  user,
+  onClose,
+  onSuccess,
+}: {
+  user: any;
+  onClose: () => void;
+  onSuccess: (message: string) => void;
+}) => {
+  const assignMutation = useAssignRole();
+  const [error, setError] = useState<string | null>(null);
+
+  // Đổi kiểu của tham số role thành string để nhận cả 'CUSTOMER'
+  const handleAssign = (role: string) => {
+    setError(null);
+    assignMutation.mutate(
+      { userId: user.id, role: role },
+      {
+        onSuccess: () => {
+          onSuccess(`Đã cập nhật quyền của ${user.username} thành ${role}!`);
+          onClose();
+        },
+        onError: (error: any) => {
+          const message =
+            error?.response?.data?.message ||
+            error?.response?.data?.error ||
+            'Cập nhật quyền thất bại. Vui lòng thử lại!';
+          setError(message);
+        },
+      },
+    );
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-bold text-slate-900 text-lg">Cập nhật vai trò</h3>
+            <p className="text-sm text-slate-500 mt-0.5">
+              Chọn vai trò mới cho <span className="font-semibold text-slate-700">{user.username}</span>
+            </p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+            <X className="w-4 h-4 text-slate-500" />
+          </button>
+        </div>
+
+        {error && (
+          <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <div className="space-y-2">
+          {/* Render các role của Staff */}
+          {STAFF_ROLES.map((roleObj) => (
+            <button
+              key={roleObj.key}
+              onClick={() => handleAssign(roleObj.key)}
+              disabled={assignMutation.isPending}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 ${roleObj.color}`}
+            >
+              <span>{roleObj.label}</span>
+              {assignMutation.isPending && assignMutation.variables?.role === roleObj.key ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <ShieldCheck className="w-4 h-4" />
+              )}
+            </button>
+          ))}
+
+          <div className="my-2 border-t border-slate-100"></div>
+
+          {/* Nút riêng biệt để chuyển về Customer */}
+          <button
+            onClick={() => handleAssign('CUSTOMER')}
+            disabled={assignMutation.isPending}
+            className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 bg-slate-100 text-slate-600 hover:bg-slate-200"
+          >
+            <span>Khách hàng (Customer)</span>
+            {assignMutation.isPending && assignMutation.variables?.role === 'CUSTOMER' ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <ShieldCheck className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+
+        <button
+          onClick={onClose}
+          disabled={assignMutation.isPending}
+          className="w-full mt-4 py-2 text-sm text-slate-500 hover:text-slate-700 transition-colors disabled:opacity-50"
+        >
+          Huỷ
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const StaffView = () => {
   const [activeRole, setActiveRole] = useState<StaffRole>('SALE');
   const { data: staffList = [], isLoading } = useUsers(activeRole);
   const assignMutation = useAssignRole();
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  
+  // State để lưu nhân viên đang được chọn đổi role
+  const [selectedStaff, setSelectedStaff] = useState<any>(null);
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
@@ -55,7 +159,7 @@ const StaffView = () => {
       )
     ) {
       assignMutation.mutate(
-        { userId: staff.id, newRole: 'CUSTOMER' },
+        { userId: staff.id, role: 'CUSTOMER' },
         {
           onSuccess: () => showToast(`Đã chuyển "${staff.username}" thành Customer!`, 'success'),
           onError: (error: any) =>
@@ -69,13 +173,22 @@ const StaffView = () => {
     <div>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
+      {/* Tái sử dụng AssignRoleModal cho Nhân viên */}
+      {selectedStaff && (
+        <AssignRoleModal
+          user={selectedStaff}
+          onClose={() => setSelectedStaff(null)}
+          onSuccess={(msg) => showToast(msg, 'success')}
+        />
+      )}
+
       {/* Sub-tabs */}
-      <div className="flex gap-1 px-6 pt-4 border-b border-slate-100">
+      <div className="flex gap-1 px-6 pt-4 border-b border-slate-100 overflow-x-auto">
         {STAFF_ROLES.map((role) => (
           <button
             key={role.key}
             onClick={() => setActiveRole(role.key)}
-            className={`px-5 py-2 text-sm font-semibold rounded-t-lg transition-all border-b-2 -mb-px ${
+            className={`px-5 py-2 text-sm font-semibold rounded-t-lg transition-all border-b-2 -mb-px whitespace-nowrap ${
               activeRole === role.key
                 ? 'border-slate-900 text-slate-900 bg-white'
                 : 'border-transparent text-slate-400 hover:text-slate-600'
@@ -119,30 +232,39 @@ const StaffView = () => {
                     <td className="px-6 py-4">
                       <span
                         className={`px-2 py-1 rounded text-xs font-semibold ${
-                          activeRole === 'SALE'
-                            ? 'bg-blue-50 text-blue-600'
-                            : activeRole === 'OPERATION'
-                              ? 'bg-purple-50 text-purple-600'
-                              : 'bg-green-50 text-green-600'
+                          STAFF_ROLES.find((r) => r.key === activeRole)?.color.replace(/hover:[^\s]+/g, '') ||
+                          'bg-slate-50 text-slate-600'
                         }`}
                       >
                         {activeRole}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleDelete(staff)}
-                        disabled={assignMutation.isPending}
-                        title="Xoá nhân viên (chuyển thành Customer)"
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                      >
-                        {assignMutation.isPending &&
-                        assignMutation.variables?.userId === staff.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="w-4 h-4" />
-                        )}
-                      </button>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => setSelectedStaff(staff)}
+                          disabled={assignMutation.isPending}
+                          title="Đổi vai trò"
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+
+                        <button
+                          onClick={() => handleDelete(staff)}
+                          disabled={assignMutation.isPending}
+                          title="Xoá nhân viên (chuyển thành Customer)"
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          {assignMutation.isPending &&
+                          assignMutation.variables?.userId === staff.id &&
+                          assignMutation.variables?.role === 'CUSTOMER' ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -151,91 +273,6 @@ const StaffView = () => {
           </table>
         </div>
       )}
-    </div>
-  );
-};
-
-const AssignRoleModal = ({
-  customer,
-  onClose,
-  onSuccess,
-}: {
-  customer: any;
-  onClose: () => void;
-  onSuccess: (message: string) => void;
-}) => {
-  const assignMutation = useAssignRole();
-  const [error, setError] = useState<string | null>(null);
-
-  const handleAssign = (role: StaffRole) => {
-    setError(null);
-    assignMutation.mutate(
-      { userId: customer.id, newRole: role },
-      {
-        onSuccess: () => {
-          onSuccess(`Đã nâng quyền ${customer.username} thành ${role}!`);
-          onClose();
-        },
-        onError: (error: any) => {
-          const message =
-            error?.response?.data?.message ||
-            error?.response?.data?.error ||
-            'Nâng quyền thất bại. Vui lòng thử lại!';
-          setError(message);
-        },
-      },
-    );
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="font-bold text-slate-900 text-lg">Nâng quyền</h3>
-            <p className="text-sm text-slate-500 mt-0.5">
-              Chọn vai trò cho{' '}
-              <span className="font-semibold text-slate-700">{customer.username}</span>
-            </p>
-          </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-            <X className="w-4 h-4 text-slate-500" />
-          </button>
-        </div>
-
-        {error && (
-          <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        <div className="space-y-2">
-          {STAFF_ROLES.map((role) => (
-            <button
-              key={role.key}
-              onClick={() => handleAssign(role.key)}
-              disabled={assignMutation.isPending}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 ${role.color}`}
-            >
-              <span>{role.label}</span>
-              {assignMutation.isPending && assignMutation.variables?.newRole === role.key ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <ShieldCheck className="w-4 h-4" />
-              )}
-            </button>
-          ))}
-        </div>
-
-        <button
-          onClick={onClose}
-          disabled={assignMutation.isPending}
-          className="w-full mt-4 py-2 text-sm text-slate-500 hover:text-slate-700 transition-colors disabled:opacity-50"
-        >
-          Huỷ
-        </button>
-      </div>
     </div>
   );
 };
@@ -263,7 +300,7 @@ const CustomerView = () => {
 
       {selectedCustomer && (
         <AssignRoleModal
-          customer={selectedCustomer}
+          user={selectedCustomer}
           onClose={() => setSelectedCustomer(null)}
           onSuccess={(msg) => showToast(msg, 'success')}
         />

@@ -2,7 +2,7 @@ import { useAuthStore } from '@/features/auth/stores/useAuthStore';
 import { Navigate } from 'react-router-dom';
 
 // components/ProtectedRoute.tsx
-type AllowedRoles = 'admin' | 'manager' | 'operations' | 'sales' | 'shipper' | 'customer';
+type AllowedRoles = 'admin' | 'manager' | 'operation' | 'sale' | 'shipper' | 'customer';
 
 interface Props {
   children: React.ReactNode;

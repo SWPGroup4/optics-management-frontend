@@ -113,7 +113,7 @@ export const router = createBrowserRouter([
       {
         path: 'seller',
         element: (
-          <RequireRole allowedRoles={['sales', 'admin']}>
+          <RequireRole allowedRoles={['sale', 'admin']}>
             <SellerLayout />
           </RequireRole>
         ),
@@ -129,7 +129,7 @@ export const router = createBrowserRouter([
   {
     path: 'ops-staff',
     element: (
-      <RequireRole allowedRoles={['operations', 'admin']}>
+      <RequireRole allowedRoles={['operation', 'admin']}>
         <OpsStaffDashboardLayout />
       </RequireRole>
     ),

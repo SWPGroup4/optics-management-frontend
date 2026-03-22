@@ -51,10 +51,10 @@ export const useAuthStore = create<AuthStore>()(
             userRole = 'admin';
           } else if (scope.includes('ROLE_MANAGER')) {
             userRole = 'manager';
-          } else if (scope.includes('ROLE_OPERATIONS')) {
-            userRole = 'operations';
-          } else if (scope.includes('ROLE_SALES')) {
-            userRole = 'sales';
+          } else if (scope.includes('ROLE_OPERATION')) {
+            userRole = 'operation';
+          } else if (scope.includes('ROLE_SALE')) {
+            userRole = 'sale';
           } else if (scope.includes('ROLE_SHIPPER')) {
             userRole = 'shipper';
           } else {
@@ -93,9 +93,9 @@ export const useAuthStore = create<AuthStore>()(
           case 'admin':
           case 'manager':
             return '/manager';
-          case 'operations':
+          case 'operation':
             return '/ops-staff';
-          case 'sales':
+          case 'sale':
             return '/seller';
           case 'shipper':
             return '/shipper'; // nếu có

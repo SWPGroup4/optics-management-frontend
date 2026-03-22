@@ -45,7 +45,7 @@ export interface UserState {
   role: AllowedRoles;
   avatar?: string;
 }
-export type AllowedRoles = 'admin' | 'manager' | 'operations' | 'sales' | 'shipper' | 'customer';
+export type AllowedRoles = 'admin' | 'manager' | 'operation' | 'sales' | 'shipper' | 'customer';
 
 // --- Store State ---
 // Định nghĩa toàn bộ State và Action của Store
