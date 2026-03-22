@@ -3,11 +3,22 @@ import type { BEOrder, BEOrderItem } from '@/features/operation-staff/types/type
 
 export const productionApi = {
   getProcessingOrders: async (): Promise<BEOrder[]> => {
-    const response = await api.get('/management/orders');
-    const allOrders = response.data.result;
+    // 1. Gọi API với size siêu to khổng lồ (ví dụ: 10000)
+    const response = await api.get('/management/orders', {
+      params: {
+        page: 0,
+        size: 10000, // "Lùa" tối đa 10,000 đơn hàng về cùng lúc
+        sortBy: 'createdAt',
+        sortDir: 'desc', // Lấy đơn mới nhất lên đầu, đề phòng lố 10k đơn
+      },
+    });
 
-    // Filter orders with status PROCESSING or PRODUCED
-    const filteredOrders = allOrders?.filter(
+    // 2. Bóc tách mảng đơn hàng từ response phân trang
+    // Tùy theo cấu trúc backend, thường mảng data sẽ nằm trong .items hoặc .content
+    const allOrders = response.data.result.items || response.data.result.content || [];
+
+    // 3. Filter thủ công trên Frontend
+    const filteredOrders = allOrders.filter(
       (order: BEOrder) => order.orderStatus === 'PROCESSING' || order.orderStatus === 'PRODUCED',
     );
 

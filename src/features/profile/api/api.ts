@@ -1,5 +1,6 @@
 import { api } from '@/lib/axios';
 import type { ApiResponse, UserProfile } from '../types';
+
 export const profileApi = {
   // 1. Lấy thông tin cá nhân
   getProfile: async (): Promise<UserProfile> => {
@@ -26,11 +27,20 @@ export const profileApi = {
   },
 
   // 4. Lấy đơn hàng của người dùng
-  getOrders: () => {
-    return api.get('/orders/me');
+  getOrders: async (page = 0, size = 10) => {
+    const response = await api.get(
+      `/orders/me?page=${page}&size=${size}&sortBy=createdAt&sortDir=desc`,
+    );
+    // Giả sử API trả về { result: { content: Order[] } } dựa trên curl của bạn
+    return response.data.result;
   },
 
-  // 5. Lấy địa chỉ của người dùng
+  // 5. Hủy đơn hàng (chỉ áp dụng cho PRE_ORDER chưa xử lý)
+  cancelOrder: (orderId: string) => {
+    return api.put(`/orders/${orderId}/cancel`);
+  },
+
+  // 6. Lấy địa chỉ của người dùng
   getAddresses: () => {
     return api.get('/profile/addresses');
   },

@@ -35,11 +35,25 @@ export interface OrderItem {
   totalPrice: number;
   prescription?: Prescription;
 }
+export interface PaginatedResponse<T> {
+  items: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
 
 export const orderApi = {
-  getAwaitingVerificationOrders: async (): Promise<Order[]> => {
-    const response = await api.get('management/orders?status=AWAITING_VERIFICATION');
+  getAwaitingVerificationOrders: async (
+    page: number = 0,
+    size: number = 10,
+  ): Promise<PaginatedResponse<Order>> => {
+    // Truyền param vào URL
+    const response = await api.get(
+      `/management/orders?status=AWAITING_VERIFICATION&page=${page}&size=${size}&sortBy=createdAt&sortDir=desc`,
+    );
 
+    // Trả về TOÀN BỘ object chứa items, page, totalPages...
     return response.data.result;
   },
   getOrderDetail: async (orderId: string): Promise<Order> => {

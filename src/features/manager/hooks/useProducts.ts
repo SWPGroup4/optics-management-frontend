@@ -1,10 +1,12 @@
 // src/features/products/hooks/useProducts.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { productApi } from '../api/product-api';
+import type { ProductQueryParams } from '../types/types';
 
 // Key để quản lý cache
 const QUERY_KEYS = {
   all: ['products'] as const,
+  list: (params: ProductQueryParams) => [...QUERY_KEYS.all, 'list', params] as const,
 };
 
 // --- Hook 1: Lấy danh sách ---
@@ -61,5 +63,16 @@ export const useDeleteProduct = () => {
     onError: (error) => {
       console.error('Failed to delete:', error);
     },
+  });
+};
+
+export const useFilteredProducts = (params: ProductQueryParams) => {
+  return useQuery({
+    // QueryKey bao gồm params để tự động refetch khi params (page, size...) thay đổi
+    queryKey: QUERY_KEYS.list(params),
+    queryFn: () => productApi.getFiltered(params),
+    // Giữ lại dữ liệu cũ trong khi fetch dữ liệu mới (giúp UI không bị giật/blank)
+    placeholderData: (previousData) => previousData,
+    staleTime: 1000 * 60 * 5, // 5 phút
   });
 };
