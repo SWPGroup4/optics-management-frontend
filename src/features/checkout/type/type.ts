@@ -52,7 +52,7 @@ export interface CheckoutState {
     phone: string; // Thêm vào
   };
   paymentMethod: string;
-  bankInfo: BankInfo | null;
+  bankInfo: BankInfo ;
   updateBankInfo: (data: Partial<BankInfo>) => void;
   // Các Actions (Hàm xử lý)
   setStep: (step: number) => void;
