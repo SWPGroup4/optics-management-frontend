@@ -90,3 +90,19 @@ export interface VariantQueryParams {
   sortBy?: string;
   sortDir?: 'asc' | 'desc';
 }
+
+export interface DashboardResult {
+  revenue: number; // Tổng doanh thu
+  revenueGrowth: number; // Tăng trưởng doanh thu (%)
+  activeOrders: number; // Đơn hàng đang xử lý
+  ordersToday: number; // Đơn hàng trong ngày
+  returnPending: number; // Đơn hàng chờ trả hàng
+  lowStockItems: number; // Sản phẩm sắp hết hàng
+}
+
+// Định nghĩa cấu trúc chuẩn của API Response
+export interface DashboardResponse {
+  code: number;
+  message: string;
+  result: DashboardResult;
+}

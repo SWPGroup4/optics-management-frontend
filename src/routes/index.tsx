@@ -38,120 +38,118 @@ import ShipperDashboardPage from '@/features/shipper/page/dashboard/ShipperDashb
 import { SellerLayout } from '@/features/seller/layout/SellerLayout';
 
 export const router = createBrowserRouter([
-    {
+  {
+    children: [
+      {
+        path: '/',
+        element: <MainLayout />,
         children: [
-            {
-                path: '/',
-                element: <MainLayout />,
-                children: [
-                    { index: true, element: <HomePage /> },
-                    { path: 'shop', element: <SearchResults /> },
-                    {
-                        path: 'products',
-                        children: [{ path: ':productId', element: <ProductDetailPage /> }],
-                    },
-                    {
-                        path: 'checkout',
-                        element: (
-                            <RequireRole allowedRoles={['customer']}>
-                                <Outlet />
-                            </RequireRole>
-                        ),
-                        children: [
-                            { index: true, element: <CheckoutPage /> },
-                            { path: 'failure', element: <PaymentFailurePage /> },
-                            { path: 'success', element: <PaymentSuccessPage /> },
-                        ],
-                    },
-                ],
-            },
-
-            // Public Auth Routes
-            {
-                path: 'auth',
-                children: [
-                    { path: 'login', element: <LoginPage /> },
-                    { path: 'register', element: <RegisterPage /> },
-                ],
-            },
-
-            // Protected Profile
-            {
-                path: 'profile',
-                element: (
-                    <RequireRole>
-                        <ProfileLayout />
-                    </RequireRole>
-                ),
-                children: [
-                    { index: true, element: <ProfilePage /> },
-                    { path: 'orders', element: <MyOrders /> },
-                ],
-            },
-
-            // Protected Manager Routes
-            {
-                path: 'manager',
-                element: (
-                    <RequireRole allowedRoles={['manager', 'admin']}>
-                        <ManagerDashboardLayout />
-                    </RequireRole>
-                ),
-                children: [
-                    { index: true, element: <ManagerDashboardPage /> },
-                    { path: 'orders', element: <ManagerOrderPage /> },
-                    { path: 'products', element: <ProductManagePage /> },
-                    { path: 'products/:productId/variants', element: <ProductVariantManagePage /> },
-                    { path: 'staff', element: <StaffCustomerPage /> },
-                    { path: 'lenses', element: <LensesManagerPage /> },
-                    { path: 'refunds', element: <RefundManagePage /> },
-                    { path: 'policies', element: <PolicyManager /> },
-                ],
-            },
-
-            // Protected Seller Routes
-            {
-                path: 'seller',
-                element: (
-                    <RequireRole allowedRoles={['sales', 'admin']}>
-                        <SellerLayout />
-                    </RequireRole>
-                ),
-                children: [
-                    { index: true, element: <OrderPage /> },
-                    { path: 'orders/:orderId', element: <OrderDetailPage /> },
-                ],
-            },
+          { index: true, element: <HomePage /> },
+          { path: 'shop', element: <SearchResults /> },
+          {
+            path: 'products',
+            children: [{ path: ':productId', element: <ProductDetailPage /> }],
+          },
+          {
+            path: 'checkout',
+            element: (
+              <RequireRole allowedRoles={['customer']}>
+                <Outlet />
+              </RequireRole>
+            ),
+            children: [
+              { index: true, element: <CheckoutPage /> },
+              { path: 'failure', element: <PaymentFailurePage /> },
+              { path: 'success', element: <PaymentSuccessPage /> },
+            ],
+          },
         ],
-    },
+      },
 
-    // Protected Operation Staff Routes
-    {
-        path: 'ops-staff',
+      // Public Auth Routes
+      {
+        path: 'auth',
+        children: [
+          { path: 'login', element: <LoginPage /> },
+          { path: 'register', element: <RegisterPage /> },
+        ],
+      },
+
+      // Protected Profile
+      {
+        path: 'profile',
         element: (
-            <RequireRole allowedRoles={['operations', 'admin']}>
-                <OpsStaffDashboardLayout />
-            </RequireRole>
+          <RequireRole>
+            <ProfileLayout />
+          </RequireRole>
         ),
         children: [
-            { index: true, element: <OpsStaffDashboardPage /> },
+          { index: true, element: <ProfilePage /> },
+          { path: 'orders', element: <MyOrders /> },
         ],
-    },
+      },
 
-    // Protected Shipper Routes
-    {
-        path: 'shipper',
+      // Protected Manager Routes
+      {
+        path: 'manager',
         element: (
-            <RequireRole allowedRoles={['shipper', 'admin']}>
-                <ShipperDashboardLayout />
-            </RequireRole>
+          <RequireRole allowedRoles={['manager', 'admin']}>
+            <ManagerDashboardLayout />
+          </RequireRole>
         ),
-        children: [{ index: true, element: <ShipperDashboardPage /> }],
-    },
+        children: [
+          { index: true, element: <ManagerDashboardPage /> },
+          { path: 'orders', element: <ManagerOrderPage /> },
+          { path: 'products', element: <ProductManagePage /> },
+          { path: 'products/:productId/variants', element: <ProductVariantManagePage /> },
+          { path: 'staff', element: <StaffCustomerPage /> },
+          { path: 'lenses', element: <LensesManagerPage /> },
+          { path: 'refunds', element: <RefundManagePage /> },
+          { path: 'policies', element: <PolicyManager /> },
+        ],
+      },
 
-    // Fallback
-    {
-        path: '*',
-        element: <Navigate to="/" replace />,
-    },
+      // Protected Seller Routes
+      {
+        path: 'seller',
+        element: (
+          <RequireRole allowedRoles={['sales', 'admin']}>
+            <SellerLayout />
+          </RequireRole>
+        ),
+        children: [
+          { index: true, element: <OrderPage /> },
+          { path: 'orders/:orderId', element: <OrderDetailPage /> },
+        ],
+      },
+    ],
+  },
+
+  // Protected Operation Staff Routes
+  {
+    path: 'ops-staff',
+    element: (
+      <RequireRole allowedRoles={['operations', 'admin']}>
+        <OpsStaffDashboardLayout />
+      </RequireRole>
+    ),
+    children: [{ index: true, element: <OpsStaffDashboardPage /> }],
+  },
+
+  // Protected Shipper Routes
+  {
+    path: 'shipper',
+    element: (
+      <RequireRole allowedRoles={['shipper', 'admin']}>
+        <ShipperDashboardLayout />
+      </RequireRole>
+    ),
+    children: [{ index: true, element: <ShipperDashboardPage /> }],
+  },
+
+  // Fallback
+  {
+    path: '*',
+    element: <Navigate to="/" replace />,
+  },
 ]);

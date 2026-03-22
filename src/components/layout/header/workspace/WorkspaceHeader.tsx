@@ -1,12 +1,15 @@
 import { type ReactNode } from 'react';
-import { Search, Bell, Menu } from 'lucide-react';
+import { Search, Menu } from 'lucide-react'; // Xoá Bell ở đây vì NotificationDropdown đã chứa sẵn Bell rồi
 import { WorkspaceUserMenu } from './WorkspaceUserMenu';
+
+// 👇 1. Import Component Notification từ file index của feature
+import { NotificationDropdown } from '@/features/notification';
 
 interface WorkspaceHeaderProps {
   roleName: string;
   roleColor?: string;
   searchPlaceholder?: string;
-  onMenuClick?: () => void; // Thêm prop này để xử lý đóng/mở Sidebar
+  onMenuClick?: () => void;
   children?: ReactNode;
 }
 
@@ -21,7 +24,6 @@ export default function WorkspaceHeader({
     <header className="sticky top-0 z-40 bg-white border-b h-16 flex items-center justify-between px-4 sm:px-6 shadow-sm">
       {/* LEFT: Menu Toggle (Mobile) & Role Title */}
       <div className="flex items-center gap-3">
-        {/* Nút Hamburger cho màn hình nhỏ, gọi hàm onMenuClick */}
         <button
           onClick={onMenuClick}
           className="lg:hidden p-2 hover:bg-gray-100 rounded-md transition-colors"
@@ -56,11 +58,8 @@ export default function WorkspaceHeader({
 
         <div className="h-6 w-px bg-gray-200 mx-1 hidden sm:block"></div>
 
-        {/* Notification Bell */}
-        <button className="relative p-2 hover:bg-gray-100 rounded-full transition-colors">
-          <Bell className="w-5 h-5 text-gray-600" />
-          <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-        </button>
+        {/* 👇 2. Đặt NotificationDropdown thay cho cái button cũ */}
+        <NotificationDropdown />
 
         {/* User Menu Component */}
         <WorkspaceUserMenu />

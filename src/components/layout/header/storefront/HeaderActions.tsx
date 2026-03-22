@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Bell, LogOut, User, History, Search, X } from 'lucide-react'; // 🌟 Thêm icon X
+import { ShoppingBag, LogOut, User, History, Search, X } from 'lucide-react'; // 1. Đã xoá icon Bell vì NotificationDropdown đã có
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -19,11 +19,13 @@ import { useAuthStore } from '@/features/auth/stores/useAuthStore';
 import { useCartStore } from '@/features/cart/store/useCartStore';
 import { useProfileQuery } from '@/features/profile/hooks/useProfileQuery';
 
+import { NotificationDropdown } from '@/features/notification';
+
 export default function HeaderActions() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
-  // 🌟 Thêm State để quản lý việc ẩn/hiện search bar trên mobile
+  // State để quản lý việc ẩn/hiện search bar trên mobile
   const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   // --- SELECTORS ---
@@ -35,15 +37,15 @@ export default function HeaderActions() {
 
   // --- DERIVED STATE ---
   const cartItemCount = items.reduce((total, item) => total + item.quantity, 0);
-  const unreadNotifications = 1;
+  // 3. Đã xoá biến unreadNotifications thừa thãi
 
   // --- HANDLERS ---
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/shop?q=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery(''); // Xoá chữ sau khi tìm
-      setShowMobileSearch(false); // 🌟 Tự động đóng form search trên mobile sau khi Enter
+      setSearchQuery('');
+      setShowMobileSearch(false);
     }
   };
 
@@ -60,24 +62,23 @@ export default function HeaderActions() {
 
   return (
     <div className="flex items-center gap-3 md:gap-4">
-      {/* 🌟 1. NÚT KÍNH LÚP CHO MOBILE (Chỉ hiện khi thu nhỏ) */}
+      {/* 1. NÚT KÍNH LÚP CHO MOBILE */}
       <Button
         variant="ghost"
         size="icon"
         className="lg:hidden text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
         onClick={() => setShowMobileSearch(!showMobileSearch)}
       >
-        {/* Đổi icon thành dấu X nếu đang mở thanh search */}
         {showMobileSearch ? <X className="w-5 h-5" /> : <Search className="w-5 h-5" />}
       </Button>
 
-      {/* 🌟 2. DROPDOWN SEARCH CHO MOBILE */}
+      {/* 2. DROPDOWN SEARCH CHO MOBILE */}
       {showMobileSearch && (
         <div className="absolute top-full left-0 w-full bg-white border-b border-gray-100 p-4 shadow-lg lg:hidden animate-in fade-in slide-in-from-top-2 z-50">
           <form onSubmit={handleSearch} className="relative flex items-center max-w-md mx-auto">
             <Search className="absolute left-4 w-5 h-5 text-gray-400" />
             <Input
-              autoFocus // Tự động focus vào ô nhấp nháy trên điện thoại
+              autoFocus
               type="text"
               placeholder="Tìm kính, thương hiệu..."
               value={searchQuery}
@@ -91,7 +92,7 @@ export default function HeaderActions() {
         </div>
       )}
 
-      {/* 🌟 3. THANH SEARCH CHO DESKTOP (Ẩn khi thu nhỏ) */}
+      {/* 3. THANH SEARCH CHO DESKTOP */}
       <form
         onSubmit={handleSearch}
         className="relative hidden lg:flex items-center group w-48 xl:w-64 transition-all duration-300 focus-within:w-72"
@@ -129,7 +130,10 @@ export default function HeaderActions() {
         <GuestActions />
       ) : (
         <div className="flex items-center gap-2">
-          <NotificationButton count={unreadNotifications} />
+          {/* 👇 4. Thay NotificationButton bằng NotificationDropdown thực tế */}
+          <div className="hidden sm:block">
+            <NotificationDropdown />
+          </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -221,20 +225,7 @@ function GuestActions() {
   );
 }
 
-function NotificationButton({ count }: { count: number }) {
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      className="relative text-gray-600 hover:text-black rounded-full hidden sm:flex"
-    >
-      <Bell className="w-5 h-5" />
-      {count > 0 && (
-        <Badge className="absolute top-2 right-2 h-2 w-2 p-0 rounded-full bg-red-500 border border-white" />
-      )}
-    </Button>
-  );
-}
+// 5. Đã xoá function NotificationButton giả
 
 function DropdownItemLink({
   to,
