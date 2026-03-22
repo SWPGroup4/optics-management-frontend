@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 import { Search, Bell, Menu } from 'lucide-react';
-import { WorkspaceUserMenu } from './WorkspaceUserMenu'; 
+import { WorkspaceUserMenu } from './WorkspaceUserMenu';
 
 interface WorkspaceHeaderProps {
   roleName: string;
@@ -22,13 +22,13 @@ export default function WorkspaceHeader({
       {/* LEFT: Menu Toggle (Mobile) & Role Title */}
       <div className="flex items-center gap-3">
         {/* Nút Hamburger cho màn hình nhỏ, gọi hàm onMenuClick */}
-        <button 
+        <button
           onClick={onMenuClick}
           className="lg:hidden p-2 hover:bg-gray-100 rounded-md transition-colors"
         >
           <Menu className="w-5 h-5 text-gray-600" />
         </button>
-        
+
         <div className="hidden sm:flex flex-col">
           <span className="font-bold text-[10px] tracking-widest text-gray-400 uppercase">
             System Portal

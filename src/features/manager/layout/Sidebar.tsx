@@ -4,7 +4,6 @@ import {
     Package,
     ShoppingCart,
     Users,
-    Tag,
     LogOut,
     ChevronLeft,
     ChevronRight,

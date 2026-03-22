@@ -63,9 +63,9 @@ const ProductManagePage = () => {
 
   // 2. CHUẨN BỊ PARAMS ĐỂ GỌI API
   const queryParams: ProductQueryParams = useMemo(() => {
-    const params: ProductQueryParams = { 
+    const params: ProductQueryParams = {
       page: page - 1, // <--- THÊM - 1 Ở ĐÂY ĐỂ GỬI SERVER TRANG 0,1,2...
-      size 
+      size,
     };
     if (debouncedSearch) params.q = debouncedSearch;
     return params;
@@ -73,7 +73,7 @@ const ProductManagePage = () => {
 
   // 3. LẤY DỮ LIỆU (FETCHING)
   const { data, isLoading, isError } = useFilteredProducts(queryParams);
-  
+
   // Đã bỏ `.result` và gán kiểu `Product[]`
   const products: Product[] = data?.items || [];
   const totalElements: number = data?.totalElements || 0;
@@ -322,12 +322,12 @@ const ProductManagePage = () => {
                         </td>
 
                         <td className="px-6 py-5 align-middle text-center">
-  <span
-    className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-bold tracking-wide uppercase border shadow-sm w-[110px] ${getCategoryBadge(product.category)}`}
-  >
-    {categoryMap[product.category?.toUpperCase()] || 'Khác'}
-  </span>
-</td>
+                          <span
+                            className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-bold tracking-wide uppercase border shadow-sm w-[110px] ${getCategoryBadge(product.category)}`}
+                          >
+                            {categoryMap[product.category?.toUpperCase()] || 'Khác'}
+                          </span>
+                        </td>
 
                         <td className="px-6 py-5 align-middle text-center">
                           <span
@@ -429,7 +429,9 @@ const ProductManagePage = () => {
         {!isLoading && !isError && totalElements > 0 && (
           <div className="bg-white px-6 py-5 border-t border-slate-100 flex items-center justify-between gap-4 text-sm sticky bottom-0 z-10">
             <span className="text-slate-500 font-medium">
-              Hiển thị <span className="font-bold text-slate-900">{products.length}</span> / <span className="font-bold text-slate-900">{totalElements}</span> sản phẩm (Trang {page}/{totalPages})
+              Hiển thị <span className="font-bold text-slate-900">{products.length}</span> /{' '}
+              <span className="font-bold text-slate-900">{totalElements}</span> sản phẩm (Trang{' '}
+              {page}/{totalPages})
             </span>
             <div className="flex gap-2.5">
               <button

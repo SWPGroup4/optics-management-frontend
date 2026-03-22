@@ -9,12 +9,7 @@ export default function OrderPage() {
   const navigate = useNavigate();
 
   // Gọi Custom Hook
-  const { 
-    data, 
-    isLoading, 
-    isFetching, 
-    isError 
-  } = useAwaitingVerificationOrders(currentPage, 10);
+  const { data, isLoading, isFetching, isError } = useAwaitingVerificationOrders(currentPage, 10);
 
   // Trích xuất dữ liệu an toàn
   const orders = data?.items || [];
@@ -111,9 +106,10 @@ export default function OrderPage() {
         {totalPages > 0 && (
           <div className="flex items-center justify-between px-4 py-3 border-t bg-gray-50">
             <div className="text-sm text-gray-500">
-              Trang <span className="font-medium text-gray-900">{currentPage + 1}</span> / <span className="font-medium text-gray-900">{totalPages}</span>
+              Trang <span className="font-medium text-gray-900">{currentPage + 1}</span> /{' '}
+              <span className="font-medium text-gray-900">{totalPages}</span>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <button
                 onClick={handlePrevPage}
@@ -122,7 +118,7 @@ export default function OrderPage() {
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
-              
+
               <button
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages - 1 || isFetching}

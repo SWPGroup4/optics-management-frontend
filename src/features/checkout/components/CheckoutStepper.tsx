@@ -1,7 +1,7 @@
 import { CheckCircle2 } from 'lucide-react';
 
 export const CheckoutStepper = ({ currentStep }: { currentStep: number }) => {
-  const steps = ['1. Shipping & Rx', '2. Payment', '3. Review'];
+  const steps = ['1. Giao hàng', '2. Thanh toán', '3. Xem lại'];
 
   return (
     <div className="flex border-b border-gray-100 mb-8 sm:mb-10">

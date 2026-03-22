@@ -21,7 +21,7 @@ export function CustomerCancelModal({ onClose }: { onClose: () => void }) {
   // 3. Bóc tách an toàn
   const cancelledOrders: Order[] = paginatedData?.items || [];
   const totalElements = paginatedData?.totalElements || 0;
-  
+
   // Kiểm tra xem còn đơn nào chưa hiển thị không
   const hasMore = cancelledOrders.length < totalElements;
 
@@ -85,8 +85,17 @@ export function CustomerCancelModal({ onClose }: { onClose: () => void }) {
               Tổng cộng có {totalElements} đơn cần xử lý
             </p>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors">
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors"
+          >
+            <svg
+              className="w-5 h-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>
@@ -111,7 +120,9 @@ export function CustomerCancelModal({ onClose }: { onClose: () => void }) {
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
-                    checked={selectedOrders.size > 0 && selectedOrders.size === cancelledOrders.length}
+                    checked={
+                      selectedOrders.size > 0 && selectedOrders.size === cancelledOrders.length
+                    }
                     onChange={toggleAll}
                     className="w-4 h-4 rounded accent-indigo-600 cursor-pointer"
                   />
@@ -153,10 +164,14 @@ export function CustomerCancelModal({ onClose }: { onClose: () => void }) {
                         </p>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className={`text-sm font-black ${checked ? 'text-indigo-700' : 'text-gray-900'}`}>
+                        <p
+                          className={`text-sm font-black ${checked ? 'text-indigo-700' : 'text-gray-900'}`}
+                        >
                           {fmt(order.paidAmount)}
                         </p>
-                        <p className="text-[10px] text-emerald-600 font-bold uppercase mt-1">Đã thanh toán</p>
+                        <p className="text-[10px] text-emerald-600 font-bold uppercase mt-1">
+                          Đã thanh toán
+                        </p>
                       </div>
                     </label>
                   );
@@ -174,8 +189,8 @@ export function CustomerCancelModal({ onClose }: { onClose: () => void }) {
                       {isFetching ? (
                         <div className="w-3 h-3 border-2 border-indigo-400 border-t-indigo-600 rounded-full animate-spin" />
                       ) : null}
-                      {isFetching 
-                        ? 'Đang tải thêm...' 
+                      {isFetching
+                        ? 'Đang tải thêm...'
                         : `Hiển thị thêm (${totalElements - cancelledOrders.length} đơn nữa)`}
                     </button>
                   </div>

@@ -15,15 +15,14 @@ function DashboardContent() {
     <div className="min-h-screen bg-slate-50">
       <Sidebar />
       <div className={cn('transition-all duration-300', collapsed ? 'pl-16' : 'pl-64')}>
-        
         {/* Lắp WorkspaceHeader vào đây */}
-        <WorkspaceHeader 
-          roleName="Quản Lý Hệ Thống" 
+        <WorkspaceHeader
+          roleName="Quản Lý Hệ Thống"
           roleColor="text-blue-600" // Đổi màu tuỳ ý (blue, indigo, violet...)
           searchPlaceholder="Tìm kiếm nhân viên, báo cáo, sản phẩm..."
           onMenuClick={toggleCollapsed}
         />
-        
+
         {/* Chỉnh lại padding một chút để Responsive tốt hơn trên điện thoại (sm:p-6) */}
         <main className="p-4 sm:p-6">
           <Outlet />
