@@ -25,6 +25,7 @@ import ProductVariantManagePage from '@/features/manager/page/products/ProductVa
 import StaffCustomerPage from '@/features/manager/page/staff/StaffCustomerPage';
 import LensesManagerPage from '@/features/manager/page/Lenses/LensesManagerPage';
 import RefundManagePage from '@/features/manager/page/Refund/ManageRefundPage';
+import PolicyManager from '@/features/manager/page/Policy/PolicyManager';
 
 import OrderPage from '@/features/seller/page/order/OrderPage';
 import OrderDetailPage from '@/features/seller/page/order/OrderDetailPage';
@@ -37,121 +38,120 @@ import ShipperDashboardPage from '@/features/shipper/page/dashboard/ShipperDashb
 import { SellerLayout } from '@/features/seller/layout/SellerLayout';
 
 export const router = createBrowserRouter([
-  {
-    children: [
-      {
-        path: '/',
-        element: <MainLayout />,
+    {
         children: [
-          { index: true, element: <HomePage /> },
-          { path: 'shop', element: <SearchResults /> },
-          {
-            path: 'products',
-            children: [{ path: ':productId', element: <ProductDetailPage /> }],
-          },
-          // Protected Checkout - requires authentication (and perhaps specific roles)
-          {
-            path: 'checkout',
-            element: (
-              <RequireRole allowedRoles={['customer']}>
-                <Outlet />
-              </RequireRole>
-            ), // Wrapper for checkout routes
-            children: [
-              { index: true, element: <CheckoutPage /> },
-              { path: 'failure', element: <PaymentFailurePage /> },
-              { path: 'success', element: <PaymentSuccessPage /> },
-            ],
-          },
-        ],
-      },
+            {
+                path: '/',
+                element: <MainLayout />,
+                children: [
+                    { index: true, element: <HomePage /> },
+                    { path: 'shop', element: <SearchResults /> },
+                    {
+                        path: 'products',
+                        children: [{ path: ':productId', element: <ProductDetailPage /> }],
+                    },
+                    {
+                        path: 'checkout',
+                        element: (
+                            <RequireRole allowedRoles={['customer']}>
+                                <Outlet />
+                            </RequireRole>
+                        ),
+                        children: [
+                            { index: true, element: <CheckoutPage /> },
+                            { path: 'failure', element: <PaymentFailurePage /> },
+                            { path: 'success', element: <PaymentSuccessPage /> },
+                        ],
+                    },
+                ],
+            },
 
-      // Public Auth Routes
-      {
-        path: 'auth',
-        children: [
-          { path: 'login', element: <LoginPage /> },
-          { path: 'register', element: <RegisterPage /> },
-        ],
-      },
+            // Public Auth Routes
+            {
+                path: 'auth',
+                children: [
+                    { path: 'login', element: <LoginPage /> },
+                    { path: 'register', element: <RegisterPage /> },
+                ],
+            },
 
-      // Protected Profile - General authentication (omitting allowedRoles acts as a simple auth check)
-      {
-        path: 'profile',
+            // Protected Profile
+            {
+                path: 'profile',
+                element: (
+                    <RequireRole>
+                        <ProfileLayout />
+                    </RequireRole>
+                ),
+                children: [
+                    { index: true, element: <ProfilePage /> },
+                    { path: 'orders', element: <MyOrders /> },
+                ],
+            },
+
+            // Protected Manager Routes
+            {
+                path: 'manager',
+                element: (
+                    <RequireRole allowedRoles={['manager', 'admin']}>
+                        <ManagerDashboardLayout />
+                    </RequireRole>
+                ),
+                children: [
+                    { index: true, element: <ManagerDashboardPage /> },
+                    { path: 'orders', element: <ManagerOrderPage /> },
+                    { path: 'products', element: <ProductManagePage /> },
+                    { path: 'products/:productId/variants', element: <ProductVariantManagePage /> },
+                    { path: 'staff', element: <StaffCustomerPage /> },
+                    { path: 'lenses', element: <LensesManagerPage /> },
+                    { path: 'refunds', element: <RefundManagePage /> },
+                    { path: 'policies', element: <PolicyManager /> },
+                ],
+            },
+
+            // Protected Seller Routes
+            {
+                path: 'seller',
+                element: (
+                    <RequireRole allowedRoles={['sales', 'admin']}>
+                        <SellerLayout />
+                    </RequireRole>
+                ),
+                children: [
+                    { index: true, element: <OrderPage /> },
+                    { path: 'orders/:orderId', element: <OrderDetailPage /> },
+                ],
+            },
+        ],
+    },
+
+    // Protected Operation Staff Routes
+    {
+        path: 'ops-staff',
         element: (
-          <RequireRole>
-            <ProfileLayout />
-          </RequireRole>
+            <RequireRole allowedRoles={['operations', 'admin']}>
+                <OpsStaffDashboardLayout />
+            </RequireRole>
         ),
         children: [
-          { index: true, element: <ProfilePage /> },
-          { path: 'orders', element: <MyOrders /> },
+            { index: true, element: <OpsStaffDashboardPage /> },
         ],
-      },
+    },
 
-      // Protected Manager Routes
-      {
-        path: 'manager',
+    // Protected Shipper Routes
+    {
+        path: 'shipper',
         element: (
-          <RequireRole allowedRoles={['manager', 'admin']}>
-            <ManagerDashboardLayout />
-          </RequireRole>
+            <RequireRole allowedRoles={['shipper', 'admin']}>
+                <ShipperDashboardLayout />
+            </RequireRole>
         ),
-        children: [
-          { index: true, element: <ManagerDashboardPage /> },
-          { path: 'orders', element: <ManagerOrderPage /> },
-          { path: 'products', element: <ProductManagePage /> },
-          { path: 'products/:productId/variants', element: <ProductVariantManagePage /> },
-          { path: 'staff', element: <StaffCustomerPage /> },
-          { path: 'lenses', element: <LensesManagerPage /> },
-          { path: 'refunds', element: <RefundManagePage /> },
-        ],
-      },
+        children: [{ index: true, element: <ShipperDashboardPage /> }],
+    },
 
-      // Protected Seller Routes
-      {
-        path: 'seller',
-        element: (
-          <RequireRole allowedRoles={['sales', 'admin']}>
-            <SellerLayout />
-          </RequireRole>
-        ),
-        children: [
-          { index: true, element: <OrderPage /> },
-          { path: 'orders/:orderId', element: <OrderDetailPage /> },
-        ],
-      },
-    ],
-  },
-
-  // Protected Operation Staff Routes
-  {
-    path: 'ops-staff',
-    element: (
-      <RequireRole allowedRoles={['operations', 'admin']}>
-        <OpsStaffDashboardLayout />
-      </RequireRole>
-    ),
-    children: [
-      { index: true, element: <OpsStaffDashboardPage /> },
-      // { path: "shipping", element: <ShippingPage /> }
-    ],
-  },
-
-  // Protected Shipper Routes
-  {
-    path: 'shipper',
-    element: (
-      <RequireRole allowedRoles={['shipper', 'admin']}>
-        <ShipperDashboardLayout />
-      </RequireRole>
-    ),
-    children: [{ index: true, element: <ShipperDashboardPage /> }],
-  },
-
-  // ===== FALLBACK =====
-  {
-    path: '*',
-    element: <Navigate to="/" replace />,
-  },
+    // Fallback
+    {
+        path: '*',
+        element: <Navigate to="/" replace />,
+    },
 ]);
