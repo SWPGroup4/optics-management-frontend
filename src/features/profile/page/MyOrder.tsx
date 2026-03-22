@@ -1,5 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { PackageOpen, AlertCircle, ShoppingBag, RefreshCcw, ChevronLeft, ChevronRight } from 'lucide-react';
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 // Các API cho action (huỷ đơn, hoàn tiền)
 import { profileApi } from '../api/api';
@@ -13,6 +23,7 @@ import { useMyOrders } from '../hooks/useMyOrders';
 import type { Order, OrderItem } from '../types/order';
 import { isAxiosError } from 'axios';
 import { fmt } from '@/lib/utils';
+import { VnpayCheckoutButton } from '@/features/checkout/components/VnpayCheckoutButton';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const STATUS_CONFIG: Record<string, { color: string; label: string; dot: string; tab: string }> = {
@@ -87,6 +98,12 @@ const STATUS_CONFIG: Record<string, { color: string; label: string; dot: string;
     label: 'Chờ xác minh',
     dot: 'bg-yellow-500',
     tab: 'text-yellow-600 border-yellow-500 bg-yellow-50',
+  },
+  AWAITING_FINAL_PAYMENT: {
+    color: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    label: 'Chờ thanh toán',
+    dot: 'bg-indigo-500',
+    tab: 'text-indigo-600 border-indigo-500 bg-indigo-50',
   },
 };
 
@@ -265,29 +282,24 @@ function OrderItemCard({
         </div>
       )}
 
-      {/* Feedback Section*/}
-      <div className="pt-3 border-t border-gray-100">
-        {hasFeedback ? (
+      {/* 🚀 ẨN TRIỆT ĐỂ KHỐI FEEDBACK NẾU CHƯA HOÀN THÀNH */}
+      {(hasFeedback || orderStatus === 'COMPLETED') && (
+        <div className="pt-3 border-t border-gray-100">
+          {hasFeedback ? (
             <FeedbackPreview
-                feedback={itemFeedback}
-                onEdit={() => onFeedbackClick(item, itemFeedback)}
+              feedback={itemFeedback}
+              onEdit={() => onFeedbackClick(item, itemFeedback)}
             />
-        ) : orderStatus === 'COMPLETED' ? (
+          ) : (
             <button
-                onClick={() => onFeedbackClick(item, itemFeedback)}
-                className="w-full px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+              onClick={() => onFeedbackClick(item, itemFeedback)}
+              className="w-full px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
             >
               Đánh giá sản phẩm
             </button>
-        ) : (
-            <button
-                onClick={() => alert('Không thể thao tác vì đơn chưa hoàn thành')}
-                className="w-full px-3 py-2 bg-gray-400 text-white rounded-lg text-sm font-medium hover:bg-gray-500 transition-colors opacity-75"
-            >
-              Đánh giá sản phẩm
-            </button>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -309,8 +321,6 @@ function OrderCard({ order, allFeedbacks }: { order: Order, allFeedbacks: BEFeed
     label: order.orderStatus,
     dot: 'bg-gray-400',
   };
-  // const hasDiscount = !!order.comboName && !!order.comboDiscountAmount;
-  // const hasRefund = order.refundedAmount > 0;
 
   const hasPreOrder = order.items.some((i) => i.orderItemType === 'PRE_ORDER');
   const canCancel =
@@ -323,12 +333,9 @@ function OrderCard({ order, allFeedbacks }: { order: Order, allFeedbacks: BEFeed
       queryClient.invalidateQueries({ queryKey: ['my-orders'] });
       setShowConfirm(false);
     } catch (e: unknown) {
-      // Đổi any thành unknown
       if (isAxiosError(e)) {
-        // TypeScript sẽ tự hiểu e là AxiosError ở trong block này
         alert(e.response?.data?.message ?? 'Lỗi khi hủy đơn hàng');
       } else if (e instanceof Error) {
-        // Xử lý nếu là lỗi JS thông thường
         alert(e.message);
       } else {
         alert('Lỗi khi hủy đơn hàng');
@@ -339,12 +346,14 @@ function OrderCard({ order, allFeedbacks }: { order: Order, allFeedbacks: BEFeed
   };
 
   const handleFeedbackClick = (item: OrderItem, feedback: BEFeedback | null) => {
+    // Chỉ mở khi trạng thái là COMPLETED
+    if (order.orderStatus !== 'COMPLETED') return;
+
     setSelectedItem(item);
     setSelectedFeedback(feedback);
     setFeedbackModalOpen(true);
   };
 
-  // Get productId for feedback
   const getProductId = (item: OrderItem) => {
     return item?.productId || '';
   };
@@ -490,19 +499,31 @@ function OrderCard({ order, allFeedbacks }: { order: Order, allFeedbacks: BEFeed
             ))}
           </div>
 
-          <div className="bg-white border border-gray-100 rounded-xl px-4 py-3 space-y-1.5">
-            <div className="flex justify-between items-center pt-2.5 mt-1 border-t border-gray-200">
-              <span className="text-sm font-semibold text-gray-700">Còn phải trả</span>
+          <div className={`rounded-2xl px-5 py-4 ${order.orderStatus === 'AWAITING_FINAL_PAYMENT' ? 'bg-indigo-50/50 border border-indigo-100 shadow-sm' : 'bg-white border border-gray-100'}`}>
+            <div className="flex justify-between items-center">
+              <span className={`text-sm font-medium ${order.orderStatus === 'AWAITING_FINAL_PAYMENT' ? 'text-indigo-900' : 'text-gray-600'}`}>
+                {order.orderStatus === 'AWAITING_FINAL_PAYMENT' ? 'Tổng tiền cần thanh toán' : 'Còn phải trả'}
+              </span>
+              
               {order.orderStatus === 'CANCELLED' || order.orderStatus === 'REFUNDED' ? (
                 <span className="text-lg font-bold text-gray-400">0 ₫</span>
               ) : order.remainingAmount <= 0 ? (
-                <span className="text-sm font-bold text-emerald-600">Đã thanh toán đủ ✓</span>
+                <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">Đã thanh toán đủ ✓</span>
               ) : (
-                <span className="text-lg font-bold text-rose-600">
+                <span className="text-xl font-black text-rose-600 tracking-tight">
                   {fmt(order.remainingAmount)}
                 </span>
               )}
             </div>
+
+            {order.orderStatus === 'AWAITING_FINAL_PAYMENT' && (
+              <div className="mt-4 pt-4 border-t border-indigo-100/50">
+                <VnpayCheckoutButton 
+                  orderId={order.orderId} 
+                  className="w-full h-12 rounded-xl text-base shadow-indigo-200" 
+                />
+              </div>
+            )}
           </div>
 
           {canCancel && (
@@ -518,18 +539,20 @@ function OrderCard({ order, allFeedbacks }: { order: Order, allFeedbacks: BEFeed
           )}
         </div>
       )}
-      {/* Feedback Modal */}
-      <FeedbackModal
+
+      {/* Render FeedbackModal nếu đơn đã COMPLETED */}
+      {order.orderStatus === 'COMPLETED' && (
+        <FeedbackModal
           isOpen={feedbackModalOpen}
           onClose={() => setFeedbackModalOpen(false)}
           orderId={order.orderId}
-          productId={getProductId(selectedItem!)}
+          productId={selectedItem ? getProductId(selectedItem) : ''}
           existingFeedback={selectedFeedback}
           onSuccess={() => {
-            // Refresh feedback data
             queryClient.invalidateQueries({ queryKey: ['my-feedbacks'] });
           }}
-      />
+        />
+      )}
     </div>
   );
 }
@@ -546,9 +569,7 @@ export default function MyOrders() {
     queryClient.invalidateQueries({ queryKey: ['my-feedbacks'] });
   }, [queryClient]);
 
-  const {
-    data: allFeedbacks,
-  } = useQuery({
+  const { data: allFeedbacks } = useQuery({
     queryKey: ['my-feedbacks'],
     queryFn: async () => {
         try {
@@ -562,102 +583,198 @@ export default function MyOrders() {
     staleTime: 0,
   });
 
-  // Gọi API thông qua Custom Hook (Lấy size lớn để lọc tab client-side như bản cũ)
-  const { data, isLoading, isError } = useMyOrders({ page: 0, size: 500 });
+  const { data, isLoading, isError, refetch } = useMyOrders({ page: 0, size: 500 });
 
-  // Trích xuất list orders an toàn từ cấu trúc API mới
   const allOrders = data?.items || [];
 
-  if (isLoading) return <div className="p-12 text-center text-gray-400">Đang tải đơn hàng...</div>;
-  if (isError) return <div className="p-12 text-center text-rose-400">Không thể tải đơn hàng</div>;
-  if (allOrders.length === 0)
-    return <div className="p-12 text-center text-gray-400">Bạn chưa có đơn hàng nào</div>;
+  if (isLoading) {
+    return (
+      <div className="max-w-3xl mx-auto p-6 space-y-4">
+        <div className="h-8 w-48 bg-gray-200 rounded-lg animate-pulse mb-6"></div>
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-32 bg-gray-100 rounded-2xl animate-pulse"></div>
+        ))}
+      </div>
+    );
+  }
 
-  // Logic phân trang & filter Client-side
-  const countByStatus = (status: string) =>
-    allOrders.filter((o) => o.orderStatus === status).length;
-  const filteredOrders =
-    activeTab === 'ALL' ? allOrders : allOrders.filter((o) => o.orderStatus === activeTab);
+  if (isError) {
+    return (
+      <div className="max-w-3xl mx-auto p-12 flex flex-col items-center justify-center text-center bg-gray-50 rounded-3xl mt-6 border border-gray-100">
+        <AlertCircle className="w-12 h-12 text-rose-400 mb-4" />
+        <h3 className="text-lg font-bold text-gray-800">Không thể tải đơn hàng</h3>
+        <p className="text-sm text-gray-500 mt-1 mb-6">Đã có lỗi xảy ra trong quá trình lấy dữ liệu.</p>
+        <Button onClick={() => refetch()} variant="outline" className="gap-2">
+          <RefreshCcw className="w-4 h-4" /> Thử lại
+        </Button>
+      </div>
+    );
+  }
+
+  // Khối rỗng
+  if (allOrders.length === 0) {
+    return (
+      <div className="max-w-3xl mx-auto p-12 flex flex-col items-center justify-center text-center bg-gray-50/50 rounded-3xl mt-6 border border-dashed border-gray-200">
+        <div className="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mb-4">
+          <ShoppingBag className="w-10 h-10" />
+        </div>
+        <h3 className="text-xl font-bold text-gray-800">Bạn chưa có đơn hàng nào</h3>
+        <p className="text-sm text-gray-500 mt-2 mb-6 max-w-sm">
+          Hãy khám phá các sản phẩm tuyệt vời của chúng tôi và đặt đơn hàng đầu tiên nhé.
+        </p>
+        <Button className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl">
+          Tiếp tục mua sắm
+        </Button>
+      </div>
+    );
+  }
+
+  const countByStatus = (status: string) => allOrders.filter((o) => o.orderStatus === status).length;
+  const filteredOrders = activeTab === 'ALL' ? allOrders : allOrders.filter((o) => o.orderStatus === activeTab);
   const totalPages = Math.max(1, Math.ceil(filteredOrders.length / PAGE_SIZE));
   const paginated = filteredOrders.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
   const visibleStatuses = ['ALL', ...ALL_STATUSES.filter((s) => countByStatus(s) > 0)];
 
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
     setCurrentPage(1);
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <div className="mb-5">
-        <h1 className="text-2xl font-bold text-gray-800">Đơn hàng của tôi</h1>
-        <p className="text-sm text-gray-400 mt-1">{filteredOrders.length} đơn hàng</p>
+    <div className="max-w-3xl mx-auto p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      
+      {/* Header & Filter Dropdown */}
+      <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-100 pb-4">
+        <div>
+          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Đơn hàng của tôi</h1>
+          <p className="text-sm text-gray-500 mt-1 flex items-center gap-1.5">
+            <PackageOpen className="w-4 h-4" />
+            Đang hiển thị {filteredOrders.length} đơn hàng
+          </p>
+        </div>
+
+        <div className="w-full md:w-[260px]">
+          <Select value={activeTab} onValueChange={handleTabChange}>
+            <SelectTrigger className="w-full bg-gray-50/50 h-11 border-gray-200 focus:ring-indigo-500 rounded-xl transition-colors hover:bg-gray-50">
+              <SelectValue placeholder="Chọn trạng thái">
+                {activeTab === 'ALL' ? (
+                   <span className="font-medium text-gray-800">Tất cả trạng thái</span>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${STATUS_CONFIG[activeTab]?.dot || 'bg-gray-400'}`} />
+                    <span className="font-medium text-gray-800">{STATUS_CONFIG[activeTab]?.label}</span>
+                  </div>
+                )}
+              </SelectValue>
+            </SelectTrigger>
+            
+            <SelectContent className="rounded-xl border-gray-100 shadow-xl p-1">
+              {visibleStatuses.map((status) => {
+                const count = status === 'ALL' ? allOrders.length : countByStatus(status);
+                
+                if (status === 'ALL') {
+                  return (
+                    <SelectItem 
+                      key={status} 
+                      value={status}
+                      className="cursor-pointer py-2.5 rounded-lg mb-1 focus:bg-gray-100"
+                    >
+                      <div className="flex items-center justify-between w-[200px]">
+                        <span className="font-medium text-gray-700">Tất cả trạng thái</span>
+                        <span className="text-[10px] font-bold text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full ml-3">
+                          {count}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  );
+                }
+
+                const cfg = STATUS_CONFIG[status];
+                
+                return (
+                  <SelectItem 
+                    key={status} 
+                    value={status}
+                    className={`cursor-pointer py-2 mb-1 rounded-lg focus:bg-transparent ${cfg?.color || 'bg-gray-50 text-gray-700'}`} 
+                  >
+                    <div className="flex items-center justify-between w-[200px]">
+                      <div className="flex items-center gap-2">
+                         <span className={`w-1.5 h-1.5 rounded-full ${cfg?.dot || 'bg-gray-400'}`} />
+                         <span className="font-semibold text-sm">{cfg?.label}</span>
+                      </div>
+                      <span className="text-[10px] font-bold bg-white/60 px-2 py-0.5 rounded-full border border-black/5 ml-3">
+                        {count}
+                      </span>
+                    </div>
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-1 mb-5 scrollbar-hide">
-        {visibleStatuses.map((status) => {
-          const cfg = STATUS_CONFIG[status];
-          const isActive = activeTab === status;
-          const count = status === 'ALL' ? allOrders.length : countByStatus(status);
+      {paginated.length === 0 && activeTab !== 'ALL' && (
+        <div className="py-12 text-center text-gray-500">
+          Không có đơn hàng nào ở trạng thái <span className="font-semibold text-gray-700">{STATUS_CONFIG[activeTab]?.label}</span>.
+        </div>
+      )}
 
-          return (
-            <button
-              key={status}
-              onClick={() => handleTabChange(status)}
-              className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-all ${
-                isActive
-                  ? status === 'ALL'
-                    ? 'bg-indigo-600 text-white border-indigo-600'
-                    : `${cfg?.tab} border-current`
-                  : 'bg-white text-gray-500 border-gray-200'
-              }`}
-            >
-              {status === 'ALL' ? 'Tất cả' : cfg?.label}
-              <span className="ml-1 text-xs opacity-60">({count})</span>
-            </button>
-          );
-        })}
-      </div>
-
+      {/* Danh sách đơn hàng */}
       <div className="space-y-4">
-        {paginated.map((order) => (
-          <OrderCard key={order.orderId} order={order} allFeedbacks={allFeedbacks || []} />
+        {paginated.map((order, index) => (
+          <div 
+            key={order.orderId} 
+            className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both"
+            style={{ animationDelay: `${index * 50}ms` }}
+          >
+            <OrderCard order={order} allFeedbacks={allFeedbacks || []} />
+          </div>
         ))}
       </div>
 
-      {/* Pagination UI giữ nguyên */}
+      {/* Phân trang (Pagination) */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
-          <p className="text-xs text-gray-400">
-            Hiển thị {(currentPage - 1) * PAGE_SIZE + 1}–
-            {Math.min(currentPage * PAGE_SIZE, filteredOrders.length)} / {filteredOrders.length} đơn
+        <div className="flex flex-col sm:flex-row items-center justify-between mt-8 pt-6 border-t border-gray-100 gap-4">
+          <p className="text-sm text-gray-500 font-medium">
+            Hiển thị <span className="text-gray-900">{(currentPage - 1) * PAGE_SIZE + 1}</span>–
+            <span className="text-gray-900">{Math.min(currentPage * PAGE_SIZE, filteredOrders.length)}</span> / {filteredOrders.length}
           </p>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2 shadow-sm border border-gray-200 rounded-xl p-1 bg-white">
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+              className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
             >
-              ←
+              <ChevronLeft className="w-4 h-4" />
             </button>
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const page = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
-              return (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-8 h-8 text-xs font-medium rounded-lg transition-colors ${page === currentPage ? 'bg-indigo-600 text-white' : 'border border-gray-200 text-gray-600'}`}
-                >
-                  {page}
-                </button>
-              );
-            })}
+            
+            <div className="flex items-center gap-1 px-2">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const page = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
+                const isActive = page === currentPage;
+                return (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-8 h-8 text-sm font-semibold rounded-lg transition-all ${
+                      isActive 
+                        ? 'bg-indigo-600 text-white shadow-md' 
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+            </div>
+
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+              className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
             >
-              →
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
