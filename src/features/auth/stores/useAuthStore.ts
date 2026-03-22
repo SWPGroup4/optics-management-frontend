@@ -4,11 +4,12 @@ import { jwtDecode } from 'jwt-decode';
 import axios, { AxiosError } from 'axios';
 import { authApi } from '../api/auth-api';
 
+
 import {
   JwtPayloadSchema,
   type AuthStore,
   type UserState,
-  type ApiResponse,
+ 
   type RegisterInput,
 } from '../types';
 import { PROFILE_QUERY_KEY } from '@/features/profile/hooks/useProfileQuery';
