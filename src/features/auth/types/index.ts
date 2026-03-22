@@ -79,20 +79,12 @@ export const RegisterSchema = z.object({
   email: z.email('Email không hợp lệ'),
   phone: z.string().min(9, 'Số điện thoại không hợp lệ'),
 
-  // 👇 Validate File Ảnh
-  imageFile: z
-    .any()
-    .refine((files) => files instanceof FileList && files.length > 0, 'Vui lòng chọn ảnh đại diện')
-    .optional(), // Có thể để optional nếu backend không bắt buộc chặt
+  // Ảnh đại diện — không bắt buộc
+  imageFile: z.any().optional(),
 });
 
 // Tự động tạo type từ Schema
 export type RegisterInput = z.infer<typeof RegisterSchema>;
-
-export interface ApiResponse<T> {
-  code: number;
-  result: T;
-}
 
 export interface UserRegistrationResult {
   id: string;
