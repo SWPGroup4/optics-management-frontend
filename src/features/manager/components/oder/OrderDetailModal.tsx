@@ -4,12 +4,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+} from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 import {
   User,
@@ -23,13 +23,28 @@ import {
   ClipboardList,
   FileText,
   ImageIcon,
-} from "lucide-react";
-import { STATUS_CONFIG, type Order, type OrderItem, type Prescription } from "../../types/order-type";
-import { fmt } from "@/lib/utils";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+} from 'lucide-react';
+import {
+  STATUS_CONFIG,
+  type Order,
+  type OrderItem,
+  type Prescription,
+} from '../../types/order-type';
+import { fmt } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 // ─── SUB-COMPONENT: ĐIỂM SỐ ĐO MẮT ───────────────────────────
-function PrescriptionPoint({ label, sph, cyl, axis }: { label: string; sph: number; cyl: number; axis: number }) {
+function PrescriptionPoint({
+  label,
+  sph,
+  cyl,
+  axis,
+}: {
+  label: string;
+  sph: number;
+  cyl: number;
+  axis: number;
+}) {
   return (
     <div className="space-y-0.5">
       <p className="text-[9px] font-black text-blue-600 uppercase tracking-tighter">{label}</p>
@@ -100,7 +115,7 @@ function PrescriptionDisplay({ prescription }: { prescription: Prescription }) {
           <div className="space-y-0.5">
             <p className="text-[9px] font-black text-slate-400 uppercase">Ghi chú</p>
             <p className="text-[10px] font-medium text-slate-600 truncate">
-              {prescription.note || "---"}
+              {prescription.note || '---'}
             </p>
           </div>
         </div>
@@ -134,10 +149,16 @@ function ProductItemRow({ item }: { item: OrderItem }) {
               {item.productName || item.itemName}
             </h4>
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline" className="text-[10px] px-2 py-0 border-slate-200 text-slate-500 font-bold uppercase">
-                {item.variantName || "Mặc định"}
+              <Badge
+                variant="outline"
+                className="text-[10px] px-2 py-0 border-slate-200 text-slate-500 font-bold uppercase"
+              >
+                {item.variantName || 'Mặc định'}
               </Badge>
-              <Badge variant="outline" className="text-[10px] px-2 py-0 border-blue-100 text-blue-600 bg-blue-50/50 font-bold uppercase">
+              <Badge
+                variant="outline"
+                className="text-[10px] px-2 py-0 border-blue-100 text-blue-600 bg-blue-50/50 font-bold uppercase"
+              >
                 SL: {item.quantity}
               </Badge>
             </div>
@@ -162,7 +183,10 @@ function ProductItemRow({ item }: { item: OrderItem }) {
 
 // ─── MAIN COMPONENT: MODAL CHI TIẾT ĐƠN HÀNG ────────────────
 export function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => void }) {
-  const statusInfo = STATUS_CONFIG[order.orderStatus] || { label: order.orderStatus, className: "bg-slate-100" };
+  const statusInfo = STATUS_CONFIG[order.orderStatus] || {
+    label: order.orderStatus,
+    className: 'bg-slate-100',
+  };
 
   return (
     <Dialog open={!!order} onOpenChange={(open) => !open && onClose()}>
@@ -171,11 +195,15 @@ export function OrderDetailModal({ order, onClose }: { order: Order; onClose: ()
         <div className="bg-slate-50/80 px-8 py-6 border-b shrink-0">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <Badge className={`${statusInfo.className} px-4 py-1 rounded-full uppercase text-[10px] font-black tracking-widest`}>
+              <Badge
+                className={`${statusInfo.className} px-4 py-1 rounded-full uppercase text-[10px] font-black tracking-widest`}
+              >
                 {statusInfo.label}
               </Badge>
               <div className="flex flex-col items-end">
-                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Mã đơn hàng</span>
+                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
+                  Mã đơn hàng
+                </span>
                 <span className="text-xs font-mono text-slate-500 font-bold">#{order.orderId}</span>
               </div>
             </div>
@@ -195,13 +223,16 @@ export function OrderDetailModal({ order, onClose }: { order: Order; onClose: ()
                   <User size={16} className="text-blue-600" /> Khách hàng
                 </div>
                 <div className="bg-white border rounded-[1.5rem] p-5 space-y-3 shadow-sm">
-                  <p className="text-slate-900 font-black text-base">{order.recipientName || "Ẩn danh"}</p>
+                  <p className="text-slate-900 font-black text-base">
+                    {order.recipientName || 'Ẩn danh'}
+                  </p>
                   <div className="space-y-2">
                     <p className="text-sm flex items-center gap-2 text-slate-500 font-medium">
                       <Phone size={14} className="text-slate-300" /> {order.phoneNumber}
                     </p>
                     <p className="text-sm flex items-start gap-2 text-slate-500 font-medium leading-relaxed">
-                      <MapPin size={14} className="text-slate-300 shrink-0 mt-1" /> {order.deliveryAddress}
+                      <MapPin size={14} className="text-slate-300 shrink-0 mt-1" />{' '}
+                      {order.deliveryAddress}
                     </p>
                   </div>
                 </div>
@@ -215,17 +246,25 @@ export function OrderDetailModal({ order, onClose }: { order: Order; onClose: ()
                 <Card className="bg-slate-900 text-white border-none shadow-xl rounded-[1.5rem] overflow-hidden">
                   <CardContent className="p-5 space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-[10px] text-slate-400 font-black uppercase">Tổng giá trị</span>
+                      <span className="text-[10px] text-slate-400 font-black uppercase">
+                        Tổng giá trị
+                      </span>
                       <span className="font-bold">{fmt(order.totalAmount)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-[10px] text-emerald-400 font-black uppercase">Đã thanh toán</span>
+                      <span className="text-[10px] text-emerald-400 font-black uppercase">
+                        Đã thanh toán
+                      </span>
                       <span className="text-emerald-400 font-bold">-{fmt(order.paidAmount)}</span>
                     </div>
                     <Separator className="bg-white/10" />
                     <div className="flex justify-between items-center pt-1">
-                      <span className="text-[10px] font-black uppercase text-blue-400 tracking-widest">Cần thu thêm</span>
-                      <span className="text-2xl font-black text-blue-400">{fmt(order.remainingAmount || 0)}</span>
+                      <span className="text-[10px] font-black uppercase text-blue-400 tracking-widest">
+                        Cần thu thêm
+                      </span>
+                      <span className="text-2xl font-black text-blue-400">
+                        {fmt(order.remainingAmount || 0)}
+                      </span>
                     </div>
                   </CardContent>
                 </Card>

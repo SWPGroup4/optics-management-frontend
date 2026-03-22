@@ -98,7 +98,7 @@ export function Sidebar() {
           <div className="w-9 h-9 rounded-full bg-sidebar-accent flex items-center justify-center text-sidebar-foreground font-medium text-sm shrink-0 uppercase">
             {getInitials(user?.name)}
           </div>
-          
+
           {/* Tên & Role */}
           {!collapsed && (
             <div className="flex-1 min-w-0">
@@ -110,10 +110,10 @@ export function Sidebar() {
               </p>
             </div>
           )}
-          
+
           {/* Nút Đăng xuất */}
           {!collapsed && (
-            <button 
+            <button
               onClick={handleLogout}
               title="Đăng xuất"
               className="p-1.5 rounded-lg text-sidebar-muted hover:text-rose-600 hover:bg-rose-50 transition-colors shrink-0"

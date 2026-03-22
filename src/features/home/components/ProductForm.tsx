@@ -242,156 +242,167 @@ export default function ProductForm({ productId }: { productId: string }) {
         <PrescriptionWidget />
       </div>
 
-<div>
-  <div className="flex justify-between items-center mb-3">
-    <h3 className="text-sm font-bold text-[#4A8795] uppercase">3. Lựa chọn thấu kính</h3>
-    {isLensSelectionOpen && totalPages > 1 && (
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-          disabled={currentPage === 1}
-          className="p-1 rounded bg-white border border-gray-200 disabled:opacity-30"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </button>
-        <span className="text-xs font-medium text-gray-500">
-          {currentPage}/{totalPages}
-        </span>
-        <button
-          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-          disabled={currentPage === totalPages}
-          className="p-1 rounded bg-white border border-gray-200 disabled:opacity-30"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </button>
-      </div>
-    )}
-  </div>
-
-  {isLensesLoading ? (
-    <div className="h-24 bg-gray-200 animate-pulse rounded-xl" />
-  ) : (
-    <div className="relative">
-      {/* 🚀 TRẠNG THÁI THU GỌN: Chỉ hiện khi khách ĐÃ thực hiện hành động chọn (ID có thể là null hoặc string) */}
-      {!isLensSelectionOpen && (
-        <div className="bg-white border-2 border-[#4A8795] rounded-xl p-4 flex justify-between items-center animate-in fade-in slide-in-from-top-2 shadow-sm">
-          <div className="flex items-center gap-3">
-            <CheckCircle2 className="w-6 h-6 text-[#4A8795]" />
-            <div>
-              <p className="text-gray-900 font-bold">
-                {currentLens ? currentLens.name : 'Chỉ mua gọng (Không kèm tròng)'}
-              </p>
-              <p className="text-[#4A8795] text-sm font-medium">
-                {currentLens 
-                  ? (currentLens.price === 0 ? 'Miễn phí' : `+ ${currentLens.price.toLocaleString('vi-VN')} ₫`)
-                  : 'Sử dụng tròng mẫu mặc định'
-                }
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            {/* Nếu đang là một tròng kính cụ thể thì mới hiện nút "Bỏ chọn" để về null */}
-            {selectedLensId !== null && (
+      <div>
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="text-sm font-bold text-[#4A8795] uppercase">3. Lựa chọn thấu kính</h3>
+          {isLensSelectionOpen && totalPages > 1 && (
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => setLensId(null)} 
-                className="text-sm font-medium text-rose-500 hover:text-rose-700 transition-colors"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-1 rounded bg-white border border-gray-200 disabled:opacity-30"
               >
-                Bỏ chọn
+                <ChevronLeft className="w-4 h-4" />
               </button>
-            )}
-            <button
-              onClick={() => setIsLensSelectionOpen(true)}
-              className="text-sm font-medium text-gray-500 hover:text-[#4A8795] transition-colors"
-            >
-              Thay đổi
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* 🚀 TRẠNG THÁI MỞ: Ép khách phải chọn 1 trong các option dưới đây */}
-      {isLensSelectionOpen && (
-        <div className="flex flex-col gap-3 animate-in fade-in duration-300">
-          
-          {/* LỰA CHỌN NULL: Khách phải click vào đây nếu không muốn lấy tròng */}
-          <div
-            className={`border-2 rounded-xl bg-white cursor-pointer transition-all ${selectedLensId === null ? 'border-[#4A8795] shadow-sm bg-teal-50/10' : 'border-gray-200 hover:border-gray-300'}`}
-            onClick={() => {
-              setLensId(null); 
-              setIsLensSelectionOpen(false); // Chỉ đóng khi khách đã chọn
-            }}
-          >
-            <div className="p-4 flex items-start gap-3">
-              <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${selectedLensId === null ? 'border-[#4A8795]' : 'border-gray-300'}`}>
-                {selectedLensId === null && (
-                  <div className="w-2.5 h-2.5 bg-[#4A8795] rounded-full" />
-                )}
-              </div>
-              <div className="flex-1">
-                <h4 className={`font-bold ${selectedLensId === null ? 'text-[#4A8795]' : 'text-gray-900'}`}>
-                  Chỉ mua gọng (Không kèm tròng)
-                </h4>
-                <p className="text-sm text-gray-500 mt-0.5">
-                  Sử dụng tròng nhựa mẫu mặc định của nhà sản xuất.
-                </p>
-              </div>
+              <span className="text-xs font-medium text-gray-500">
+                {currentPage}/{totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="p-1 rounded bg-white border border-gray-200 disabled:opacity-30"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* DANH SÁCH LENS: Khách click vào ID bất kỳ */}
-          {currentPaginatedLenses.map((lens: LensProduct) => (
-            <div
-              key={lens.id}
-              className={`border-2 rounded-xl bg-white cursor-pointer transition-all ${selectedLensId === lens.id ? 'border-[#4A8795] shadow-sm bg-teal-50/10' : 'border-gray-200 hover:border-gray-300'}`}
-              onClick={() => {
-                setLensId(lens.id);
-                setIsLensSelectionOpen(false); // Đóng lại sau khi chọn thành công
-              }}
-            >
-              <div className="p-4 flex items-start gap-3">
-                <div
-                  className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${selectedLensId === lens.id ? 'border-[#4A8795]' : 'border-gray-300'}`}
-                >
-                  {selectedLensId === lens.id && (
-                    <div className="w-2.5 h-2.5 bg-[#4A8795] rounded-full" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <div className="flex justify-between items-start">
-                    <h4 className={`font-bold ${selectedLensId === lens.id ? 'text-[#4A8795]' : 'text-gray-900'}`}>
-                      {lens.name}
-                    </h4>
-                    <span className="font-bold text-gray-900 whitespace-nowrap ml-2">
-                      {lens.price === 0 ? 'Included' : `+${lens.price.toLocaleString('vi-VN')}đ`}
-                    </span>
+        {isLensesLoading ? (
+          <div className="h-24 bg-gray-200 animate-pulse rounded-xl" />
+        ) : (
+          <div className="relative">
+            {/* 🚀 TRẠNG THÁI THU GỌN: Chỉ hiện khi khách ĐÃ thực hiện hành động chọn (ID có thể là null hoặc string) */}
+            {!isLensSelectionOpen && (
+              <div className="bg-white border-2 border-[#4A8795] rounded-xl p-4 flex justify-between items-center animate-in fade-in slide-in-from-top-2 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="w-6 h-6 text-[#4A8795]" />
+                  <div>
+                    <p className="text-gray-900 font-bold">
+                      {currentLens ? currentLens.name : 'Chỉ mua gọng (Không kèm tròng)'}
+                    </p>
+                    <p className="text-[#4A8795] text-sm font-medium">
+                      {currentLens
+                        ? currentLens.price === 0
+                          ? 'Miễn phí'
+                          : `+ ${currentLens.price.toLocaleString('vi-VN')} ₫`
+                        : 'Sử dụng tròng mẫu mặc định'}
+                    </p>
                   </div>
-                  {/* Phần info mở rộng giữ nguyên */}
+                </div>
+
+                <div className="flex items-center gap-4">
+                  {/* Nếu đang là một tròng kính cụ thể thì mới hiện nút "Bỏ chọn" để về null */}
+                  {selectedLensId !== null && (
+                    <button
+                      onClick={() => setLensId(null)}
+                      className="text-sm font-medium text-rose-500 hover:text-rose-700 transition-colors"
+                    >
+                      Bỏ chọn
+                    </button>
+                  )}
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setExpandedLensId(expandedLensId === lens.id ? null : lens.id);
-                    }}
-                    className="mt-2 text-xs font-medium text-gray-500 flex items-center gap-1 bg-gray-50 px-2 py-1 rounded-md"
+                    onClick={() => setIsLensSelectionOpen(true)}
+                    className="text-sm font-medium text-gray-500 hover:text-[#4A8795] transition-colors"
                   >
-                    <Info className="w-3.5 h-3.5" />
-                    {expandedLensId === lens.id ? 'Đóng' : 'Thông số'}
+                    Thay đổi
                   </button>
                 </div>
               </div>
-              {expandedLensId === lens.id && (
-                <div className="p-4 bg-gray-50 border-t text-sm text-gray-600 ml-8 animate-in slide-in-from-top-1">
-                   <p><span className="font-semibold text-gray-900">Chất liệu:</span> {lens.material || 'Tiêu chuẩn'}</p>
-                   <p>{lens.description || 'Không có mô tả chi tiết.'}</p>
+            )}
+
+            {/* 🚀 TRẠNG THÁI MỞ: Ép khách phải chọn 1 trong các option dưới đây */}
+            {isLensSelectionOpen && (
+              <div className="flex flex-col gap-3 animate-in fade-in duration-300">
+                {/* LỰA CHỌN NULL: Khách phải click vào đây nếu không muốn lấy tròng */}
+                <div
+                  className={`border-2 rounded-xl bg-white cursor-pointer transition-all ${selectedLensId === null ? 'border-[#4A8795] shadow-sm bg-teal-50/10' : 'border-gray-200 hover:border-gray-300'}`}
+                  onClick={() => {
+                    setLensId(null);
+                    setIsLensSelectionOpen(false); // Chỉ đóng khi khách đã chọn
+                  }}
+                >
+                  <div className="p-4 flex items-start gap-3">
+                    <div
+                      className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${selectedLensId === null ? 'border-[#4A8795]' : 'border-gray-300'}`}
+                    >
+                      {selectedLensId === null && (
+                        <div className="w-2.5 h-2.5 bg-[#4A8795] rounded-full" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h4
+                        className={`font-bold ${selectedLensId === null ? 'text-[#4A8795]' : 'text-gray-900'}`}
+                      >
+                        Chỉ mua gọng (Không kèm tròng)
+                      </h4>
+                      <p className="text-sm text-gray-500 mt-0.5">
+                        Sử dụng tròng nhựa mẫu mặc định của nhà sản xuất.
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )}
-</div>
+
+                {/* DANH SÁCH LENS: Khách click vào ID bất kỳ */}
+                {currentPaginatedLenses.map((lens: LensProduct) => (
+                  <div
+                    key={lens.id}
+                    className={`border-2 rounded-xl bg-white cursor-pointer transition-all ${selectedLensId === lens.id ? 'border-[#4A8795] shadow-sm bg-teal-50/10' : 'border-gray-200 hover:border-gray-300'}`}
+                    onClick={() => {
+                      setLensId(lens.id);
+                      setIsLensSelectionOpen(false); // Đóng lại sau khi chọn thành công
+                    }}
+                  >
+                    <div className="p-4 flex items-start gap-3">
+                      <div
+                        className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${selectedLensId === lens.id ? 'border-[#4A8795]' : 'border-gray-300'}`}
+                      >
+                        {selectedLensId === lens.id && (
+                          <div className="w-2.5 h-2.5 bg-[#4A8795] rounded-full" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start">
+                          <h4
+                            className={`font-bold ${selectedLensId === lens.id ? 'text-[#4A8795]' : 'text-gray-900'}`}
+                          >
+                            {lens.name}
+                          </h4>
+                          <span className="font-bold text-gray-900 whitespace-nowrap ml-2">
+                            {lens.price === 0
+                              ? 'Included'
+                              : `+${lens.price.toLocaleString('vi-VN')}đ`}
+                          </span>
+                        </div>
+                        {/* Phần info mở rộng giữ nguyên */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedLensId(expandedLensId === lens.id ? null : lens.id);
+                          }}
+                          className="mt-2 text-xs font-medium text-gray-500 flex items-center gap-1 bg-gray-50 px-2 py-1 rounded-md"
+                        >
+                          <Info className="w-3.5 h-3.5" />
+                          {expandedLensId === lens.id ? 'Đóng' : 'Thông số'}
+                        </button>
+                      </div>
+                    </div>
+                    {expandedLensId === lens.id && (
+                      <div className="p-4 bg-gray-50 border-t text-sm text-gray-600 ml-8 animate-in slide-in-from-top-1">
+                        <p>
+                          <span className="font-semibold text-gray-900">Chất liệu:</span>{' '}
+                          {lens.material || 'Tiêu chuẩn'}
+                        </p>
+                        <p>{lens.description || 'Không có mô tả chi tiết.'}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* 4. HIỂN THỊ TỔNG TIỀN VÀ NÚT MUA HÀNG TRỰC TIẾP */}
       <div className="mt-8 pt-6 border-t-2 border-dashed border-gray-200">
