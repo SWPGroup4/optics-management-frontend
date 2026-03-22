@@ -1,15 +1,16 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { jwtDecode } from "jwt-decode";
+import { jwtDecode } from 'jwt-decode';
 import axios, { AxiosError } from 'axios';
 import { authApi } from '../api/auth-api';
 
-import { 
-  JwtPayloadSchema, 
-  type AuthStore, 
-  type UserState, 
-  type ApiResponse, 
-  type RegisterInput 
+
+import {
+  JwtPayloadSchema,
+  type AuthStore,
+  type UserState,
+ 
+  type RegisterInput,
 } from '../types';
 import { PROFILE_QUERY_KEY } from '@/features/profile/hooks/useProfileQuery';
 import { queryClient } from '@/lib/react-query';
@@ -115,8 +116,8 @@ export const useAuthStore = create<AuthStore>()(
           set({ isLoading: false });
 
           if (error instanceof AxiosError) {
-            const serverData = error.response?.data as ApiResponse<null>;
-            throw new Error(serverData?.result || 'Đăng ký thất bại');
+            const serverData = error.response?.data as { code: number; message?: string; result?: string };
+            throw new Error(serverData?.message ?? serverData?.result ?? 'Đăng ký thất bại');
           }
 
           if (error instanceof Error) throw error;

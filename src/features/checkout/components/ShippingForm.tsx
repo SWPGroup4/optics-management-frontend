@@ -1,118 +1,201 @@
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FormItem } from "./Shared";
-import { useCheckoutStore } from "../store/useCheckoutStore";
+import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { useCheckoutStore } from '../store/useCheckoutStore';
+import { MapPin, Phone, Truck, LocateFixed, Loader2, Map as MapIcon, User } from 'lucide-react';
+import { toast } from 'sonner';
 
 export const ShippingForm = () => {
-  // Lấy data và hàm update từ Store
   const { shippingData, updateShippingData } = useCheckoutStore();
+  const [isLocating, setIsLocating] = useState(false);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+
+  // 1. Hàm tìm tọa độ bằng GPS (Nút Tâm Ngắm)
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('Trình duyệt của bạn không hỗ trợ định vị.');
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          setCoords({ lat: latitude, lng: longitude });
+
+          // Dịch tọa độ -> Chữ
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+          );
+          if (!response.ok) throw new Error('Lỗi mạng khi gọi API');
+
+          const data = await response.json();
+          if (data && data.display_name) {
+            updateShippingData({ address: data.display_name });
+            toast.success('Đã cắm cờ vị trí của bạn trên bản đồ!');
+          } else {
+            toast.error('Không tìm thấy tên đường cho vị trí này.');
+          }
+        } catch (error) {
+          console.error(error);
+          toast.error('Có lỗi xảy ra khi phân tích địa chỉ.');
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      () => {
+        setIsLocating(false);
+        toast.error('Không thể lấy vị trí hiện tại.');
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+    );
+  };
+
+  // 2. MỚI: Hàm tìm tọa độ khi người dùng GÕ TAY địa chỉ
+  const handleAddressBlur = async () => {
+    // Nếu xóa trống ô địa chỉ thì ẩn bản đồ
+    if (!shippingData.address || shippingData.address.trim() === '') {
+      setCoords(null);
+      return;
+    }
+
+    try {
+      // Dịch Chữ -> Tọa độ
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(shippingData.address)}&limit=1`,
+      );
+      const data = await response.json();
+
+      if (data && data.length > 0) {
+        // Lấy kết quả đầu tiên trả về
+        const { lat, lon } = data[0];
+        setCoords({ lat: parseFloat(lat), lng: parseFloat(lon) });
+      } else {
+        // Nếu API không tìm ra địa chỉ này thì ẩn bản đồ đi
+        setCoords(null);
+      }
+    } catch (error) {
+      console.error('Lỗi khi tìm vị trí từ địa chỉ gõ tay:', error);
+    }
+  };
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <h2 className="text-xl font-bold text-gray-900">Shipping Details</h2>
-      
-      {/* Row 1: Name */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormItem label="First Name" id="firstName">
-          <Input 
-            id="firstName" 
-            placeholder="e.g. Jonathan" 
-            className="h-11"
-            value={shippingData.firstName}
-            onChange={(e) => updateShippingData({ firstName: e.target.value })}
-          />
-        </FormItem>
-        <FormItem label="Last Name" id="lastName">
-          <Input 
-            id="lastName" 
-            placeholder="e.g. Ives" 
-            className="h-11"
-            value={shippingData.lastName}
-            onChange={(e) => updateShippingData({ lastName: e.target.value })}
-          />
-        </FormItem>
-      </div>
-
-      {/* Row 2: Address */}
-      <FormItem label="Address" id="address">
-        <Input 
-          id="address" 
-          placeholder="123 Design Blvd, Suite 400" 
-          className="h-11"
-          value={shippingData.address}
-          onChange={(e) => updateShippingData({ address: e.target.value })}
-        />
-      </FormItem>
-
-      {/* Row 3: City, State, Zip */}
-      <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
-        <div className="sm:col-span-6">
-          <FormItem label="City" id="city">
-            <Input 
-              id="city" 
-              placeholder="San Francisco" 
-              className="h-11"
-              value={shippingData.city}
-              onChange={(e) => updateShippingData({ city: e.target.value })}
-            />
-          </FormItem>
+    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* HEADER */}
+      <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
+        <div className="p-2.5 bg-[#4A8795]/10 rounded-xl">
+          <Truck className="w-5 h-5 text-[#4A8795]" />
         </div>
-        
-        <div className="sm:col-span-3">
-          <FormItem label="State" id="state">
-            {/* Lưu ý: Select của Shadcn dùng onValueChange chứ không phải onChange */}
-            <Select 
-              value={shippingData.state} 
-              onValueChange={(value) => updateShippingData({ state: value })}
-            >
-              <SelectTrigger id="state" className="h-11">
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ca">CA</SelectItem>
-                <SelectItem value="ny">NY</SelectItem>
-                <SelectItem value="tx">TX</SelectItem>
-                <SelectItem value="wa">WA</SelectItem>
-              </SelectContent>
-            </Select>
-          </FormItem>
-        </div>
-        
-        <div className="sm:col-span-3">
-          <FormItem label="ZIP" id="zip">
-            <Input 
-              id="zip" 
-              placeholder="94103" 
-              className="h-11"
-              value={shippingData.zip}
-              onChange={(e) => updateShippingData({ zip: e.target.value })}
-            />
-          </FormItem>
+        <div>
+          <h2 className="text-lg font-bold text-gray-900">Thông tin giao hàng</h2>
+          <p className="text-xs text-gray-500 mt-0.5 font-medium">
+            Vui lòng điền chính xác để chúng tôi giao hàng nhanh nhất
+          </p>
         </div>
       </div>
 
-      {/* Row 4: Contact */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormItem label="Email" id="email">
-          <Input 
-            id="email" 
-            type="email" 
-            placeholder="jonathan@apple.com" 
-            className="h-11"
-            value={shippingData.email}
-            onChange={(e) => updateShippingData({ email: e.target.value })}
-          />
-        </FormItem>
-        <FormItem label="Phone" id="phone">
-          <Input 
-            id="phone" 
-            type="tel" 
-            placeholder="(555) 123-4567" 
-            className="h-11"
-            value={shippingData.phone}
-            onChange={(e) => updateShippingData({ phone: e.target.value })}
-          />
-        </FormItem>
+      <div className="space-y-5">
+        {/* TRƯỜNG NHẬP TÊN NGƯỜI NHẬN (THÊM MỚI) */}
+        <div className="space-y-1.5">
+          <label htmlFor="name" className="text-sm font-semibold text-gray-700 ml-1">
+            Họ và tên người nhận <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <User className="h-4 w-4 text-gray-400" />
+            </div>
+            <Input
+              id="name"
+              type="text"
+              placeholder="Nguyễn Văn A"
+              className="pl-10 h-12 bg-gray-50/50 border-gray-200 focus:border-[#4A8795] focus:ring-[#4A8795]/20 focus:bg-white transition-all rounded-xl text-sm font-medium"
+              value={shippingData.name || ''}
+              onChange={(e) => updateShippingData({ name: e.target.value })}
+            />
+          </div>
+        </div>
+
+        {/* TRƯỜNG NHẬP ĐỊA CHỈ */}
+        <div className="space-y-2">
+          <label htmlFor="address" className="text-sm font-semibold text-gray-700 ml-1">
+            Địa chỉ nhận hàng <span className="text-red-500">*</span>
+          </label>
+          <div className="relative flex items-center">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <MapPin className="h-4 w-4 text-gray-400" />
+            </div>
+
+            <Input
+              id="address"
+              placeholder="Nhập địa chỉ hoặc bấm nút bên phải 👉"
+              className="pl-10 pr-12 h-12 bg-gray-50/50 border-gray-200 focus:border-[#4A8795] focus:ring-[#4A8795]/20 focus:bg-white transition-all rounded-xl text-sm"
+              value={shippingData.address || ''}
+              onChange={(e) => updateShippingData({ address: e.target.value })}
+              onBlur={handleAddressBlur}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleAddressBlur();
+              }}
+            />
+
+            <div className="absolute inset-y-0 right-1 flex items-center">
+              <button
+                type="button"
+                onClick={handleGetLocation}
+                disabled={isLocating}
+                className="p-2 text-[#4A8795] hover:bg-[#4A8795]/10 rounded-lg transition-colors disabled:opacity-50 group"
+              >
+                {isLocating ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <LocateFixed className="w-5 h-5 group-hover:scale-110" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* BẢN ĐỒ IFRAME */}
+          {coords && (
+            <div className="mt-3 overflow-hidden rounded-xl border border-gray-200 shadow-sm animate-in fade-in slide-in-from-top-2 duration-500">
+              <div className="bg-gray-50 px-3 py-2 border-b border-gray-200 flex items-center gap-2">
+                <MapIcon className="w-4 h-4 text-[#4A8795]" />
+                <span className="text-xs font-semibold text-gray-600">
+                  Vị trí giao hàng dự kiến
+                </span>
+              </div>
+              <iframe
+                title="Map"
+                width="100%"
+                height="200"
+                frameBorder="0"
+                scrolling="no"
+                marginHeight={0}
+                marginWidth={0}
+                src={`https://www.openstreetmap.org/export/embed.html?bbox=${coords.lng - 0.005},${coords.lat - 0.005},${coords.lng + 0.005},${coords.lat + 0.005}&layer=mapnik&marker=${coords.lat},${coords.lng}`}
+                className="w-full grayscale-[20%] hover:grayscale-0 transition-all duration-500"
+              ></iframe>
+            </div>
+          )}
+        </div>
+
+        {/* TRƯỜNG NHẬP SỐ ĐIỆN THOẠI */}
+        <div className="space-y-1.5">
+          <label htmlFor="phone" className="text-sm font-semibold text-gray-700 ml-1">
+            Số điện thoại liên hệ <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <Phone className="h-4 w-4 text-gray-400" />
+            </div>
+            <Input
+              id="phone"
+              type="tel"
+              placeholder="0912 345 678"
+              className="pl-10 h-12 bg-gray-50/50 border-gray-200 focus:border-[#4A8795] focus:ring-[#4A8795]/20 focus:bg-white transition-all rounded-xl text-sm font-medium"
+              value={shippingData.phone || ''}
+              onChange={(e) => updateShippingData({ phone: e.target.value })}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

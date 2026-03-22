@@ -1,6 +1,12 @@
 // src/features/auth/api/auth-api.ts
-import { api } from "@/lib/axios";
-import type { LoginInput, RegisterInput, AuthResponse, ApiResponse, UserRegistrationResult } from "../types";
+import { api } from '@/lib/axios';
+import type {
+  LoginInput,
+  RegisterInput,
+  AuthResponse,
+  ApiResponse,
+  UserRegistrationResult,
+} from '../types';
 
 export interface LogoutRequest {
   token: string;
@@ -10,7 +16,7 @@ export const authApi = {
   // 1. Login
   login: async (data: LoginInput): Promise<AuthResponse> => {
     const response = await api.post('/auth/login', data);
-    return response.data.result; 
+    return response.data.result;
   },
 
   // 2. Register (MỚI)
@@ -21,36 +27,34 @@ export const authApi = {
     // 1. Tách file ảnh ra riêng
     const { imageFile, ...userData } = data;
 
-    // 2. Xử lý phần JSON 'data'
-    // Backend yêu cầu field 'data' là một Blob với type application/json
+    // Backend yêu cầu field tên 'UserInfor' kiểu JSON blob
     const jsonBlob = new Blob([JSON.stringify(userData)], {
-      type: "application/json",
+      type: 'application/json',
     });
-    formData.append("data", jsonBlob);
+    formData.append('UserInfor', jsonBlob);
 
     // 3. Xử lý phần file 'imageUrl'
     // Lưu ý: key phải là "imageUrl" như trong lệnh curl (-F 'imageUrl=@cam.jpg')
     if (imageFile && imageFile instanceof FileList && imageFile.length > 0) {
-      formData.append("imageUrl", imageFile[0]); 
+      formData.append('imageUrl', imageFile[0]);
     }
 
     // 4. Gửi Request
     // Axios tự động set Content-Type là multipart/form-data khi thấy FormData
-    const response = await api.post('/users/registration', formData, {
+    const response = (await api.post('/users/registration', formData, {
       headers: {
-        "Content-Type": "multipart/form-data",
+        'Content-Type': 'multipart/form-data',
       },
-    }) as ApiResponse<UserRegistrationResult>;
-    
+    })) as ApiResponse<UserRegistrationResult>;
+
     return response.result;
   },
-  
 
   // 3. Logout
   logout: (data: LogoutRequest): Promise<void> => {
     return api.post('/auth/logout', data);
   },
-  
+
   // 4. Refresh token
 
   refreshToken: async (token: string): Promise<ApiResponse<AuthResponse>> => {

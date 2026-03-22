@@ -1,6 +1,6 @@
-import { Badge } from "@/components/ui/badge";
-import { Loader2 } from "lucide-react";
-import { useProduct } from "../hooks/useProducts";
+import { Badge } from '@/components/ui/badge';
+import { Loader2 } from 'lucide-react';
+import { useProduct } from '../hooks/useProducts';
 
 export default function ProductInfo({ productId }: { productId: string }) {
   // 1. Gọi Hook để lấy dữ liệu
@@ -31,16 +31,14 @@ export default function ProductInfo({ productId }: { productId: string }) {
       {/* Badges & Title */}
       <div>
         <div className="flex gap-2 mb-3">
-          <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-md px-2.5 uppercase">
-            {product.status || "CÒN HÀNG"}
-          </Badge>
-          <Badge variant="secondary" className="bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-md px-2.5 uppercase">
+          <Badge
+            variant="secondary"
+            className="bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-md px-2.5 uppercase"
+          >
             {product.category}
           </Badge>
         </div>
-        <h1 className="text-4xl font-bold text-gray-900 tracking-tight mb-2">
-          {product.name}
-        </h1>
+        <h1 className="text-4xl font-bold text-gray-900 tracking-tight mb-2">{product.name}</h1>
         <p className="text-gray-500 italic">
           {product.brand} — {product.frameMaterial} và {product.shape}
         </p>
@@ -51,14 +49,14 @@ export default function ProductInfo({ productId }: { productId: string }) {
         <span className="text-3xl font-bold text-[#4A8795]">
           {(product.minPrice ?? 0).toLocaleString()}₫
         </span>
-        {product.maxPrice != null && product.minPrice != null && product.maxPrice > product.minPrice && (
-          <span className="text-lg text-gray-400 line-through decoration-gray-300">
-            {product.maxPrice.toLocaleString()}₫
-          </span>
-        )}
+        {product.maxPrice != null &&
+          product.minPrice != null &&
+          product.maxPrice > product.minPrice && (
+            <span className="text-lg text-gray-400 line-through decoration-gray-300">
+              {product.maxPrice.toLocaleString()}₫
+            </span>
+          )}
       </div>
-
-  
     </div>
   );
 }

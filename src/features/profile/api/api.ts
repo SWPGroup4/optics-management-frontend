@@ -1,14 +1,15 @@
-import { api } from "@/lib/axios";
-import type { ApiResponse, UserProfile } from "../types";
+import { api } from '@/lib/axios';
+import type { ApiResponse, UserProfile } from '../types';
+
 export const profileApi = {
   // 1. Lấy thông tin cá nhân
   getProfile: async (): Promise<UserProfile> => {
     // Gọi API (endpoint này tuỳ backend bạn, thường là /users/my-info hoặc /users/profile)
-    const response = await api.get<ApiResponse<UserProfile>>('/users/me'); 
-    
+    const response = await api.get<ApiResponse<UserProfile>>('/users/me');
+
     // 🔥 QUAN TRỌNG: Trả về .result để Hook nhận đúng data UserProfile
     // Nếu không có .result, UI sẽ nhận cả cục { code: 0, result: ... } và bị lỗi
-    return response.data.result; 
+    return response.data.result;
   },
 
   // 2. Cập nhật thông tin cá nhân
@@ -26,13 +27,21 @@ export const profileApi = {
   },
 
   // 4. Lấy đơn hàng của người dùng
-  getOrders: () => {
-    return api.get('/orders/me');
+  getOrders: async (page = 0, size = 10) => {
+    const response = await api.get(
+      `/orders/me?page=${page}&size=${size}&sortBy=createdAt&sortDir=desc`,
+    );
+    // Giả sử API trả về { result: { content: Order[] } } dựa trên curl của bạn
+    return response.data.result;
   },
 
-  // 5. Lấy địa chỉ của người dùng
+  // 5. Hủy đơn hàng (chỉ áp dụng cho PRE_ORDER chưa xử lý)
+  cancelOrder: (orderId: string) => {
+    return api.put(`/orders/${orderId}/cancel`);
+  },
+
+  // 6. Lấy địa chỉ của người dùng
   getAddresses: () => {
     return api.get('/profile/addresses');
   },
-
-};      
+};
