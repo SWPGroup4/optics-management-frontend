@@ -51,14 +51,16 @@ const ProductVariantManagePage = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   // --- Lấy dữ liệu từ API thông qua hook có filter ---
-  const { data: paginatedData, isLoading, isError, isFetching } = useFilteredVariants(
-    productId!,
-    {
-      page: 0,
-      size: 100, // Lấy tạm 100, bạn có thể tích hợp phân trang thật sau
-      q: debouncedSearchTerm || undefined, // Truyền keyword để backend tìm kiếm
-    }
-  );
+  const {
+    data: paginatedData,
+    isLoading,
+    isError,
+    isFetching,
+  } = useFilteredVariants(productId!, {
+    page: 0,
+    size: 100, // Lấy tạm 100, bạn có thể tích hợp phân trang thật sau
+    q: debouncedSearchTerm || undefined, // Truyền keyword để backend tìm kiếm
+  });
 
   // Bóc tách mảng an toàn từ object phân trang (giả sử API trả về { items: [], totalElements: 0 })
   const filteredVariants = paginatedData?.items || [];
@@ -168,7 +170,7 @@ const ProductVariantManagePage = () => {
           <div className="relative w-full sm:w-96 group">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               {isFetching && searchTerm === debouncedSearchTerm ? (
-                 <Loader2 className="h-4 w-4 text-indigo-500 animate-spin" />
+                <Loader2 className="h-4 w-4 text-indigo-500 animate-spin" />
               ) : (
                 <Search className="h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
               )}
@@ -182,8 +184,7 @@ const ProductVariantManagePage = () => {
             />
           </div>
           <div className="text-sm text-slate-500 font-medium">
-            Kết quả:{' '}
-            <span className="text-slate-900 font-bold">{totalVariants}</span>
+            Kết quả: <span className="text-slate-900 font-bold">{totalVariants}</span>
           </div>
         </div>
 
@@ -314,7 +315,9 @@ const ProductVariantManagePage = () => {
                       <td className="px-6 py-5 align-middle">
                         <div className="flex items-center gap-1 font-bold text-slate-800 text-[15px]">
                           {Number(variant.price ?? 0).toLocaleString('vi-VN')}
-                          <span className="text-xs font-medium text-slate-400 underline decoration-slate-300">đ</span>
+                          <span className="text-xs font-medium text-slate-400 underline decoration-slate-300">
+                            đ
+                          </span>
                         </div>
                       </td>
 

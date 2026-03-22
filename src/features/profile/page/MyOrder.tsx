@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 // Các API cho action (huỷ đơn, hoàn tiền)
-import { profileApi } from '../api/api'; 
+import { profileApi } from '../api/api';
 
 // 🚀 IMPORT HOOK & TYPES MỚI VÀO ĐÂY
 import { useMyOrders } from '../hooks/useMyOrders';
-import type { Order, OrderItem } from '../types/order'; 
+import type { Order, OrderItem } from '../types/order';
 import { isAxiosError } from 'axios';
 import { fmt } from '@/lib/utils';
 
@@ -106,23 +106,40 @@ function PrescriptionImage({ imageUrl }: { imageUrl: string }) {
         className="mt-2 flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 underline underline-offset-2"
       >
         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+          />
         </svg>
         Xem ảnh đơn kính
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={() => setOpen(false)}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+          onClick={() => setOpen(false)}
+        >
           <div className="relative max-w-lg w-full" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => setOpen(false)}
               className="absolute -top-3 -right-3 w-7 h-7 bg-white rounded-full shadow flex items-center justify-center text-gray-500 hover:text-gray-800"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
-            <img src={imageUrl} alt="Ảnh đơn kính" className="w-full rounded-2xl shadow-2xl object-contain max-h-[80vh]" />
+            <img
+              src={imageUrl}
+              alt="Ảnh đơn kính"
+              className="w-full rounded-2xl shadow-2xl object-contain max-h-[80vh]"
+            />
           </div>
         </div>
       )}
@@ -132,15 +149,29 @@ function PrescriptionImage({ imageUrl }: { imageUrl: string }) {
 
 // ─── OrderItem Card ───────────────────────────────────────────────────────────
 
-function OrderItemCard({ item, orderName }: { item: OrderItem; index: number; total: number; orderName?: string | null }) {
-  const productLabel = item.productName || item.itemName || orderName || (item.orderItemType === 'PRE_ORDER' ? 'Sản phẩm đặt trước' : 'Sản phẩm có sẵn');
+function OrderItemCard({
+  item,
+  orderName,
+}: {
+  item: OrderItem;
+  index: number;
+  total: number;
+  orderName?: string | null;
+}) {
+  const productLabel =
+    item.productName ||
+    item.itemName ||
+    orderName ||
+    (item.orderItemType === 'PRE_ORDER' ? 'Sản phẩm đặt trước' : 'Sản phẩm có sẵn');
 
   return (
     <div className="bg-white border border-gray-100 rounded-xl p-4 space-y-3">
       <div className="flex justify-between items-start gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
-            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${item.orderItemType === 'PRE_ORDER' ? 'bg-violet-100 text-violet-700' : 'bg-emerald-100 text-emerald-700'}`}>
+            <span
+              className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${item.orderItemType === 'PRE_ORDER' ? 'bg-violet-100 text-violet-700' : 'bg-emerald-100 text-emerald-700'}`}
+            >
               {item.orderItemType === 'PRE_ORDER' ? 'Đặt trước' : 'Hàng có sẵn'}
             </span>
             {item.status && (
@@ -150,9 +181,13 @@ function OrderItemCard({ item, orderName }: { item: OrderItem; index: number; to
             )}
           </div>
           <p className="text-sm font-semibold text-gray-800">{productLabel}</p>
-          {item.variantName && <p className="text-xs text-gray-500 mt-0.5">🏷️ {item.variantName}</p>}
+          {item.variantName && (
+            <p className="text-xs text-gray-500 mt-0.5">🏷️ {item.variantName}</p>
+          )}
           {item.lensName && item.lensPrice != null && (
-            <p className="text-xs text-indigo-500 mt-0.5">🔭 {item.lensName} &nbsp;+&nbsp; {fmt(item.lensPrice)}</p>
+            <p className="text-xs text-indigo-500 mt-0.5">
+              🔭 {item.lensName} &nbsp;+&nbsp; {fmt(item.lensPrice)}
+            </p>
           )}
         </div>
         <p className="text-sm font-bold text-gray-800 shrink-0">{fmt(item.totalPrice)}</p>
@@ -206,7 +241,9 @@ function OrderItemCard({ item, orderName }: { item: OrderItem; index: number; to
               ))}
             </div>
           </div>
-          {item.prescription.imageUrl && <PrescriptionImage imageUrl={item.prescription.imageUrl} />}
+          {item.prescription.imageUrl && (
+            <PrescriptionImage imageUrl={item.prescription.imageUrl} />
+          )}
         </div>
       )}
     </div>
@@ -221,12 +258,17 @@ function OrderCard({ order }: { order: Order }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const queryClient = useQueryClient();
 
-  const statusCfg = STATUS_CONFIG[order.orderStatus] ?? { color: 'bg-gray-50 text-gray-600 border-gray-200', label: order.orderStatus, dot: 'bg-gray-400' };
- // const hasDiscount = !!order.comboName && !!order.comboDiscountAmount;
- // const hasRefund = order.refundedAmount > 0;
+  const statusCfg = STATUS_CONFIG[order.orderStatus] ?? {
+    color: 'bg-gray-50 text-gray-600 border-gray-200',
+    label: order.orderStatus,
+    dot: 'bg-gray-400',
+  };
+  // const hasDiscount = !!order.comboName && !!order.comboDiscountAmount;
+  // const hasRefund = order.refundedAmount > 0;
 
   const hasPreOrder = order.items.some((i) => i.orderItemType === 'PRE_ORDER');
-  const canCancel = hasPreOrder && !['CANCELLED', 'COMPLETED', 'REFUNDED', 'DELIVERED'].includes(order.orderStatus);
+  const canCancel =
+    hasPreOrder && !['CANCELLED', 'COMPLETED', 'REFUNDED', 'DELIVERED'].includes(order.orderStatus);
 
   const handleCancel = async () => {
     setCancelling(true);
@@ -234,7 +276,8 @@ function OrderCard({ order }: { order: Order }) {
       await profileApi.cancelOrder(order.orderId);
       queryClient.invalidateQueries({ queryKey: ['my-orders'] });
       setShowConfirm(false);
-    } catch (e: unknown) { // Đổi any thành unknown
+    } catch (e: unknown) {
+      // Đổi any thành unknown
       if (isAxiosError(e)) {
         // TypeScript sẽ tự hiểu e là AxiosError ở trong block này
         alert(e.response?.data?.message ?? 'Lỗi khi hủy đơn hàng');
@@ -250,28 +293,60 @@ function OrderCard({ order }: { order: Order }) {
   };
 
   return (
-    <div className={`border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow duration-200 ${order.orderStatus === 'CANCELLED' ? 'opacity-90' : ''}`}>
+    <div
+      className={`border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow duration-200 ${order.orderStatus === 'CANCELLED' ? 'opacity-90' : ''}`}
+    >
       {/* Modal xác nhận hủy */}
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowConfirm(false)} />
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowConfirm(false)}
+          />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                <svg
+                  className="w-5 h-5 text-rose-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+                  />
                 </svg>
               </div>
               <div>
                 <p className="font-bold text-gray-900">Xác nhận hủy đơn?</p>
-                <p className="text-xs text-gray-500 mt-0.5">{order.orderName || `Đơn #${order.orderId.slice(0, 8).toUpperCase()}`}</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {order.orderName || `Đơn #${order.orderId.slice(0, 8).toUpperCase()}`}
+                </p>
               </div>
             </div>
-            <p className="text-sm text-gray-600 leading-relaxed">Đơn hàng <span className="font-semibold text-violet-700">PRE_ORDER</span> sẽ chuyển sang <span className="font-semibold text-rose-600">Đã hủy</span>.</p>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              Đơn hàng <span className="font-semibold text-violet-700">PRE_ORDER</span> sẽ chuyển
+              sang <span className="font-semibold text-rose-600">Đã hủy</span>.
+            </p>
             <div className="flex gap-3 pt-1">
-              <button onClick={() => setShowConfirm(false)} disabled={cancelling} className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors disabled:opacity-50">Không hủy</button>
-              <button onClick={handleCancel} disabled={cancelling} className="flex-1 py-2.5 text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
-                {cancelling && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
+              <button
+                onClick={() => setShowConfirm(false)}
+                disabled={cancelling}
+                className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors disabled:opacity-50"
+              >
+                Không hủy
+              </button>
+              <button
+                onClick={handleCancel}
+                disabled={cancelling}
+                className="flex-1 py-2.5 text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {cancelling && (
+                  <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                )}
                 Xác nhận
               </button>
             </div>
@@ -280,30 +355,61 @@ function OrderCard({ order }: { order: Order }) {
       )}
 
       {/* Header row – click to expand */}
-      <button onClick={() => setExpanded(!expanded)} className="w-full text-left px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full text-left px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+      >
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-            <svg className="w-4.5 h-4.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            <svg
+              className="w-4.5 h-4.5 text-indigo-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
             </svg>
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="font-semibold text-gray-800 text-sm">{order.orderName || `Đơn #${order.orderId.slice(0, 8).toUpperCase()}`}</p>
+              <p className="font-semibold text-gray-800 text-sm">
+                {order.orderName || `Đơn #${order.orderId.slice(0, 8).toUpperCase()}`}
+              </p>
             </div>
-            <p className="text-xs text-gray-400 truncate max-w-xs mt-0.5">{order.deliveryAddress}</p>
+            <p className="text-xs text-gray-400 truncate max-w-xs mt-0.5">
+              {order.deliveryAddress}
+            </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3 shrink-0 ml-2">
-          <span className={`px-3 py-1 rounded-full text-xs font-medium border hidden sm:flex items-center gap-1.5 ${statusCfg.color}`}>
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-medium border hidden sm:flex items-center gap-1.5 ${statusCfg.color}`}
+          >
             <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`} />
             {statusCfg.label}
           </span>
           <div className="flex items-center gap-1.5">
-            <span className="font-bold text-gray-800 text-sm">{fmt(order.finalTotalAfterRefund)}</span>
-            <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <span className="font-bold text-gray-800 text-sm">
+              {fmt(order.finalTotalAfterRefund)}
+            </span>
+            <svg
+              className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </div>
         </div>
@@ -313,7 +419,13 @@ function OrderCard({ order }: { order: Order }) {
         <div className="border-t border-gray-100 px-5 py-4 bg-gray-50/40 space-y-4">
           <div className="space-y-3">
             {order.items.map((item, idx) => (
-              <OrderItemCard key={item.orderItemId} item={item} index={idx} total={order.items.length} orderName={order.orderName} />
+              <OrderItemCard
+                key={item.orderItemId}
+                item={item}
+                index={idx}
+                total={order.items.length}
+                orderName={order.orderName}
+              />
             ))}
           </div>
 
@@ -325,14 +437,19 @@ function OrderCard({ order }: { order: Order }) {
               ) : order.remainingAmount <= 0 ? (
                 <span className="text-sm font-bold text-emerald-600">Đã thanh toán đủ ✓</span>
               ) : (
-                <span className="text-lg font-bold text-rose-600">{fmt(order.remainingAmount)}</span>
+                <span className="text-lg font-bold text-rose-600">
+                  {fmt(order.remainingAmount)}
+                </span>
               )}
             </div>
           </div>
 
           {canCancel && (
             <button
-              onClick={(e) => { e.stopPropagation(); setShowConfirm(true); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowConfirm(true);
+              }}
               className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition-colors"
             >
               Hủy đơn PRE_ORDER
@@ -353,17 +470,20 @@ export default function MyOrders() {
 
   // Gọi API thông qua Custom Hook (Lấy size lớn để lọc tab client-side như bản cũ)
   const { data, isLoading, isError } = useMyOrders({ page: 0, size: 500 });
-  
+
   // Trích xuất list orders an toàn từ cấu trúc API mới
   const allOrders = data?.items || [];
 
   if (isLoading) return <div className="p-12 text-center text-gray-400">Đang tải đơn hàng...</div>;
   if (isError) return <div className="p-12 text-center text-rose-400">Không thể tải đơn hàng</div>;
-  if (allOrders.length === 0) return <div className="p-12 text-center text-gray-400">Bạn chưa có đơn hàng nào</div>;
+  if (allOrders.length === 0)
+    return <div className="p-12 text-center text-gray-400">Bạn chưa có đơn hàng nào</div>;
 
   // Logic phân trang & filter Client-side
-  const countByStatus = (status: string) => allOrders.filter((o) => o.orderStatus === status).length;
-  const filteredOrders = activeTab === 'ALL' ? allOrders : allOrders.filter((o) => o.orderStatus === activeTab);
+  const countByStatus = (status: string) =>
+    allOrders.filter((o) => o.orderStatus === status).length;
+  const filteredOrders =
+    activeTab === 'ALL' ? allOrders : allOrders.filter((o) => o.orderStatus === activeTab);
   const totalPages = Math.max(1, Math.ceil(filteredOrders.length / PAGE_SIZE));
   const paginated = filteredOrders.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
   const visibleStatuses = ['ALL', ...ALL_STATUSES.filter((s) => countByStatus(s) > 0)];
@@ -419,18 +539,30 @@ export default function MyOrders() {
             {Math.min(currentPage * PAGE_SIZE, filteredOrders.length)} / {filteredOrders.length} đơn
           </p>
           <div className="flex items-center gap-1.5">
-            <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+            >
               ←
             </button>
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               const page = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
               return (
-                <button key={page} onClick={() => setCurrentPage(page)} className={`w-8 h-8 text-xs font-medium rounded-lg transition-colors ${page === currentPage ? 'bg-indigo-600 text-white' : 'border border-gray-200 text-gray-600'}`}>
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 text-xs font-medium rounded-lg transition-colors ${page === currentPage ? 'bg-indigo-600 text-white' : 'border border-gray-200 text-gray-600'}`}
+                >
                   {page}
                 </button>
               );
             })}
-            <button onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40">
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+            >
               →
             </button>
           </div>

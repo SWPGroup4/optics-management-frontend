@@ -126,8 +126,6 @@ export interface PaginatedResult<T> {
 // 2. DOMAIN TYPES: Cấu trúc chi tiết của Đơn hàng
 // ==============================================
 
-
-
 export interface Prescription {
   id: string;
   imageUrl: string;
@@ -151,7 +149,6 @@ export interface ShipperInfo {
   email: string;
   imageUrl: string;
 }
-
 
 export interface PaginationParams {
   page?: number;

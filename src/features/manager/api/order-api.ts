@@ -1,7 +1,6 @@
 import { api } from '@/lib/axios';
 import type { GetOrdersParams, Order, OrderPageResponse } from '../types/order-type';
 
-
 export const orderApi = {
   getOrders: async (params?: GetOrdersParams): Promise<OrderPageResponse> => {
     // axios sẽ tự động chuyển object params thành query string (?page=0&size=10...)

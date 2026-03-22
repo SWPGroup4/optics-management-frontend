@@ -113,29 +113,127 @@ export interface GetOrdersParams {
 // features/manager/constants/order-status.ts
 
 export interface StatusConfig {
-    label: string;
-    bg: string;
-    text: string;
-    dot: string;
-    className?: string; // Thêm nếu bạn dùng shadcn
+  label: string;
+  bg: string;
+  text: string;
+  dot: string;
+  className?: string; // Thêm nếu bạn dùng shadcn
 }
 
 export const STATUS_CONFIG: Record<string, StatusConfig> = {
-    PENDING: { label: 'Chờ xử lý', bg: 'bg-amber-100', text: 'text-amber-700', dot: 'bg-amber-500', className: 'bg-amber-100 text-amber-700 hover:bg-amber-100 border-none' },
-    AWAITING_VERIFICATION: { label: 'Chờ xác minh', bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-500', className: 'bg-orange-100 text-orange-700 border-none' },
-    ON_HOLD: { label: 'Tạm giữ', bg: 'bg-slate-100', text: 'text-slate-600', dot: 'bg-slate-400', className: 'bg-slate-100 text-slate-600 border-none' },
-    CONFIRMED: { label: 'Đã xác nhận', bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500', className: 'bg-blue-100 text-blue-700 border-none' },
-    AWAITING_FINAL_PAYMENT: { label: 'Chờ thanh toán', bg: 'bg-indigo-100', text: 'text-indigo-700', dot: 'bg-indigo-500', className: 'bg-indigo-100 text-indigo-700 border-none' },
-    PREPARING: { label: 'Đang chuẩn bị', bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-500', className: 'bg-purple-100 text-purple-700 border-none' },
-    PROCESSING: { label: 'Đang xử lý', bg: 'bg-blue-100', text: 'text-blue-800', dot: 'bg-blue-600', className: 'bg-blue-100 text-blue-800 border-none' },
-    PRODUCED: { label: 'Đã sản xuất', bg: 'bg-teal-100', text: 'text-teal-700', dot: 'bg-teal-500', className: 'bg-teal-100 text-teal-700 border-none' },
-    READY_TO_SHIP: { label: 'Sẵn sàng giao', bg: 'bg-cyan-100', text: 'text-cyan-700', dot: 'bg-cyan-500', className: 'bg-cyan-100 text-cyan-700 border-none' },
-    SHIPPED: { label: 'Đã gửi hàng', bg: 'bg-sky-100', text: 'text-sky-700', dot: 'bg-sky-500', className: 'bg-sky-100 text-sky-700 border-none' },
-    DELIVERING: { label: 'Đang giao', bg: 'bg-blue-100', text: 'text-blue-800', dot: 'bg-blue-600', className: 'bg-blue-100 text-blue-800 border-none' },
-    DELIVERED: { label: 'Đã giao', bg: 'bg-emerald-100', text: 'text-emerald-800', dot: 'bg-emerald-600', className: 'bg-emerald-100 text-emerald-800 border-none' },
-    COMPLETED: { label: 'Hoàn thành', bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500', className: 'bg-green-100 text-green-700 border-none' },
-    CANCELLED: { label: 'Đã huỷ', bg: 'bg-red-100', text: 'text-red-700', dot: 'bg-red-500', className: 'bg-red-100 text-red-700 border-none' },
-    REFUNDED: { label: 'Đã hoàn tiền', bg: 'bg-pink-100', text: 'text-pink-700', dot: 'bg-pink-500', className: 'bg-pink-100 text-pink-700 border-none' },
+  PENDING: {
+    label: 'Chờ xử lý',
+    bg: 'bg-amber-100',
+    text: 'text-amber-700',
+    dot: 'bg-amber-500',
+    className: 'bg-amber-100 text-amber-700 hover:bg-amber-100 border-none',
+  },
+  AWAITING_VERIFICATION: {
+    label: 'Chờ xác minh',
+    bg: 'bg-orange-100',
+    text: 'text-orange-700',
+    dot: 'bg-orange-500',
+    className: 'bg-orange-100 text-orange-700 border-none',
+  },
+  ON_HOLD: {
+    label: 'Tạm giữ',
+    bg: 'bg-slate-100',
+    text: 'text-slate-600',
+    dot: 'bg-slate-400',
+    className: 'bg-slate-100 text-slate-600 border-none',
+  },
+  CONFIRMED: {
+    label: 'Đã xác nhận',
+    bg: 'bg-blue-100',
+    text: 'text-blue-700',
+    dot: 'bg-blue-500',
+    className: 'bg-blue-100 text-blue-700 border-none',
+  },
+  AWAITING_FINAL_PAYMENT: {
+    label: 'Chờ thanh toán',
+    bg: 'bg-indigo-100',
+    text: 'text-indigo-700',
+    dot: 'bg-indigo-500',
+    className: 'bg-indigo-100 text-indigo-700 border-none',
+  },
+  PREPARING: {
+    label: 'Đang chuẩn bị',
+    bg: 'bg-purple-100',
+    text: 'text-purple-700',
+    dot: 'bg-purple-500',
+    className: 'bg-purple-100 text-purple-700 border-none',
+  },
+  PROCESSING: {
+    label: 'Đang xử lý',
+    bg: 'bg-blue-100',
+    text: 'text-blue-800',
+    dot: 'bg-blue-600',
+    className: 'bg-blue-100 text-blue-800 border-none',
+  },
+  PRODUCED: {
+    label: 'Đã sản xuất',
+    bg: 'bg-teal-100',
+    text: 'text-teal-700',
+    dot: 'bg-teal-500',
+    className: 'bg-teal-100 text-teal-700 border-none',
+  },
+  READY_TO_SHIP: {
+    label: 'Sẵn sàng giao',
+    bg: 'bg-cyan-100',
+    text: 'text-cyan-700',
+    dot: 'bg-cyan-500',
+    className: 'bg-cyan-100 text-cyan-700 border-none',
+  },
+  SHIPPED: {
+    label: 'Đã gửi hàng',
+    bg: 'bg-sky-100',
+    text: 'text-sky-700',
+    dot: 'bg-sky-500',
+    className: 'bg-sky-100 text-sky-700 border-none',
+  },
+  DELIVERING: {
+    label: 'Đang giao',
+    bg: 'bg-blue-100',
+    text: 'text-blue-800',
+    dot: 'bg-blue-600',
+    className: 'bg-blue-100 text-blue-800 border-none',
+  },
+  DELIVERED: {
+    label: 'Đã giao',
+    bg: 'bg-emerald-100',
+    text: 'text-emerald-800',
+    dot: 'bg-emerald-600',
+    className: 'bg-emerald-100 text-emerald-800 border-none',
+  },
+  COMPLETED: {
+    label: 'Hoàn thành',
+    bg: 'bg-green-100',
+    text: 'text-green-700',
+    dot: 'bg-green-500',
+    className: 'bg-green-100 text-green-700 border-none',
+  },
+  CANCELLED: {
+    label: 'Đã huỷ',
+    bg: 'bg-red-100',
+    text: 'text-red-700',
+    dot: 'bg-red-500',
+    className: 'bg-red-100 text-red-700 border-none',
+  },
+  REFUNDED: {
+    label: 'Đã hoàn tiền',
+    bg: 'bg-pink-100',
+    text: 'text-pink-700',
+    dot: 'bg-pink-500',
+    className: 'bg-pink-100 text-pink-700 border-none',
+  },
 };
 
-export const MAIN_TABS = ['ALL', 'PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'COMPLETED', 'CANCELLED'];
+export const MAIN_TABS = [
+  'ALL',
+  'PENDING',
+  'CONFIRMED',
+  'PROCESSING',
+  'SHIPPED',
+  'COMPLETED',
+  'CANCELLED',
+];
