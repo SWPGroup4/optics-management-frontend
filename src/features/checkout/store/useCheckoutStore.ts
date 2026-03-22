@@ -15,7 +15,11 @@ export const useCheckoutStore = create<CheckoutState>((set) => ({
     email: '',
   },
   paymentMethod: 'VNPAY',
-  bankInfo: null,
+  bankInfo: {
+    bankName: '',
+    bankAccountNumber: '',
+    accountHolderName: '',
+  },
 
   // Định nghĩa rõ kiểu number cho tham số step
   setStep: (step: number) => set({ step }),
@@ -57,6 +61,10 @@ export const useCheckoutStore = create<CheckoutState>((set) => ({
         phone: '',
       },
       paymentMethod: 'VNPAY',
-      bankInfo: null,
+      bankInfo: {
+        bankName: '',
+        bankAccountNumber: '',
+        accountHolderName: '',
+      },
     }),
 }));

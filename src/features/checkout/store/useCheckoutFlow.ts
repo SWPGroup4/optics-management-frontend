@@ -22,10 +22,24 @@ export const useCheckoutFlow = () => {
       if (!shippingData.phone || !shippingData.address || !shippingData.name) {
         toast.error('Thiếu thông tin giao hàng', {
           id: toastId,
-          description: 'Vui lòng kiểm tra lại họ tên, số điện thoại và địa chỉ.',
+          description: 'Vui lòng kiểm tra lại họ tên, số điện thoại và địa chỉ, cũng như thông tin ngân hàng nếu chọn thanh toán chuyển khoản.',
         });
         setIsSubmitting(false);
         setStep(1);
+        return;
+      }
+      if (
+        !bankInfo?.bankName ||
+        !bankInfo?.bankAccountNumber ||
+        !bankInfo?.accountHolderName
+      ) {
+        toast.error('Thiếu thông tin giao hàng', {
+          id: toastId,
+          description:
+            'Vui lòng kiểm tra lại thông tin ngân hàng nếu chọn thanh toán chuyển khoản.',
+        });
+        setIsSubmitting(false);
+        setStep(2);
         return;
       }
 
