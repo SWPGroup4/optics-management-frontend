@@ -27,12 +27,11 @@ export const authApi = {
     // 1. Tách file ảnh ra riêng
     const { imageFile, ...userData } = data;
 
-    // 2. Xử lý phần JSON 'data'
-    // Backend yêu cầu field 'data' là một Blob với type application/json
+    // Backend yêu cầu field tên 'UserInfor' kiểu JSON blob
     const jsonBlob = new Blob([JSON.stringify(userData)], {
       type: 'application/json',
     });
-    formData.append('data', jsonBlob);
+    formData.append('UserInfor', jsonBlob);
 
     // 3. Xử lý phần file 'imageUrl'
     // Lưu ý: key phải là "imageUrl" như trong lệnh curl (-F 'imageUrl=@cam.jpg')

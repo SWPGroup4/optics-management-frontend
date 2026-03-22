@@ -115,8 +115,8 @@ export const useAuthStore = create<AuthStore>()(
           set({ isLoading: false });
 
           if (error instanceof AxiosError) {
-            const serverData = error.response?.data as ApiResponse<null>;
-            throw new Error(serverData?.result || 'Đăng ký thất bại');
+            const serverData = error.response?.data as { code: number; message?: string; result?: string };
+            throw new Error(serverData?.message ?? serverData?.result ?? 'Đăng ký thất bại');
           }
 
           if (error instanceof Error) throw error;
