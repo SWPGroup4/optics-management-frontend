@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import type { BEOrder } from '@/features/operation-staff/types/types';
 import { MapPin, Phone, StickyNote, Banknote, User, Package } from 'lucide-react';
 import { useSidebar } from '@/features/shipper/hooks/useSidebar.ts';
@@ -9,8 +10,38 @@ interface Props {
 }
 
 export function ScreenOrderDetail({ order, onBack, onComplete }: Props) {
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const codAmount = order?.totalAmount - order?.depositAmount;
   const { collapsed } = useSidebar();
+  useEffect(() => {
+  const fetchCoords = async () => {
+    if (!order.deliveryAddress) return;
+
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(order.deliveryAddress)}&limit=1`,
+        {
+          headers: {
+            'User-Agent': 'my-app (test@gmail.com)',
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      if (data && data.length > 0) {
+        setCoords({
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon),
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchCoords();
+}, [order.deliveryAddress]);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -54,6 +85,20 @@ export function ScreenOrderDetail({ order, onBack, onComplete }: Props) {
           <p className="text-2xl font-extrabold text-foreground leading-snug">
             {order.deliveryAddress}
           </p>
+          {coords && (
+  <div className="mt-3 overflow-hidden rounded-xl border border-gray-200">
+    <iframe
+      title="Map"
+      width="100%"
+      height="180"
+      src={`https://www.openstreetmap.org/export/embed.html?bbox=${
+        coords.lng - 0.003
+      },${coords.lat - 0.003},${coords.lng + 0.003},${
+        coords.lat + 0.003
+      }&layer=mapnik&marker=${coords.lat},${coords.lng}`}
+    />
+  </div>
+)}
         </div>
 
         {/* Order Items */}

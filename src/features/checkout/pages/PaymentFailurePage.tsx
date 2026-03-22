@@ -15,19 +15,18 @@ export const PaymentFailurePage = () => {
           </div>
 
           {/* 2. Thông báo lỗi - Trực diện */}
-          <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Payment Failed</h1>
+          <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Thanh toán thất bại</h1>
           <p className="text-gray-500 mb-6">
-            We couldn't process your payment. Don't worry, you haven't been charged yet.
+            Chúng tôi không thể xử lý khoản thanh toán của bạn. Đừng lo lắng, bạn chưa bị trừ tiền.
           </p>
 
           {/* 3. Lý do lỗi (Rất quan trọng về UX) */}
           <div className="bg-red-50/50 rounded-xl p-4 mb-8 border border-red-100 flex items-start gap-3 text-left">
             <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
             <div>
-              <h4 className="text-sm font-bold text-gray-900">Error: Insufficient Funds</h4>
+              <h4 className="text-sm font-bold text-gray-900">Lỗi: Số dư không đủ</h4>
               <p className="text-xs text-gray-600 mt-1">
-                Your card was declined by the bank. Please ensure you have sufficient funds or try
-                another card.
+                Thẻ của bạn đã bị ngân hàng từ chối. Vui lòng đảm bảo tài khoản của bạn có đủ số dư hoặc thử một thẻ khác.
               </p>
             </div>
           </div>
@@ -35,15 +34,15 @@ export const PaymentFailurePage = () => {
           {/* 4. Các nút điều hướng - Ưu tiên nút "Thử lại" */}
           <div className="space-y-3">
             <Button className="w-full h-11 bg-gray-900 hover:bg-black font-bold shadow-md gap-2">
-              <RefreshCw className="w-4 h-4" /> Try Payment Again
+              <RefreshCw className="w-4 h-4" /> Thử thanh toán lại
             </Button>
 
             <div className="grid grid-cols-2 gap-3">
               <Button variant="outline" className="w-full font-semibold border-gray-200">
-                Change Method
+                Đổi phương thức
               </Button>
               <Button variant="ghost" className="w-full font-semibold text-gray-600">
-                <HelpCircle className="w-4 h-4 mr-2" /> Help
+                <HelpCircle className="w-4 h-4 mr-2" /> Trợ giúp
               </Button>
             </div>
           </div>
