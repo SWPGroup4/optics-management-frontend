@@ -1,6 +1,6 @@
 import { api } from '@/lib/axios';
 
-export type UserRole = 'SALE' | 'OPERATION' | 'SHIPPER' | 'CUSTOMER';
+export type UserRole = 'SALE' | 'OPERATION' | 'SHIPPER' | 'CUSTOMER' | 'MANAGER' | 'ADMIN';
 
 export const userApi = {
   getUsersByRole: async (role: UserRole) => {
@@ -13,9 +13,9 @@ export const userApi = {
     return response.data;
   },
 
-  assignRole: async ({ userId, newRole }: { userId: string; newRole: string }) => {
-    const response = await api.patch(`/roles/${userId}/roles`, null, {
-      params: { newRole },
+  assignRole: async ({ userId, role }: { userId: string; role: string }) => {
+    const response = await api.put(`/users/${userId}/role`, null, {
+      params: { role },
     });
     return response.data;
   },

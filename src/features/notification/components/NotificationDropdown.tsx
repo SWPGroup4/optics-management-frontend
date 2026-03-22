@@ -2,7 +2,6 @@ import { useState, memo, useCallback } from "react";
 import { Bell } from "lucide-react";
 import { useNotifications } from "../hooks/useNotifications";
 import { useNotificationStream } from "../hooks/useNotificationStream";
-
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -13,7 +12,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
-// 2. Bọc toàn bộ Component trong memo để tránh bị Header kéo theo khi re-render
 export const NotificationDropdown = memo(function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -22,7 +20,6 @@ export const NotificationDropdown = memo(function NotificationDropdown() {
 
   const { notifications, unreadCount, readAll, readSingle, isLoading } = useNotifications();
 
-  // 3. Dùng useCallback cho hàm click để giữ tham chiếu ổn định
   const handleItemClick = useCallback((e: React.MouseEvent, id: string, isUnread: boolean) => {
     e.stopPropagation(); // 🌟 CHẶN NỔI BỘT: Không cho event click bay ra ngoài Header
     

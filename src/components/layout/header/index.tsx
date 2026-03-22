@@ -13,7 +13,7 @@ export default function Header() {
   }
 
   // 2. Sales Staff
-  if (user.role === 'sales') {
+  if (user.role === 'sale') {
     return (
       <WorkspaceHeader
         roleName="SALES"
@@ -28,7 +28,7 @@ export default function Header() {
   }
 
   // 3. Ops Staff
-  if (user.role === 'operations') {
+  if (user.role === 'operation') {
     return (
       <WorkspaceHeader
         roleName="OPERATIONS"
