@@ -3,8 +3,14 @@ import type { BEOrder } from '@/features/operation-staff/types/types';
 
 export const shipperApi = {
   getReadyToShipOrders: async (): Promise<BEOrder[]> => {
-    const response = await api.get('/management/orders?status=PRODUCED&size=10000');
-    return response.data.result.items || [];
+    const response = await api.get('/management/orders', {
+      params: {
+        status: 'PRODUCED',
+        size: 10000,
+      },
+    });
+
+    return response.data.result?.items || [];
   },
 
   acceptOrders: async (orderIds: string[]): Promise<void> => {
@@ -13,8 +19,13 @@ export const shipperApi = {
   },
 
   getMyAcceptedOrders: async (): Promise<BEOrder[]> => {
-    const response = await api.get('/ship/orders/my-orders-accepted?size=10000');
-    return response.data.result.items || [];
+    const response = await api.get('/ship/orders/my-orders-accepted', {
+      params: {
+        size: 10000,
+      },
+    });
+
+    return response.data.result?.items || [];
   },
 
   startDelivery: async (orderId: string): Promise<void> => {

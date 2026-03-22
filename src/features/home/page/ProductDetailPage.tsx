@@ -5,6 +5,7 @@ import ProductInfo from '../components/ProductInfo';
 import Breadcrumb from '@/components/common/Breadcrumb';
 // 🌟 Import đúng tên hook `useProduct` từ file useProducts của bạn
 import { useProduct } from '../hooks/useProducts';
+import ProductFeedback from "@/features/home/components/ProductFeedback.tsx";
 
 export default function ProductDetailPage() {
   // 1. Lấy ID từ URL
@@ -43,6 +44,11 @@ export default function ProductDetailPage() {
 
             <ProductForm productId={safeId} />
           </div>
+        </div>
+
+        {/* Product Feedback Section */}
+        <div className="mt-16 pt-8 border-t border-gray-200">
+          <ProductFeedback productId={safeId} />
         </div>
       </div>
     </div>

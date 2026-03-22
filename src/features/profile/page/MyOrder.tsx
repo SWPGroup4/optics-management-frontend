@@ -1,8 +1,12 @@
-import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 // Các API cho action (huỷ đơn, hoàn tiền)
 import { profileApi } from '../api/api';
+
+import type { BEFeedback } from "@/features/profile/types";
+import FeedbackModal from "@/features/profile/components/feedback/FeedbackModal.tsx";
+import FeedbackPreview from "@/features/profile/components/feedback/FeedbackPreview.tsx";
 
 // 🚀 IMPORT HOOK & TYPES MỚI VÀO ĐÂY
 import { useMyOrders } from '../hooks/useMyOrders';
@@ -152,17 +156,31 @@ function PrescriptionImage({ imageUrl }: { imageUrl: string }) {
 function OrderItemCard({
   item,
   orderName,
+  allFeedbacks,
+  onFeedbackClick,
+  orderStatus,
+  orderId
 }: {
   item: OrderItem;
   index: number;
   total: number;
   orderName?: string | null;
+  allFeedbacks: BEFeedback[];
+  onFeedbackClick: (item: OrderItem, feedback: BEFeedback | null) => void;
+  orderStatus: string;
+  orderId: string;
 }) {
   const productLabel =
     item.productName ||
     item.itemName ||
     orderName ||
     (item.orderItemType === 'PRE_ORDER' ? 'Sản phẩm đặt trước' : 'Sản phẩm có sẵn');
+
+  const itemFeedback = allFeedbacks.find(f =>
+      f.orderId === orderId && f?.productId === (item?.productId)
+  ) || null;
+
+  const hasFeedback = !!itemFeedback;
 
   return (
     <div className="bg-white border border-gray-100 rounded-xl p-4 space-y-3">
@@ -246,17 +264,45 @@ function OrderItemCard({
           )}
         </div>
       )}
+
+      {/* Feedback Section*/}
+      <div className="pt-3 border-t border-gray-100">
+        {hasFeedback ? (
+            <FeedbackPreview
+                feedback={itemFeedback}
+                onEdit={() => onFeedbackClick(item, itemFeedback)}
+            />
+        ) : orderStatus === 'COMPLETED' ? (
+            <button
+                onClick={() => onFeedbackClick(item, itemFeedback)}
+                className="w-full px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+            >
+              Đánh giá sản phẩm
+            </button>
+        ) : (
+            <button
+                onClick={() => alert('Không thể thao tác vì đơn chưa hoàn thành')}
+                className="w-full px-3 py-2 bg-gray-400 text-white rounded-lg text-sm font-medium hover:bg-gray-500 transition-colors opacity-75"
+            >
+              Đánh giá sản phẩm
+            </button>
+        )}
+      </div>
     </div>
   );
 }
 
 // ─── OrderCard ────────────────────────────────────────────────────────────────
 
-function OrderCard({ order }: { order: Order }) {
+function OrderCard({ order, allFeedbacks }: { order: Order, allFeedbacks: BEFeedback[] }) {
   const [expanded, setExpanded] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const queryClient = useQueryClient();
+
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<OrderItem | null>(null);
+  const [selectedFeedback, setSelectedFeedback] = useState<BEFeedback | null>(null);
 
   const statusCfg = STATUS_CONFIG[order.orderStatus] ?? {
     color: 'bg-gray-50 text-gray-600 border-gray-200',
@@ -290,6 +336,17 @@ function OrderCard({ order }: { order: Order }) {
     } finally {
       setCancelling(false);
     }
+  };
+
+  const handleFeedbackClick = (item: OrderItem, feedback: BEFeedback | null) => {
+    setSelectedItem(item);
+    setSelectedFeedback(feedback);
+    setFeedbackModalOpen(true);
+  };
+
+  // Get productId for feedback
+  const getProductId = (item: OrderItem) => {
+    return item?.productId || '';
   };
 
   return (
@@ -425,6 +482,10 @@ function OrderCard({ order }: { order: Order }) {
                 index={idx}
                 total={order.items.length}
                 orderName={order.orderName}
+                allFeedbacks={allFeedbacks}
+                onFeedbackClick={handleFeedbackClick}
+                orderId={order.orderId}
+                orderStatus={order.orderStatus}
               />
             ))}
           </div>
@@ -457,6 +518,18 @@ function OrderCard({ order }: { order: Order }) {
           )}
         </div>
       )}
+      {/* Feedback Modal */}
+      <FeedbackModal
+          isOpen={feedbackModalOpen}
+          onClose={() => setFeedbackModalOpen(false)}
+          orderId={order.orderId}
+          productId={getProductId(selectedItem!)}
+          existingFeedback={selectedFeedback}
+          onSuccess={() => {
+            // Refresh feedback data
+            queryClient.invalidateQueries({ queryKey: ['my-feedbacks'] });
+          }}
+      />
     </div>
   );
 }
@@ -467,6 +540,27 @@ export default function MyOrders() {
   const [activeTab, setActiveTab] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 10;
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ['my-feedbacks'] });
+  }, [queryClient]);
+
+  const {
+    data: allFeedbacks,
+  } = useQuery({
+    queryKey: ['my-feedbacks'],
+    queryFn: async () => {
+        try {
+            const response = await profileApi.getMyFeedbacks();
+            return response.data.result as BEFeedback[];
+        } catch (error) {
+            console.error("Error fetching all feedbacks:", error);
+            return [];
+        }
+    },
+    staleTime: 0,
+  });
 
   // Gọi API thông qua Custom Hook (Lấy size lớn để lọc tab client-side như bản cũ)
   const { data, isLoading, isError } = useMyOrders({ page: 0, size: 500 });
@@ -527,7 +621,7 @@ export default function MyOrders() {
 
       <div className="space-y-4">
         {paginated.map((order) => (
-          <OrderCard key={order.orderId} order={order} />
+          <OrderCard key={order.orderId} order={order} allFeedbacks={allFeedbacks || []} />
         ))}
       </div>
 
