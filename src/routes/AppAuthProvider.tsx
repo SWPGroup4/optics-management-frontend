@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const timeLeft = decoded.exp * 1000 - Date.now();
         if (timeLeft < 2 * 60 * 1000 && timeLeft > 0) {
           // còn < 2 phút
+          console.log("test");
           refreshAction();
         }
       } catch {
