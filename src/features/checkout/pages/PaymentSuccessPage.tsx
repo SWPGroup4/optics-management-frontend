@@ -69,11 +69,15 @@ export const PaymentSuccessPage = () => {
           </div>
 
           <div className="space-y-4">
-            <Button className="w-full h-12 text-base bg-[#1e2575] hover:bg-[#151b5e] font-bold shadow-md transition-all">
-              Xem chi tiết đơn hàng <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+            {/* Đã bọc Link trỏ về trang Quản lý đơn hàng cá nhân */}
+            <Link to="/profile/orders" className="block">
+              <Button className="w-full h-12 text-base bg-[#1e2575] hover:bg-[#151b5e] font-bold shadow-md transition-all">
+                Xem chi tiết đơn hàng <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
 
-            <Link to="/" className="block">
+            {/* Đổi link sang /shop để dẫn thẳng vào trang danh sách sản phẩm */}
+            <Link to="/shop" className="block">
               <Button
                 variant="ghost"
                 className="w-full h-12 text-base font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50"
