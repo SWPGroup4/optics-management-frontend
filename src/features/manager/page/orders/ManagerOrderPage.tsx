@@ -69,7 +69,9 @@ export default function ManagerOrderPage() {
               <div className="p-2 bg-blue-600 rounded-xl shadow-lg shadow-blue-200 text-white">
                 <Package size={24} />
               </div>
-              <h1 className="text-3xl font-black text-slate-900 tracking-tight">Orders</h1>
+              <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                Quản lý đơn hàng
+              </h1>
             </div>
             <p className="text-slate-500 font-medium text-sm">
               Quản lý và theo dõi tiến độ đơn hàng hệ thống
