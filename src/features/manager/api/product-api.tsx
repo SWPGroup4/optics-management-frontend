@@ -34,29 +34,28 @@ export const productApi = {
     return response.data;
   },
 
-  // Cập nhật
-  update: async (id: string, { productData, file }: { productData: any; file: File | null }) => {
-    const formData = new FormData();
-
+  update: async (id: string, { productData }: { productData: any }) => {
     const formattedProduct = {
-      ...productData,
+      name: productData.name,
+      brand: productData.brand,
+      category: productData.category,
+      frameType: productData.frameType,
+      gender: productData.gender,
+      shape: productData.shape,
+      frameMaterial: productData.frameMaterial,
+      hingeType: productData.hingeType,
+      nosePadType: productData.nosePadType,
       weightGram: Number(productData.weightGram),
+      status: productData.status,
+      imageUrl: Array.isArray(productData.imageUrl) 
+        ? productData.imageUrl.map((img: any) => typeof img === 'string' ? img : (img.imageUrl ?? ''))
+        : []
     };
 
-    formData.append('product', JSON.stringify(formattedProduct));
-
-    if (file) {
-      formData.append('files', file);
-    }
-
-    const response = await api.put(`/products/${id}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    // Không cần truyền headers nữa vì axios.ts đã lo vụ application/json rồi
+    const response = await api.put(`/products/${id}`, formattedProduct);
     return response.data;
   },
-
   // Xóa sản phẩm
   delete: async (id: string) => {
     const response = await api.delete(`/products/${id}`);
