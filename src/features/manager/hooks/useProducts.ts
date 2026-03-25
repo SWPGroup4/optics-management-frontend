@@ -45,8 +45,10 @@ export const useUpdateProduct = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.all });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Failed to update:', error);
+      console.error('Backend response:', error?.response?.data);
+      console.error('Status:', error?.response?.status);
     },
   });
 };

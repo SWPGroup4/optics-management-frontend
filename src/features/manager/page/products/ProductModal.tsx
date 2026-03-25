@@ -1,53 +1,5 @@
-// src/features/products/api/product-api.ts
-import { api } from '@/lib/axios';
-
-export const productApi = {
-  // Lấy danh sách
-  getAll: async () => {
-    const response = await api.get('/products');
-    return response.data as { result: Product[] };
-  },
-
-  create: async ({ productData, file }: { productData: any; file: File | null }) => {
-    const formData = new FormData();
-
-    // 1. Ép kiểu weightGram về số (đề phòng form input trả về string)
-    const formattedProduct = {
-      ...productData,
-      weightGram: Number(productData.weightGram),
-    };
-
-    // 2. Append JSON string như CURL yêu cầu
-    formData.append('product', JSON.stringify(formattedProduct));
-
-    // 3. Append file nếu có
-    if (file) {
-      formData.append('files', file);
-    }
-
-    // 4. Gửi request (Header tự động ghi đè multipart/form-data)
-    const response = await api.post('/products', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
-  },
-
-  // Cập nhật
-  update: async (id: string, payload: any) => {
-    const response = await api.put(`/products/${id}`, payload);
-    return response.data;
-  },
-
-  // Xóa sản phẩm
-  delete: async (id: string) => {
-    const response = await api.delete(`/products/${id}`);
-    return response.data;
-  },
-};
 import { useEffect, useRef, useState } from 'react';
-import { X, Loader2, ImageIcon, Upload } from 'lucide-react';
+import { X, Loader2, ImageIcon, Upload, Box } from 'lucide-react';
 import type { Product } from '../../types/types';
 
 const EMPTY_FORM = {
@@ -77,8 +29,11 @@ export default function ProductModal({
 
   // 1. Thêm state để giữ file thực tế
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedModelFile, setSelectedModelFile] = useState<File | null>(null);
+  const [modelFileName, setModelFileName] = useState<string>('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const modelFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -91,10 +46,14 @@ export default function ProductModal({
         setForm({ ...product, imageUrl: normalizedImageUrl });
         setImagePreview(normalizedImageUrl[0] ?? '');
         setSelectedFile(null); // Reset file khi edit
+        setSelectedModelFile(null);
+        setModelFileName(product.modelUrl ? 'Current 3D model' : '');
       } else {
         setForm(EMPTY_FORM);
         setImagePreview('');
         setSelectedFile(null); // Reset file khi create
+        setSelectedModelFile(null);
+        setModelFileName('');
       }
     }
   }, [open, product]);
@@ -116,6 +75,13 @@ export default function ProductModal({
     // Vẫn cập nhật form.imageUrl nếu cần thiết cho logic khác,
     // nhưng API upload file sẽ ưu tiên lấy từ state selectedFile
     setForm({ ...form, imageUrl: [objectUrl] });
+  };
+
+  const handleModelFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSelectedModelFile(file);
+    setModelFileName(file.name);
   };
 
   const inputClass =
@@ -320,6 +286,32 @@ export default function ProductModal({
                 </div>
               </div>
             </div>
+
+            <div className="col-span-2">
+              <label className={labelClass}>3D Model (.glb)</label>
+              <div className="flex gap-3 items-center">
+                <div
+                  onClick={() => modelFileInputRef.current?.click()}
+                  className="flex-1 flex items-center gap-3 px-4 py-3 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50 hover:border-violet-400 hover:bg-violet-50/30 cursor-pointer transition-all group"
+                >
+                  <Upload className="w-4 h-4 text-slate-400 group-hover:text-violet-500 shrink-0 transition-colors" />
+                  <span className="text-sm text-slate-400 group-hover:text-violet-500 transition-colors truncate">
+                    {modelFileName || 'Click to upload 3D model (.glb)'}
+                  </span>
+                  <input
+                    ref={modelFileInputRef}
+                    type="file"
+                    accept=".glb,.gltf"
+                    className="hidden"
+                    onChange={handleModelFileChange}
+                  />
+                </div>
+
+                <div className="w-12 h-12 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden shrink-0 flex items-center justify-center">
+                  <Box className={`w-5 h-5 ${modelFileName ? 'text-violet-500' : 'text-slate-300'}`} />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -334,7 +326,7 @@ export default function ProductModal({
           </button>
           <button
             // 3. Truyền cả form data và file ra ngoài cho onSubmit handler
-            onClick={() => onSubmit({ productData: form, file: selectedFile })}
+            onClick={() => onSubmit({ productData: form, file: selectedFile, modelFile: selectedModelFile })}
             disabled={isSubmitting || !form.name || !form.brand}
             className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-slate-900/20"
           >

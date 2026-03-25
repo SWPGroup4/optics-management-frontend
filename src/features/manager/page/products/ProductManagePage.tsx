@@ -28,6 +28,7 @@ import type { ProductQueryParams, Product } from '../../types/types';
 interface ProductSubmitForm {
   productData: Partial<Product>;
   file: File | null;
+  modelFile?: File | null;
 }
 
 const ProductManagePage = () => {
@@ -123,6 +124,7 @@ const ProductManagePage = () => {
           payload: {
             productData: form.productData,
             file: form.file,
+            modelFile: form.modelFile,
           },
         },
         { onSuccess: handleCloseModal },

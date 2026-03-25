@@ -58,7 +58,10 @@ export default defineConfig({
             '@radix-ui/react-tabs',
           ],
 
-          // Nhóm 7: Icons và Utils nhỏ lẻ
+          // Nhóm 7: Three.js 3D rendering
+          'vendor-three': ['three', '@react-three/fiber', '@react-three/drei'],
+
+          // Nhóm 8: Icons và Utils nhỏ lẻ
           'vendor-ui': [
             'lucide-react',
             'sonner',
