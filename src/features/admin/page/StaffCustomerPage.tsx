@@ -1,7 +1,7 @@
 // src/features/users/pages/StaffCustomerPage.tsx
 import { useState } from 'react';
 import { Trash2, Loader2, ShieldCheck, X, CheckCircle, AlertCircle, Edit } from 'lucide-react';
-import { useUsers, useAssignRole } from '../../hooks/useUsers';
+import { useUsers, useAssignRole } from '../hooks/useUsers';
 
 type StaffRole = 'SALE' | 'OPERATION' | 'SHIPPER' | 'MANAGER' | 'ADMIN';
 

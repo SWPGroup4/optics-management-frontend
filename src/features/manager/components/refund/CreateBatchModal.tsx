@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useAffectedOrders, useCreateBatch, useInActivateVariant } from '../../hooks/useRefunds';
-import { useFilteredProducts } from '../../hooks/useProducts';
 import { useFilteredVariants } from '../../hooks/useVariants';
 import { fmt } from '@/lib/utils';
 import type { Product, ProductVariant } from '../../types/types';
+import { useFilteredProducts } from '../../hooks/useProducts';
 
 export function CreateBatchModal({ onClose }: { onClose: () => void }) {
   const [step, setStep] = useState<1 | 2>(1);

@@ -22,7 +22,7 @@ import ManagerDashboardPage from '@/features/manager/page/dashboard/ManagerDashb
 import ManagerOrderPage from '@/features/manager/page/orders/ManagerOrderPage';
 import ProductManagePage from '@/features/manager/page/products/ProductManagePage';
 import ProductVariantManagePage from '@/features/manager/page/products/ProductVariantManageage';
-import StaffCustomerPage from '@/features/manager/page/staff/StaffCustomerPage';
+import StaffCustomerPage from '@/features/admin/page/StaffCustomerPage';
 import LensesManagerPage from '@/features/manager/page/Lenses/LensesManagerPage';
 import RefundManagePage from '@/features/manager/page/Refund/ManageRefundPage';
 import PolicyManager from '@/features/manager/page/Policy/PolicyManager';
@@ -36,6 +36,7 @@ import { RequireRole } from './protected-route';
 import { ShipperDashboardLayout } from '@/features/shipper/layout/ShipperDashboardLayout';
 import ShipperDashboardPage from '@/features/shipper/page/dashboard/ShipperDashboardPage';
 import { SellerLayout } from '@/features/seller/layout/SellerLayout';
+import { AdminDashboardLayout } from '@/features/admin/layout/AdminDashboardLayout';
 
 export const router = createBrowserRouter([
   {
@@ -88,6 +89,18 @@ export const router = createBrowserRouter([
           { path: 'orders', element: <MyOrders /> },
         ],
       },
+      {
+        path: 'admin',
+        element: (
+          <RequireRole allowedRoles={['admin']}>
+            <AdminDashboardLayout />
+          </RequireRole>
+        ),
+        children: [
+          { index: true, element: <StaffCustomerPage /> },
+        ],
+      },
+
 
       // Protected Manager Routes
       {
@@ -102,7 +115,6 @@ export const router = createBrowserRouter([
           { path: 'orders', element: <ManagerOrderPage /> },
           { path: 'products', element: <ProductManagePage /> },
           { path: 'products/:productId/variants', element: <ProductVariantManagePage /> },
-          { path: 'staff', element: <StaffCustomerPage /> },
           { path: 'lenses', element: <LensesManagerPage /> },
           { path: 'refunds', element: <RefundManagePage /> },
           { path: 'policies', element: <PolicyManager /> },

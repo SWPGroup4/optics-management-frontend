@@ -14,20 +14,17 @@ import {
   Package,
   ArrowUpDown,
 } from 'lucide-react';
-import {
-  useDeleteProduct,
-  useFilteredProducts,
-  useCreateProduct,
-  useUpdateProduct,
-} from '../../hooks/useProducts';
+
 import { useNavigate } from 'react-router-dom';
 import ProductModal from './ProductModal';
 import type { ProductQueryParams, Product } from '../../types/types';
+import { useCreateProduct, useDeleteProduct, useFilteredProducts, useUpdateProduct } from '../../hooks/useProducts';
 
 // Định nghĩa kiểu dữ liệu trả về từ form (ProductModal)
 interface ProductSubmitForm {
   productData: Partial<Product>;
-  file: File | null;
+  files: File[];
+  modelFile?: File | null;
 }
 
 const ProductManagePage = () => {
@@ -116,22 +113,32 @@ const ProductManagePage = () => {
 
   // Gán kiểu ProductSubmitForm thay cho any
   const handleSubmit = (form: ProductSubmitForm) => {
+    // Ép modelFile: nếu nó bị undefined thì chuyển thành null để TypeScript không báo lỗi
+    const safeModelFile = form.modelFile || null;
+
     if (editingProduct) {
       updateMutation.mutate(
         {
           id: editingProduct.id,
           payload: {
             productData: form.productData,
-            file: form.file,
+            files: form.files, 
+            modelFile: safeModelFile, // <-- Đã xử lý an toàn
           },
         },
         { onSuccess: handleCloseModal },
       );
     } else {
-      createMutation.mutate(form, { onSuccess: handleCloseModal });
+      createMutation.mutate(
+        {
+          productData: form.productData,
+          files: form.files,
+          modelFile: safeModelFile, // <-- Đã xử lý an toàn
+        }, 
+        { onSuccess: handleCloseModal }
+      );
     }
   };
-
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
   // --- TRỢ GIÚP GIAO DIỆN (STYLING HELPERS) ---

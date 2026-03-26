@@ -17,6 +17,7 @@ export interface Product {
   // Sửa lại kiểu dữ liệu của imageUrl
   imageUrl: ProductImage[];
   weightGram: number;
+  modelUrl?: string;
 }
 export interface ProductImage {
   id: string;

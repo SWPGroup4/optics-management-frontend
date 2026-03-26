@@ -53,7 +53,7 @@ export default function VirtualTryOn({
     selectedIdxRef.current = selectedIdx;
   }, [selectedIdx]);
 
-  const smoothRef = useRef({ x: 0, y: 0, angle: 0, width: 0, yaw: 0 });
+  const smoothRef = useRef({ x: 0, y: 0, angle: 0, width: 0, yaw: 0, initialized: false });
   const glassesImagesRef = useRef<HTMLImageElement[]>([]);
 
   const proxyImageUrl = useCallback((url: string) => {
@@ -106,18 +106,28 @@ export default function VirtualTryOn({
     const yaw = leftEar.x - rightEar.x;
 
     const s = smoothRef.current;
-    s.yaw = s.yaw * 0.8 + yaw * 0.2;
-    s.x = s.x * 0.85 + centerX * 0.15;
-    s.y = s.y * 0.85 + centerY * 0.15;
-    s.angle = s.angle * 0.85 + angle * 0.15;
-    s.width = s.width * 0.85 + width * 0.15;
+    if (!s.initialized) {
+      // First detection: jump directly to correct position (no lerp)
+      s.x = centerX;
+      s.y = centerY;
+      s.angle = angle;
+      s.width = width;
+      s.yaw = yaw;
+      s.initialized = true;
+    } else {
+      s.yaw = s.yaw * 0.8 + yaw * 0.2;
+      s.x = s.x * 0.85 + centerX * 0.15;
+      s.y = s.y * 0.85 + centerY * 0.15;
+      s.angle = s.angle * 0.85 + angle * 0.15;
+      s.width = s.width * 0.85 + width * 0.15;
+    }
 
     ctx.save();
     ctx.translate(s.x, s.y);
     ctx.rotate(s.angle);
 
     const glasses = glassesImagesRef.current[selectedIdxRef.current];
-    if (glasses && glasses.complete) {
+    if (glasses && glasses.complete && glasses.naturalWidth > 0) {
       const anchorX = s.width * 0.5;
       const anchorY = s.width * 0.21;
       ctx.drawImage(glasses, -anchorX, -anchorY, s.width, s.width * 0.42);
@@ -200,34 +210,31 @@ export default function VirtualTryOn({
     }
   }, [detectLoop]);
 
-  // ✅ FIX 1: Thêm hàm handleCapture
   const handleCapture = useCallback(() => {
     const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (!video || !canvas) return;
+    if (!video) return;
 
-    // Tạo canvas tổng hợp video + glasses overlay
     const composite = document.createElement('canvas');
     composite.width = 640;
     composite.height = 480;
     const ctx = composite.getContext('2d');
     if (!ctx) return;
 
-    // Lật ngang để khớp với giao diện (scaleX(-1))
+    // Flip horizontally to match the UI (scaleX(-1))
     ctx.save();
     ctx.scale(-1, 1);
     ctx.drawImage(video, -640, 0, 640, 480);
     ctx.restore();
 
-    // Vẽ glasses overlay lên trên
-    ctx.drawImage(canvas, 0, 0);
+    if (canvasRef.current) {
+      ctx.drawImage(canvasRef.current, 0, 0);
+    }
 
     setCapturedImage(composite.toDataURL('image/png'));
     runningRef.current = false;
     cancelAnimationFrame(animFrameRef.current);
   }, []);
 
-  // ✅ FIX 2: Thêm hàm handleDownload
   const handleDownload = useCallback(() => {
     if (!capturedImage) return;
     const link = document.createElement('a');
@@ -236,17 +243,14 @@ export default function VirtualTryOn({
     link.click();
   }, [capturedImage]);
 
-  // ✅ FIX 3: Thêm hàm toggleCamera
   const toggleCamera = useCallback(() => {
     if (isCamOn) {
-      // Tắt camera: dừng loop
       runningRef.current = false;
       cancelAnimationFrame(animFrameRef.current);
       const ctx = canvasRef.current?.getContext('2d');
       ctx?.clearRect(0, 0, 640, 480);
       setIsCamOn(false);
     } else {
-      // Bật lại camera: resume loop
       runningRef.current = true;
       animFrameRef.current = requestAnimationFrame(detectLoop);
       setIsCamOn(true);
@@ -261,7 +265,7 @@ export default function VirtualTryOn({
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
-      faceLandmarkerRef.current?.close();
+      faceLandmarkerRef?.current?.close();
       faceLandmarkerRef.current = null;
     };
   }, [open, initFaceLandmarker]);
@@ -275,7 +279,9 @@ export default function VirtualTryOn({
             <RotateCcw className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="text-white font-black text-base tracking-tight">Virtual Try-On</h2>
+            <h2 className="text-white font-black text-base tracking-tight">
+              Virtual Try-On
+            </h2>
             {productName && <p className="text-white/60 text-xs">{productName}</p>}
           </div>
         </div>
@@ -328,6 +334,8 @@ export default function VirtualTryOn({
                 className="block w-full"
                 style={{ transform: 'scaleX(-1)' }}
               />
+
+              {/* 2D glasses overlay canvas */}
               <canvas
                 ref={canvasRef}
                 width={640}
@@ -382,7 +390,7 @@ export default function VirtualTryOn({
           )}
         </div>
 
-        {/* Variant selector panel */}
+        {/* Right panel: Variant selector */}
         {variantImages.length > 0 && (
           <div className="w-[220px] shrink-0 bg-white/8 backdrop-blur-xl rounded-2xl p-5 max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/20">
             <p className="text-white font-black text-xs uppercase tracking-widest mb-4">

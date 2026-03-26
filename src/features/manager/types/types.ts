@@ -29,6 +29,7 @@ export interface Product {
   status: 'ACTIVE' | 'INACTIVE';
   orderItemType: string;
   imageUrl: ProductImage[];
+  modelUrl?: string;
 }
 
 // Interface cho Params filter
