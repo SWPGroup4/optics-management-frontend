@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { X, Loader2, ImageIcon, Upload, Box } from 'lucide-react';
-import type { Product } from '../../types/types';
+import { X, Loader2, Upload, Box } from 'lucide-react';
 
 const EMPTY_FORM = {
   name: '',
@@ -14,7 +13,7 @@ const EMPTY_FORM = {
   nosePadType: '',
   weightGram: 0,
   status: 'ACTIVE',
-  imageUrl: [''],
+  imageUrl: [] as string[],
 };
 
 export default function ProductModal({
@@ -25,10 +24,11 @@ export default function ProductModal({
   isSubmitting = false,
 }: any) {
   const [form, setForm] = useState(EMPTY_FORM);
-  const [imagePreview, setImagePreview] = useState<string>('');
-
-  // 1. Thêm state để giữ file thực tế
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
+  // 1. Chuyển state sang mảng để lưu nhiều ảnh
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  
   const [selectedModelFile, setSelectedModelFile] = useState<File | null>(null);
   const [modelFileName, setModelFileName] = useState<string>('');
 
@@ -41,17 +41,20 @@ export default function ProductModal({
         const normalizedImageUrl = Array.isArray(product.imageUrl)
           ? product.imageUrl.map((img: any) =>
               typeof img === 'string' ? img : (img.imageUrl ?? ''),
-            )
-          : [''];
+            ).filter(Boolean) // Loại bỏ các chuỗi rỗng
+          : [];
         setForm({ ...product, imageUrl: normalizedImageUrl });
-        setImagePreview(normalizedImageUrl[0] ?? '');
-        setSelectedFile(null); // Reset file khi edit
+        
+        // Load ảnh cũ vào preview
+        setImagePreviews(normalizedImageUrl);
+        setSelectedFiles([]); // Reset file mới
+        
         setSelectedModelFile(null);
         setModelFileName(product.modelUrl ? 'Current 3D model' : '');
       } else {
         setForm(EMPTY_FORM);
-        setImagePreview('');
-        setSelectedFile(null); // Reset file khi create
+        setImagePreviews([]);
+        setSelectedFiles([]);
         setSelectedModelFile(null);
         setModelFileName('');
       }
@@ -64,17 +67,27 @@ export default function ProductModal({
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // 2. Xử lý khi chọn nhiều file
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    // 2. Lưu file thực tế vào state
-    setSelectedFile(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
-    const objectUrl = URL.createObjectURL(file);
-    setImagePreview(objectUrl);
-    // Vẫn cập nhật form.imageUrl nếu cần thiết cho logic khác,
-    // nhưng API upload file sẽ ưu tiên lấy từ state selectedFile
-    setForm({ ...form, imageUrl: [objectUrl] });
+    // Lưu thêm file mới vào state
+    setSelectedFiles(prev => [...prev, ...files]);
+
+    // Tạo preview cho các file mới và gộp vào mảng preview hiện tại
+    const newPreviews = files.map(file => URL.createObjectURL(file));
+    setImagePreviews(prev => [...prev, ...newPreviews]);
+  };
+
+  // 3. Hàm xóa ảnh (tùy chọn nhưng rất cần thiết cho UX)
+  const removeImage = (indexToRemove: number) => {
+    // Nếu xóa ảnh mới upload
+    if (indexToRemove >= (imagePreviews.length - selectedFiles.length)) {
+      const fileIndex = indexToRemove - (imagePreviews.length - selectedFiles.length);
+      setSelectedFiles(prev => prev.filter((_, i) => i !== fileIndex));
+    }
+    setImagePreviews(prev => prev.filter((_, i) => i !== indexToRemove));
   };
 
   const handleModelFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,8 +99,7 @@ export default function ProductModal({
 
   const inputClass =
     'w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50/50 transition-all';
-  const labelClass = 'block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide';
-  return (
+  const labelClass = 'block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide';  return (
     <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200"
       onClick={(e) => e.target === e.currentTarget && onClose()}
@@ -249,41 +261,51 @@ export default function ProductModal({
             </div>
 
             <div className="col-span-2">
-              <label className={labelClass}>Image</label>
-              <div className="flex gap-3 items-center">
-                {/* Vùng upload */}
+              <label className={labelClass}>Images</label>
+              <div className="flex flex-col gap-3">
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex-1 flex items-center gap-3 px-4 py-3 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50 hover:border-indigo-400 hover:bg-indigo-50/30 cursor-pointer transition-all group"
+                  className="flex-1 flex items-center justify-center gap-3 px-4 py-6 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50 hover:border-indigo-400 hover:bg-indigo-50/30 cursor-pointer transition-all group"
                 >
-                  <Upload className="w-4 h-4 text-slate-400 group-hover:text-indigo-500 shrink-0 transition-colors" />
-                  <span className="text-sm text-slate-400 group-hover:text-indigo-500 transition-colors truncate">
-                    {imagePreview ? 'Click to change image' : 'Click to upload image'}
+                  <Upload className="w-5 h-5 text-slate-400 group-hover:text-indigo-500 shrink-0 transition-colors" />
+                  <span className="text-sm text-slate-500 group-hover:text-indigo-600 transition-colors">
+                    Click to upload multiple images
                   </span>
                   <input
                     ref={fileInputRef}
                     type="file"
                     accept="image/*"
+                    multiple // Thêm thuộc tính multiple
                     className="hidden"
                     onChange={handleFileChange}
                   />
                 </div>
 
-                {/* Preview */}
-                <div className="w-12 h-12 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden shrink-0 flex items-center justify-center">
-                  {imagePreview ? (
-                    <img
-                      src={imagePreview}
-                      alt="preview"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                  ) : (
-                    <ImageIcon className="w-5 h-5 text-slate-300" />
-                  )}
-                </div>
+                {/* Grid hiển thị nhiều ảnh */}
+                {imagePreviews.length > 0 && (
+                  <div className="flex gap-3 flex-wrap mt-2">
+                    {imagePreviews.map((preview, index) => (
+                      <div key={index} className="relative w-16 h-16 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden shrink-0 group">
+                        <img
+                          src={preview}
+                          alt={`preview-${index}`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                        {/* Nút xóa ảnh */}
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-4 h-4 text-white" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -326,7 +348,7 @@ export default function ProductModal({
           </button>
           <button
             // 3. Truyền cả form data và file ra ngoài cho onSubmit handler
-            onClick={() => onSubmit({ productData: form, file: selectedFile, modelFile: selectedModelFile })}
+            onClick={() => onSubmit({ productData: form, files: selectedFiles, modelFile: selectedModelFile })}
             disabled={isSubmitting || !form.name || !form.brand}
             className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-slate-900/20"
           >

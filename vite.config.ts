@@ -23,52 +23,50 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Nhóm 1: Core React & Router
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            // 1. NHÓM AI (MediaPipe)
+            if (id.includes('@mediapipe/tasks-vision')) return 'vendor-ai-vision';
+            if (id.includes('@mediapipe/face_mesh')) return 'vendor-ai-face';
+            if (id.includes('@mediapipe/camera_utils')) return 'vendor-ai-camera';
+            if (id.includes('@mediapipe')) return 'vendor-ai-core';
 
-          // Nhóm 2: Quản lý State & Fetching API
-          'vendor-state': ['@tanstack/react-query', 'zustand', 'axios'],
+            // 2. NHÓM 3D (Three.js) - ĐÃ ĐƯỢC TÁCH NHỎ!
+            if (id.includes('@react-three/drei')) return 'vendor-r3f-drei';
+            if (id.includes('@react-three/fiber')) return 'vendor-r3f-core';
 
-          // Nhóm 3: Xử lý Form & Validation
-          'vendor-form': ['react-hook-form', '@hookform/resolvers', 'zod'],
+            // Tách các thành phần phụ trợ (Loaders, Controls...) - Thường rất nặng
+            if (id.includes('three/examples/jsm') || id.includes('three-stdlib'))
+              return 'vendor-three-stdlib';
+            // Tách lõi xử lý Math (Vector3, Matrix4...)
+            if (id.includes('three/src/math')) return 'vendor-three-math';
+            // Tách lõi Render (WebGLRenderer...)
+            if (id.includes('three/src/renderers')) return 'vendor-three-renderers';
+            // Phần khung xương còn lại của Three.js
+            if (id.includes('three')) return 'vendor-three-core';
 
-          // Nhóm 4: Thư viện vẽ biểu đồ (Rất nặng)
-          'vendor-charts': ['recharts'],
+            // 3. NHÓM BIỂU ĐỒ
+            if (id.includes('recharts') || id.includes('d3')) return 'vendor-charts';
 
-          // Nhóm 5: Thư viện AI / Computer Vision (Rất nặng)
-          'vendor-mediapipe': [
-            '@mediapipe/camera_utils',
-            '@mediapipe/face_mesh',
-            '@mediapipe/tasks-vision',
-          ],
+            // 4. NHÓM UI & ICONS
+            if (id.includes('lucide-react')) return 'vendor-icons';
+            if (id.includes('@radix-ui')) return 'vendor-radix';
 
-          // Nhóm 6: Các component UI từ Radix
-          'vendor-radix': [
-            '@radix-ui/react-avatar',
-            '@radix-ui/react-checkbox',
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-label',
-            '@radix-ui/react-radio-group',
-            '@radix-ui/react-select',
-            '@radix-ui/react-separator',
-            '@radix-ui/react-slot',
-            '@radix-ui/react-switch',
-            '@radix-ui/react-tabs',
-          ],
+            // 5. NHÓM STATE, DATA FETCHING
+            if (id.includes('@tanstack')) return 'vendor-query';
+            if (id.includes('zustand')) return 'vendor-zustand';
+            if (id.includes('axios')) return 'vendor-axios';
+            if (id.includes('react-router')) return 'vendor-router';
 
-          // Nhóm 7: Three.js 3D rendering
-          'vendor-three': ['three', '@react-three/fiber', '@react-three/drei'],
+            // 6. NHÓM FORM & VALIDATION
+            if (id.includes('react-hook-form') || id.includes('@hookform')) return 'vendor-form';
+            if (id.includes('zod')) return 'vendor-zod';
 
-          // Nhóm 8: Icons và Utils nhỏ lẻ
-          'vendor-ui': [
-            'lucide-react',
-            'sonner',
-            'clsx',
-            'tailwind-merge',
-            'class-variance-authority',
-          ],
+            // 7. CORE REACT
+            if (id.includes('react/') || id.includes('react-dom') || id.includes('scheduler')) {
+              return 'vendor-react';
+            }
+          }
         },
       },
     },

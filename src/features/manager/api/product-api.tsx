@@ -8,38 +8,61 @@ export const productApi = {
     return response.data as { result: Product[] };
   },
 
-  create: async ({ productData, file, modelFile }: { productData: any; file: File | null; modelFile?: File | null }) => {
+  create: async ({ productData, files, modelFile }: { productData: any; files?: File[]; modelFile?: File | null }) => {
     const formData = new FormData();
 
-    // 1. Ép kiểu weightGram về số (đề phòng form input trả về string)
+    // 1. Trích xuất và ép kiểu các trường
     const formattedProduct = {
-      ...productData,
-      weightGram: Number(productData.weightGram),
+      name: productData.name,
+      brand: productData.brand,
+      category: productData.category, 
+      frameType: productData.frameType,
+      gender: productData.gender,
+      shape: productData.shape,
+      frameMaterial: productData.frameMaterial,
+      hingeType: productData.hingeType,
+      nosePadType: productData.nosePadType,
+      weightGram: Number(productData.weightGram || 0),
+      status: productData.status || "ACTIVE",
     };
 
-    // 2. Append JSON string như CURL yêu cầu
+    // 2. Append JSON string
     formData.append('product', JSON.stringify(formattedProduct));
 
-    // 3. Append image file nếu có
-    if (file) {
-      formData.append('files', file);
+    // 3. QUAN TRỌNG: Lặp qua mảng files để append nhiều ảnh (cùng key 'files')
+    if (files && files.length > 0) {
+      files.forEach((file) => {
+        formData.append('files', file);
+      });
     }
 
-    // 4. Append 3D model file (.glb) nếu có
-    if (modelFile) {
-      formData.append('modelFile', modelFile);
-    }
-
-    // 5. Gửi request (Header tự động ghi đè multipart/form-data)
+    // 4. Gửi request
     const response = await api.post('/products', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
-    return response.data;
+
+    const createdProduct = response.data.result;
+    const productId = createdProduct.id || createdProduct._id;
+
+    // 5. Tải lên 3D model
+    if (productId && modelFile && modelFile instanceof File && modelFile.size > 0) {
+      try {
+        const modelFormData = new FormData();
+        modelFormData.append('file', modelFile); 
+        await api.post(`/products/${productId}/model`, modelFormData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      } catch (err: any) {
+        console.warn('⚠️ Failed to upload 3D model:', err?.response?.data || err.message);
+      }
+    }
+
+    return createdProduct;
   },
 
-  update: async (id: string, { productData, modelFile }: { productData: any; file?: File | null; modelFile?: File | null }) => {
+  update: async (id: string, { productData, modelFile }: { productData: any; files?: File[]; modelFile?: File | null })=> {
     const formattedProduct = {
       name: productData.name,
       brand: productData.brand,

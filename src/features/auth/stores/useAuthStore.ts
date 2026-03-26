@@ -91,6 +91,7 @@ export const useAuthStore = create<AuthStore>()(
 
         switch (role) {
           case 'admin':
+            return '/admin';
           case 'manager':
             return '/manager';
           case 'operation':

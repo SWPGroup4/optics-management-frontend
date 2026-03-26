@@ -1,27 +1,19 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
-  Package,
-  ShoppingCart,
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Glasses,
-  FileText,
-  RotateCcw,
+
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useSidebar } from '@/features/manager/hooks/useSidebar.ts';
 import Logo from '@/components/common/Logo';
 import { useAuthStore } from '@/features/auth/stores/useAuthStore';
+import { useSidebar } from '../hooks/useSidebar';
 
 const navigation = [
-  { name: 'Bảng điều khiển', href: '/manager', icon: LayoutDashboard },
-  { name: 'Sản phẩm', href: '/manager/products', icon: Package },
-  { name: 'Đơn hàng', href: '/manager/orders', icon: ShoppingCart },
-  { name: 'Tròng kính', href: '/manager/lenses', icon: Glasses },
-  { name: 'Hoàn tiền', href: '/manager/refunds', icon: RotateCcw },
-  { name: 'Chính sách', href: '/manager/policies', icon: FileText },
+  { name: 'Trang chủ', href: '/admin', icon: LayoutDashboard },
+
 ];
 
 export function Sidebar() {
