@@ -85,23 +85,23 @@ export function ScreenSelectOrders({
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-semibold text-foreground">{order.orderId}</span>
-                    <span className="text-xs font-medium text-muted-foreground">
-                      {order.customerId}
-                    </span>
+                    <span className="font-semibold text-foreground">Mã đơn: {order.orderId}</span>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground truncate">
-                    {order.deliveryAddress}
+                    Người nhận: {order.recipientName}
                   </p>
-                  <p className="mt-1 text-sm text-muted-foreground">{order.phoneNumber}</p>
+                  <p className="mt-1 text-sm text-muted-foreground truncate">
+                    Địa chỉ: {order.deliveryAddress}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">Số điện thoại: {order.phoneNumber}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Số lượng: {order.items.length} sản phẩm
+                  </p>
                   {codAmount > 0 && (
                     <p className="mt-1 text-sm font-semibold text-foreground">
-                      COD: {codAmount.toLocaleString('vi-VN')}₫
+                        COD: {codAmount.toLocaleString('vi-VN')}₫
                     </p>
                   )}
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {order.items.length} sản phẩm
-                  </p>
                 </div>
               </div>
             </button>
