@@ -11,14 +11,11 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
-// Các API cho action (huỷ đơn, hoàn tiền)
 import { profileApi } from '../api/api';
-
 import type { BEFeedback } from "@/features/profile/types";
 import FeedbackModal from "@/features/profile/components/feedback/FeedbackModal.tsx";
 import FeedbackPreview from "@/features/profile/components/feedback/FeedbackPreview.tsx";
 
-// 🚀 IMPORT HOOK & TYPES MỚI VÀO ĐÂY
 import { useMyOrders } from '../hooks/useMyOrders';
 import type { Order, OrderItem } from '../types/order';
 import { isAxiosError } from 'axios';
@@ -148,12 +145,7 @@ function PrescriptionImage({ imageUrl }: { imageUrl: string }) {
               className="absolute -top-3 -right-3 w-7 h-7 bg-white rounded-full shadow flex items-center justify-center text-gray-500 hover:text-gray-800"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
             <img
@@ -173,17 +165,11 @@ function PrescriptionImage({ imageUrl }: { imageUrl: string }) {
 function OrderItemCard({
   item,
   orderName,
-  allFeedbacks,
-  onFeedbackClick,
-  orderStatus,
-  orderId
 }: {
   item: OrderItem;
   index: number;
   total: number;
   orderName?: string | null;
-  allFeedbacks: BEFeedback[];
-  onFeedbackClick: (item: OrderItem, feedback: BEFeedback | null) => void;
   orderStatus: string;
   orderId: string;
 }) {
@@ -192,12 +178,6 @@ function OrderItemCard({
     item.itemName ||
     orderName ||
     (item.orderItemType === 'PRE_ORDER' ? 'Sản phẩm đặt trước' : 'Sản phẩm có sẵn');
-
-  const itemFeedback = allFeedbacks.find(f =>
-      f.orderId === orderId && f?.productId === (item?.productId)
-  ) || null;
-
-  const hasFeedback = !!itemFeedback;
 
   return (
     <div className="bg-white border border-gray-100 rounded-xl p-4 space-y-3">
@@ -281,25 +261,6 @@ function OrderItemCard({
           )}
         </div>
       )}
-
-      {/* 🚀 ẨN TRIỆT ĐỂ KHỐI FEEDBACK NẾU CHƯA HOÀN THÀNH */}
-      {(hasFeedback || orderStatus === 'COMPLETED') && (
-        <div className="pt-3 border-t border-gray-100">
-          {hasFeedback ? (
-            <FeedbackPreview
-              feedback={itemFeedback}
-              onEdit={() => onFeedbackClick(item, itemFeedback)}
-            />
-          ) : (
-            <button
-              onClick={() => onFeedbackClick(item, itemFeedback)}
-              className="w-full px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
-            >
-              Đánh giá sản phẩm
-            </button>
-          )}
-        </div>
-      )}
     </div>
   );
 }
@@ -315,6 +276,10 @@ function OrderCard({ order, allFeedbacks }: { order: Order, allFeedbacks: BEFeed
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<OrderItem | null>(null);
   const [selectedFeedback, setSelectedFeedback] = useState<BEFeedback | null>(null);
+
+  // Lấy feedback của toàn bộ đơn hàng
+  const orderFeedback = allFeedbacks.find(f => f.orderId === order.orderId) || null;
+  const hasFeedback = !!orderFeedback;
 
   const statusCfg = STATUS_CONFIG[order.orderStatus] ?? {
     color: 'bg-gray-50 text-gray-600 border-gray-200',
@@ -345,12 +310,12 @@ function OrderCard({ order, allFeedbacks }: { order: Order, allFeedbacks: BEFeed
     }
   };
 
-  const handleFeedbackClick = (item: OrderItem, feedback: BEFeedback | null) => {
-    // Chỉ mở khi trạng thái là COMPLETED
+  const handleFeedbackClick = () => {
     if (order.orderStatus !== 'COMPLETED') return;
-
-    setSelectedItem(item);
-    setSelectedFeedback(feedback);
+    
+    // Gán tạm item đầu tiên nếu API cần productId
+    setSelectedItem(order.items[0]); 
+    setSelectedFeedback(orderFeedback);
     setFeedbackModalOpen(true);
   };
 
@@ -378,12 +343,7 @@ function OrderCard({ order, allFeedbacks }: { order: Order, allFeedbacks: BEFeed
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                 </svg>
               </div>
               <div>
@@ -433,12 +393,7 @@ function OrderCard({ order, allFeedbacks }: { order: Order, allFeedbacks: BEFeed
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
           </div>
           <div className="min-w-0">
@@ -470,12 +425,7 @@ function OrderCard({ order, allFeedbacks }: { order: Order, allFeedbacks: BEFeed
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </div>
         </div>
@@ -491,8 +441,6 @@ function OrderCard({ order, allFeedbacks }: { order: Order, allFeedbacks: BEFeed
                 index={idx}
                 total={order.items.length}
                 orderName={order.orderName}
-                allFeedbacks={allFeedbacks}
-                onFeedbackClick={handleFeedbackClick}
                 orderId={order.orderId}
                 orderStatus={order.orderStatus}
               />
@@ -525,6 +473,31 @@ function OrderCard({ order, allFeedbacks }: { order: Order, allFeedbacks: BEFeed
               </div>
             )}
           </div>
+
+          {/* KHỐI FEEDBACK CHUNG CHO TOÀN ĐƠN HÀNG */}
+          {order.orderStatus === 'COMPLETED' && (
+            <div className="pt-2">
+              {hasFeedback ? (
+                <div className="bg-white border border-indigo-100 rounded-xl p-4">
+                  <p className="text-xs font-bold text-indigo-600 mb-2 flex items-center gap-1">
+                    <span className="w-1 h-3 bg-indigo-600 rounded-full" />
+                    ĐÁNH GIÁ CỦA BẠN CHO ĐƠN HÀNG NÀY
+                  </p>
+                  <FeedbackPreview
+                    feedback={orderFeedback}
+                    onEdit={handleFeedbackClick}
+                  />
+                </div>
+              ) : (
+                <button
+                  onClick={handleFeedbackClick}
+                  className="w-full px-4 py-3 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 flex items-center justify-center gap-2"
+                >
+                  Viết đánh giá cho đơn hàng
+                </button>
+              )}
+            </div>
+          )}
 
           {canCancel && (
             <button
