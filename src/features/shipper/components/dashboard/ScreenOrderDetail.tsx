@@ -59,7 +59,7 @@ export function ScreenOrderDetail({ order, onBack, onComplete }: Props) {
             <User className="h-5 w-5" />
             <span className="text-sm font-medium">Khách hàng</span>
           </div>
-          <p className="text-xl font-bold text-foreground">{order.customerId}</p>
+          <p className="text-xl font-bold text-foreground">{order.recipientName}</p>
         </div>
 
         {/* Phone - MEGA */}

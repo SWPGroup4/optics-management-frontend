@@ -60,23 +60,29 @@ export function ScreenDeliveryList({ orders, completedIds, onStart, onBack }: Pr
                         done ? 'line-through text-muted-foreground' : 'text-foreground'
                       }`}
                     >
-                      {order.orderId}
+                      Mã đơn: {order.orderId}
                     </span>
-                    <span className="text-xs text-muted-foreground">{order.customerId}</span>
                   </div>
                   <p
-                    className={`mt-1 text-sm ${
-                      done ? 'line-through text-muted-foreground' : 'text-muted-foreground'
-                    }`}
+                      className={`mt-1 text-sm ${
+                          done ? 'line-through text-muted-foreground' : 'text-muted-foreground'
+                      }`}
                   >
-                    {order.deliveryAddress}
+                    Người nhận: {order.recipientName}
                   </p>
                   <p
                     className={`mt-1 text-sm ${
                       done ? 'line-through text-muted-foreground' : 'text-muted-foreground'
                     }`}
                   >
-                    {order.phoneNumber}
+                    Địa chỉ: {order.deliveryAddress}
+                  </p>
+                  <p
+                    className={`mt-1 text-sm ${
+                      done ? 'line-through text-muted-foreground' : 'text-muted-foreground'
+                    }`}
+                  >
+                    Số điện thoại: {order.phoneNumber}
                   </p>
                   {codAmount > 0 && (
                     <p

@@ -164,4 +164,5 @@ export interface BEOrder {
   comboDiscountAmount?: number;
   comboSnapshot?: string;
   orderName: string;
+  recipientName: string;
 }
