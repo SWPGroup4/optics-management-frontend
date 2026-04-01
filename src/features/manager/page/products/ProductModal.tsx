@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { X, Loader2, ImageIcon, Upload, Box } from 'lucide-react';
-import type { Product } from '../../types/types';
+
 
 const EMPTY_FORM = {
   name: '',
